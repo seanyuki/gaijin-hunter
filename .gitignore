@@ -13,3 +13,4 @@ screenshots/
 playwright-report/
 test-results/
 node_modules/
+.fuse_hidden*
