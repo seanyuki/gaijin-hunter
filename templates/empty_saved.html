@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<nav class="view-tabs">
+  <a href="/">All jobs</a>
+  <a href="/saved" class="active">⭐ Saved</a>
+  <a href="/archived">Archived</a>
+</nav>
+
+<div class="empty">
+  <h2 style="margin-top:40px;">No saved jobs yet</h2>
+  <p>Click the ☆ on any job card to save it for later. Saved jobs live in your browser only, no account needed.</p>
+  <p><a href="/">← Browse all jobs</a></p>
+</div>
+{% endblock %}

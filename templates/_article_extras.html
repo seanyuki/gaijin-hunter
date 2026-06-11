@@ -1,0 +1,86 @@
+{#
+  Shared premium-article components: Key Takeaways box, FAQ accordion, and the
+  FAQPage JSON-LD schema. Used by resource_detail / guide_detail / living_detail.
+
+  Data shape on the item dict (all optional):
+    item.key_takeaways : list of strings              -> TL;DR box at top
+    item.faqs          : list of (question, answer)   -> FAQ accordion + schema
+
+  Import in a detail template, then call:
+    key_takeaways(item)  near the top of the article
+    faq_section(item)    at the bottom of the article
+    faq_schema(item)     inside the jsonld block
+    article_extras_css() once, inside the content block
+  Note: macros are self-contained (icon SVG inlined) so no extra imports needed.
+#}
+
+{% macro key_takeaways(item) -%}
+{%- if item.key_takeaways %}
+<div class="key-takeaways">
+  <div class="kt-head"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 1 5 12c-1 1-2 2-2 3v1H9v-1c0-1-1-2-2-3a7 7 0 0 1 5-12z"/></svg> Key takeaways</div>
+  <ul>
+    {% for t in item.key_takeaways %}<li>{{ t | safe }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif -%}
+{%- endmacro %}
+
+{% macro faq_section(item) -%}
+{%- if item.faqs %}
+<section class="faq" id="faq">
+  <h2 id="faq-heading">Frequently asked questions</h2>
+  {% for q, a in item.faqs %}
+  <details class="faq-item">
+    <summary>{{ q }}</summary>
+    <div class="faq-a">{{ a | safe }}</div>
+  </details>
+  {% endfor %}
+</section>
+{% endif -%}
+{%- endmacro %}
+
+{% macro faq_schema(item) -%}
+{%- if item.faqs %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {% for q, a in item.faqs %}{
+      "@type": "Question",
+      "name": {{ q | tojson }},
+      "acceptedAnswer": {"@type": "Answer", "text": {{ (a | striptags | replace('\n',' ') | trim) | tojson }}}
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endif -%}
+{%- endmacro %}
+
+{% macro article_extras_css() -%}
+<style>
+  .key-takeaways { background: linear-gradient(135deg, #eef2ff, #f8fafc);
+    border: 1px solid #c7d2fe; border-radius: 12px; padding: 18px 22px; margin: 0 0 24px; }
+  .key-takeaways .kt-head { display: inline-flex; align-items: center; gap: 7px;
+    font-size: 12px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;
+    color: #3730a3; margin-bottom: 8px; }
+  .key-takeaways ul { margin: 0; padding-left: 20px; }
+  .key-takeaways li { font-size: 14.5px; line-height: 1.6; color: #1e293b; margin-bottom: 6px; }
+  .key-takeaways li:last-child { margin-bottom: 0; }
+
+  .faq { margin-top: 34px; padding-top: 8px; border-top: 2px solid var(--line); }
+  .faq > h2 { font-size: 22px; margin: 18px 0 14px; scroll-margin-top: 80px; letter-spacing: -0.01em; }
+  .faq-item { border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px;
+    background: var(--card); overflow: hidden; }
+  .faq-item summary { cursor: pointer; padding: 14px 18px; font-weight: 600; font-size: 15px;
+    color: var(--fg); list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after { content: "+"; font-size: 20px; color: var(--accent); font-weight: 400; flex-shrink: 0; }
+  .faq-item[open] summary::after { content: "\2212"; }
+  .faq-item summary:hover { color: var(--accent); }
+  .faq-a { padding: 0 18px 16px; font-size: 14.5px; line-height: 1.7; color: var(--fg-soft); }
+  .faq-a p { margin: 0 0 8px; } .faq-a p:last-child { margin: 0; }
+  .faq-a a { color: var(--accent); font-weight: 500; }
+</style>
+{%- endmacro %}

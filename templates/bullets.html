@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+{% block title %}Bullet Improver, Gaijin Hunter{% endblock %}
+{% block content %}
+<style>
+  .rr-page-h { padding: 8px 0 18px; }
+  .rr-page-h h1 { margin: 0 0 6px; font-size: 28px; }
+  .rr-page-h p { margin: 0; color: var(--muted); }
+
+  .bi-layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 22px; align-items: start; }
+  @media (max-width: 1000px) { .bi-layout { grid-template-columns: 1fr; } }
+
+  .pane { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+          padding: 18px 20px; margin-bottom: 16px; }
+  .pane h2 { margin: 0 0 10px; font-size: 16px; }
+  .pane p.lede { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+
+  .bullet-input {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px;
+    font-size: 14px; font-family: inherit; resize: vertical; min-height: 80px;
+    line-height: 1.5; background: #fff;
+  }
+
+  .examples { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .examples button { background: #f3f4f6; border: 1px solid var(--line); color: #374151;
+    padding: 4px 10px; border-radius: 999px; font-size: 12px; cursor: pointer; }
+  .examples button:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .actions { margin-top: 12px; display: flex; gap: 8px; }
+  .actions .btn { background: var(--accent); color: #fff; border: none; padding: 9px 18px;
+    border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; }
+  .actions .btn.ghost { background: #fff; color: var(--accent); border: 1px solid var(--accent); }
+
+  .diagnostic {
+    border-left: 4px solid var(--line); padding: 8px 14px; margin-bottom: 8px;
+    background: #fafafa; border-radius: 0 6px 6px 0; font-size: 13px;
+  }
+  .diagnostic.ok    { border-color: #10b981; background: #ecfdf5; color: #064e3b; }
+  .diagnostic.warn  { border-color: #f59e0b; background: #fffbeb; color: #78350f; }
+  .diagnostic.error { border-color: #ef4444; background: #fef2f2; color: #7f1d1d; }
+  .diagnostic strong { font-weight: 700; }
+  .diagnostic .fix { display: block; margin-top: 4px; font-size: 12px;
+                     color: inherit; opacity: 0.9; }
+
+  .score-row { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+  .score-row .score {
+    width: 56px; height: 56px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-weight: 700; font-size: 18px;
+    color: #fff; flex-shrink: 0;
+  }
+  .score-row .score.s-strong { background: #10b981; }
+  .score-row .score.s-ok     { background: #f59e0b; }
+  .score-row .score.s-weak   { background: #ef4444; }
+  .score-row .score-text strong { display: block; font-size: 14px; }
+  .score-row .score-text span { font-size: 12px; color: var(--muted); }
+
+  .rewrite-card {
+    background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px;
+    padding: 14px 16px; margin-top: 12px;
+  }
+  .rewrite-card h3 { margin: 0 0 8px; font-size: 13px; color: #0c4a6e;
+    text-transform: uppercase; letter-spacing: 0.04em; }
+  .rewrite-card .ex { background: #fff; border: 1px solid #bae6fd; padding: 10px 12px;
+    border-radius: 6px; font-size: 14px; color: #111; margin-bottom: 6px; }
+
+  .star-grid { display: grid; grid-template-columns: 80px 1fr; gap: 10px 14px;
+               margin-top: 10px; font-size: 13px; }
+  .star-grid b { color: var(--accent); }
+
+  .verb-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+               margin-top: 8px; }
+  @media (max-width: 700px) { .verb-grid { grid-template-columns: repeat(2, 1fr); } }
+  .verb-grid > div { font-size: 12px; padding: 6px 10px; background: #fff;
+                     border: 1px solid var(--line); border-radius: 6px; color: #374151; }
+  .verb-grid > div b { color: var(--accent); }
+</style>
+
+<div class="rr-page-h">
+  <h1>Resume Builder</h1>
+  <p>Paste a weak resume bullet, get rule-based diagnostics. Nothing leaves your browser.</p>
+  {% include "_resume_subnav.html" %}
+</div>
+
+<div class="bi-layout">
+
+  <div>
+    <div class="pane">
+      <h2>1. Paste a bullet</h2>
+      <p class="lede">One bullet at a time. The improver checks for weak verbs, missing
+        metrics, vague claims, and over-long sentences.</p>
+      <textarea id="bullet" class="bullet-input"
+                placeholder="Helped with backend development for our payment system."></textarea>
+      <div class="examples">
+        <span style="font-size:12px; color:var(--muted); align-self:center; margin-right:4px;">
+          Try a weak example:
+        </span>
+        <button data-ex="Helped with backend development for our payment system.">weak #1</button>
+        <button data-ex="Worked on improving customer onboarding and engagement.">weak #2</button>
+        <button data-ex="Responsible for managing the team and project.">weak #3</button>
+        <button data-ex="Led migration of legacy PHP monolith to Go microservices, reducing p99 latency from 480ms to 90ms and cutting AWS costs by ¥18M/year.">strong reference</button>
+      </div>
+      <div class="actions">
+        <button class="btn" id="analyze-btn">Analyze</button>
+        <button class="btn ghost" id="clear-btn">Clear</button>
+      </div>
+    </div>
+
+    <div class="pane" id="results-pane" style="display:none;">
+      <h2>2. Diagnostics</h2>
+      <div class="score-row">
+        <div id="score-circle" class="score s-weak">0</div>
+        <div class="score-text">
+          <strong id="score-label">–</strong>
+          <span id="score-explainer">Run an analysis to see the score.</span>
+        </div>
+      </div>
+      <div id="diagnostics"></div>
+      <div class="rewrite-card" id="rewrite-card" style="display:none;">
+        <h3>Suggested rewrite skeleton</h3>
+        <div class="ex" id="rewrite-text"></div>
+        <p style="margin:6px 0 0; font-size:12px; color:#0c4a6e;">
+          Fill in the brackets with your actual numbers, scope, and outcomes.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <aside>
+    <div class="pane">
+      <h2>The STAR / CAR pattern</h2>
+      <p class="lede">Every strong bullet has these moving parts. Most weak bullets are missing
+        the metric and the result.</p>
+      <div class="star-grid">
+        <div><b>Action</b></div><div>Verb in past tense, what YOU did.</div>
+        <div><b>Object</b></div><div>The specific thing, system, team, feature, customer segment.</div>
+        <div><b>Metric</b></div><div>Numbers anchor credibility: ¥, %, ms, users, tx/day.</div>
+        <div><b>Result</b></div><div>The business outcome you produced.</div>
+      </div>
+    </div>
+
+    <div class="pane">
+      <h2>Strong action verbs</h2>
+      <p class="lede">Drop in for "Helped," "Worked on," "Responsible for," "Involved in."</p>
+      <div class="verb-grid">
+        <div><b>Built</b> created from scratch</div>
+        <div><b>Led</b> drove a team / initiative</div>
+        <div><b>Shipped</b> delivered to users</div>
+        <div><b>Rebuilt</b> overhauled existing</div>
+        <div><b>Reduced</b> cut a cost / time</div>
+        <div><b>Increased</b> grew a metric</div>
+        <div><b>Designed</b> architected a system</div>
+        <div><b>Migrated</b> moved off legacy</div>
+        <div><b>Negotiated</b> closed a deal</div>
+        <div><b>Automated</b> removed manual toil</div>
+        <div><b>Mentored</b> developed people</div>
+        <div><b>Scaled</b> grew capacity</div>
+      </div>
+    </div>
+
+    <div class="pane">
+      <h2>Common red flags</h2>
+      <ul style="margin:0; padding-left:18px; font-size:13px; color:#374151; line-height:1.65;">
+        <li><strong>"Responsible for…"</strong>, describes a job description, not an accomplishment.</li>
+        <li><strong>"Helped / assisted / worked on…"</strong>, invisible contribution. Be specific.</li>
+        <li><strong>Adjective stacks</strong>, "passionate, hard-working, detail-oriented."</li>
+        <li><strong>No numbers</strong>, every bullet should have at least one metric.</li>
+        <li><strong>Over 30 words</strong>, recruiters skim. Cut sub-clauses.</li>
+      </ul>
+    </div>
+  </aside>
+</div>
+
+<script>
+(function () {
+  // ---- Heuristics ----
+  var WEAK_VERBS = {
+    "helped":         "Be specific: did you build, design, lead, deliver?",
+    "assisted":       "Same as helped — name your contribution.",
+    "supported":      "Replace with the actual verb (built, ran, owned).",
+    "worked on":      "Generic. Replace with built / shipped / rebuilt / migrated.",
+    "involved in":    "Vague. State what you actually did.",
+    "participated":   "Recruiters skip this. Show what you delivered.",
+    "contributed to": "Then say HOW. \"Contributed by …\" or just drop it.",
+    "responsible for":"Job description, not accomplishment. Lead with a past-tense verb.",
+    "duties included":"Pure JD language — kill the whole bullet, rewrite.",
+    "tasked with":    "Replace with what you did.",
+    "in charge of":   "Replace with led / owned / managed.",
+    "various":        "Vague. Name two specifics.",
+  };
+
+  var STRONG_VERBS = ["Built","Led","Shipped","Designed","Architected","Migrated","Refactored",
+    "Rebuilt","Reduced","Increased","Grew","Cut","Drove","Launched","Scaled","Automated",
+    "Negotiated","Closed","Won","Owned","Mentored","Hired","Implemented","Delivered",
+    "Resolved","Eliminated","Saved","Generated","Improved","Streamlined","Standardized"];
+
+  var METRIC_RE = /(\d{1,3}(?:,\d{3})+|\d+(\.\d+)?\s*(%|x|×|ms|sec|s|min|hr|hour|hrs|days?|weeks?|months?|years?|k|m|b|users?|customers?|orders?|tx|requests?|api|engineers?|reports?|jpy|usd|¥|\$|£|€|points?|bps))/i;
+  var BIGNUM_RE  = /\b\d{4,}\b|\b\d{1,3}(,\d{3}){1,}\b|¥\d|\$\d|\d+\s?(million|billion|mil|bn)/i;
+  var FILLER_RE  = /\b(very|really|extremely|truly|just|basically|essentially|literally|actually)\b/gi;
+  var PASSIVE_RE = /\b(was|were|been|being|is|are)\s+\w+ed\b/i;
+
+  function analyze(text) {
+    var t = (text || "").trim();
+    var diag = [];
+    var score = 100;
+
+    if (!t) {
+      return { score: 0, label: "—", diag: [{ kind: "error", msg: "Paste a bullet to analyze." }] };
+    }
+
+    // Length checks
+    var words = t.split(/\s+/).filter(Boolean);
+    if (words.length < 4) {
+      diag.push({ kind: "error", msg: "Too short (" + words.length + " words). Add scope, object, and outcome." });
+      score -= 30;
+    } else if (words.length > 30) {
+      diag.push({ kind: "warn", msg: "Long bullet (" + words.length + " words). Recruiters skim — aim for ≤25." });
+      score -= 10;
+    }
+
+    // Starts with a verb? (look at first non-stop-word)
+    var firstWord = words[0] ? words[0].replace(/[^A-Za-z]/g, "").toLowerCase() : "";
+    var lowerStart = t.toLowerCase();
+    var weakStart = null;
+    Object.keys(WEAK_VERBS).forEach(function (phrase) {
+      if (lowerStart.indexOf(phrase) === 0 || lowerStart.indexOf(" " + phrase) !== -1 ||
+          lowerStart.indexOf(phrase + " ") === 0) {
+        weakStart = phrase;
+      }
+    });
+    if (weakStart) {
+      diag.push({
+        kind: "error",
+        msg: 'Weak phrasing: "' + weakStart + '"',
+        fix: WEAK_VERBS[weakStart],
+      });
+      score -= 25;
+    } else if (firstWord && STRONG_VERBS.map(function (v) { return v.toLowerCase(); }).indexOf(firstWord) !== -1) {
+      diag.push({ kind: "ok", msg: 'Strong opening verb: "' + firstWord.charAt(0).toUpperCase() + firstWord.slice(1) + '"' });
+    } else {
+      diag.push({
+        kind: "warn",
+        msg: 'Doesn\'t start with a clear action verb (got "' + firstWord + '")',
+        fix: "Try: " + STRONG_VERBS.slice(0, 6).join(", ") + " …",
+      });
+      score -= 10;
+    }
+
+    // Metric / number
+    if (METRIC_RE.test(t) || BIGNUM_RE.test(t)) {
+      diag.push({ kind: "ok", msg: "Includes a metric / number ✓" });
+    } else {
+      diag.push({
+        kind: "error",
+        msg: "No metric. The single biggest weakness in resume bullets.",
+        fix: "Add a number — % change, dollar/yen, ms, users/day, team size, anything concrete.",
+      });
+      score -= 25;
+    }
+
+    // Filler words
+    var fillers = (t.match(FILLER_RE) || []);
+    if (fillers.length) {
+      diag.push({
+        kind: "warn",
+        msg: "Filler words: " + Array.from(new Set(fillers.map(function (f) { return f.toLowerCase(); }))).join(", "),
+        fix: "Cut these — they make bullets sound padded.",
+      });
+      score -= 5 * Math.min(3, fillers.length);
+    }
+
+    // Passive voice
+    if (PASSIVE_RE.test(t)) {
+      diag.push({
+        kind: "warn",
+        msg: "Possible passive voice (\"was X-ed\" / \"were X-ed\").",
+        fix: "Rewrite as 'I did X' — active voice signals ownership.",
+      });
+      score -= 8;
+    }
+
+    // Personal pronouns "I" / "my" — fine to call out but not penalize
+    if (/\b(I|my|me)\b/.test(t)) {
+      diag.push({
+        kind: "warn",
+        msg: "Personal pronouns (\"I\", \"my\"). Resumes typically omit them.",
+        fix: "Drop the pronoun and start with the verb.",
+      });
+      score -= 5;
+    }
+
+    // Adjective stacks ("passionate, hard-working, …")
+    if (/(passionate|hard[- ]?working|detail[- ]?oriented|team[- ]?player|self[- ]?starter|results[- ]?driven|go[- ]?getter)/i.test(t)) {
+      diag.push({
+        kind: "error",
+        msg: "Cliché adjective. Show, don't tell.",
+        fix: 'Replace "passionate" / "detail-oriented" with a specific behavior + outcome.',
+      });
+      score -= 15;
+    }
+
+    // Specificity hint — does it mention a system, technology, or domain?
+    var specific = /(team|project|system|service|product|client|customer|user|api|database|pipeline|migration|feature|launch|campaign|sales|revenue|growth|fund|round|partnership)/i.test(t);
+    if (specific) {
+      diag.push({ kind: "ok", msg: "Mentions a specific object (system / team / outcome) ✓" });
+    } else {
+      diag.push({
+        kind: "warn",
+        msg: "No clear object (what did you act on?).",
+        fix: "Name the team, system, product, customer segment, or domain.",
+      });
+      score -= 8;
+    }
+
+    score = Math.max(0, Math.min(100, score));
+    var label = score >= 75 ? "Strong" : score >= 50 ? "Acceptable, room to tighten" : score >= 25 ? "Weak — rewrite recommended" : "Needs full rewrite";
+    return { score: score, label: label, diag: diag };
+  }
+
+  function rewriteSkeleton() {
+    // Pull one strong verb at random for variety
+    var v = STRONG_VERBS[Math.floor(Math.random() * STRONG_VERBS.length)];
+    return v + " [object — system / team / segment] by [action — what you did], " +
+      "[metric — number with unit], resulting in [outcome — business impact].";
+  }
+
+  function render(result) {
+    var pane = document.getElementById("results-pane");
+    pane.style.display = "";
+    var s = result.score;
+    var circle = document.getElementById("score-circle");
+    var cls = s >= 75 ? "s-strong" : s >= 50 ? "s-ok" : "s-weak";
+    circle.className = "score " + cls;
+    circle.textContent = s;
+    document.getElementById("score-label").textContent = result.label;
+    document.getElementById("score-explainer").textContent =
+      s >= 75 ? "Solid bullet — minor tweaks at best." :
+      s >= 50 ? "Half the work is done — fix the items below to push past 75." :
+                "Rewrite from the skeleton at the bottom and re-analyze.";
+
+    var d = document.getElementById("diagnostics");
+    d.innerHTML = "";
+    result.diag.forEach(function (item) {
+      var div = document.createElement("div");
+      div.className = "diagnostic " + item.kind;
+      div.innerHTML = "<strong>" + item.msg + "</strong>" +
+        (item.fix ? '<span class="fix">→ ' + item.fix + '</span>' : "");
+      d.appendChild(div);
+    });
+
+    var rc = document.getElementById("rewrite-card");
+    if (s < 75) {
+      rc.style.display = "";
+      document.getElementById("rewrite-text").textContent = rewriteSkeleton();
+    } else {
+      rc.style.display = "none";
+    }
+  }
+
+  // events
+  document.getElementById("analyze-btn").addEventListener("click", function () {
+    var t = document.getElementById("bullet").value;
+    render(analyze(t));
+  });
+  document.getElementById("clear-btn").addEventListener("click", function () {
+    document.getElementById("bullet").value = "";
+    document.getElementById("results-pane").style.display = "none";
+  });
+  document.querySelectorAll(".examples button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      document.getElementById("bullet").value = b.getAttribute("data-ex");
+      render(analyze(b.getAttribute("data-ex")));
+    });
+  });
+  // Live re-analyze on input (debounced)
+  var t;
+  document.getElementById("bullet").addEventListener("input", function () {
+    clearTimeout(t);
+    t = setTimeout(function () {
+      var v = document.getElementById("bullet").value;
+      if (v.trim().length >= 4) render(analyze(v));
+    }, 350);
+  });
+
+  // Expose for tests
+  window._bulletAnalyzer = analyze;
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Japanese Hiring Glossary, Rirekisho, Shokumu, Naitei, Nemawashi · Gaijin Hunter{% endblock %}
+{% block meta_description %}Comprehensive glossary of Japanese hiring and workplace terms for foreigners, rirekisho, shokumu keirekisho, naitei, nemawashi, hanko, shakai hoken, and more. Each term explained in plain English with usage notes.{% endblock %}
+{% block jsonld %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "DefinedTermSet",
+  "name": "Japanese Hiring and Workplace Glossary",
+  "description": "Glossary of Japanese terms used in hiring, recruiting, employment, and workplace contexts — explained in plain English for foreigners.",
+  "url": "{{ base_url }}/glossary",
+  "hasDefinedTerm": [
+    {% for t in terms[:30] %}
+    {"@type": "DefinedTerm", "name": {{ t.term|tojson }}, "description": {{ t.definition|tojson }}, "inDefinedTermSet": "{{ base_url }}/glossary"}{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endblock %}
+{% block content %}
+<style>
+  .hero { padding: 24px 0 16px; text-align: center; }
+  .hero h1 { margin: 0 0 8px; font-size: 32px; letter-spacing: -0.02em; }
+  .hero p  { color: var(--muted); margin: 0 auto; max-width: 700px; font-size: 15px; line-height: 1.55; }
+
+  .controls { display: flex; gap: 10px; max-width: 800px; margin: 18px auto 14px;
+              padding: 0 20px; flex-wrap: wrap; align-items: center; }
+  .controls input { flex: 1; min-width: 220px; padding: 10px 14px; border: 1px solid var(--line);
+                     border-radius: 8px; font-size: 15px; }
+  .cat-filter { display: flex; gap: 6px; flex-wrap: wrap; }
+  .cat-filter button { background: #fff; border: 1px solid var(--line);
+                        padding: 5px 12px; border-radius: 999px; font-size: 12px;
+                        cursor: pointer; color: var(--fg); }
+  .cat-filter button.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+          max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+  @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+  .term-card { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+                padding: 16px 18px; }
+  .term-card.hidden { display: none; }
+  .term-card h3 { margin: 0 0 4px; font-size: 15px; color: var(--accent); }
+  .term-card .cat { display: inline-block; font-size: 10px; color: var(--muted);
+                     background: #f9fafb; padding: 2px 8px; border-radius: 999px;
+                     margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .term-card p { margin: 0; font-size: 13px; color: #4b5563; line-height: 1.55; }
+
+  .stats { color: var(--muted); font-size: 13px; text-align: center; max-width: 1100px;
+            margin: 0 auto 12px; padding: 0 20px; }
+
+  .empty { text-align: center; color: var(--muted); padding: 40px 20px;
+            font-style: italic; max-width: 800px; margin: 0 auto; display: none; }
+  .empty.show { display: block; }
+</style>
+
+<div class="hero">
+  <h1>Glossary of Japanese hiring terms</h1>
+  <p>Every Japanese workplace term that's likely to come up in your job search,
+     translated and explained, from <em>rirekisho</em> to <em>zangyou</em>.
+     {{ terms | length }} entries.</p>
+</div>
+
+<div class="controls">
+  <input id="search" type="search" placeholder="Search 'JLPT', 'naitei', 'hanko'…" autocomplete="off">
+  <div class="cat-filter" id="cat-filter">
+    <button class="active" data-cat="all">All</button>
+    {% set cats = terms | map(attribute='category') | unique | list %}
+    {% for c in cats %}
+      <button data-cat="{{ c }}">{{ c }}</button>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="stats" id="result-stats">{{ terms | length }} terms</div>
+
+<div class="grid" id="grid">
+  {% for t in terms %}
+    <div class="term-card" data-term="{{ t.term | lower }}"
+         data-def="{{ t.definition | lower }}"
+         data-cat="{{ t.category }}">
+      <span class="cat">{{ t.category }}</span>
+      <h3>{{ t.term }}</h3>
+      <p>{{ t.definition | safe }}</p>
+    </div>
+  {% endfor %}
+</div>
+
+<div id="empty" class="empty">No matches. Try a different search or category.</div>
+
+<script>
+(function () {
+  var search = document.getElementById("search");
+  var stats  = document.getElementById("result-stats");
+  var empty  = document.getElementById("empty");
+  var cards  = Array.prototype.slice.call(document.querySelectorAll(".term-card"));
+  var catBtns = Array.prototype.slice.call(document.querySelectorAll("#cat-filter button"));
+  var activeCat = "all";
+
+  function applyFilter() {
+    var q = search.value.trim().toLowerCase();
+    var n = 0;
+    cards.forEach(function (c) {
+      var matchText = !q ||
+        c.getAttribute("data-term").indexOf(q) !== -1 ||
+        c.getAttribute("data-def").indexOf(q) !== -1;
+      var matchCat = activeCat === "all" || c.getAttribute("data-cat") === activeCat;
+      var show = matchText && matchCat;
+      c.classList.toggle("hidden", !show);
+      if (show) n++;
+    });
+    stats.textContent = n + " term" + (n === 1 ? "" : "s");
+    empty.classList.toggle("show", n === 0);
+  }
+
+  search.addEventListener("input", applyFilter);
+  catBtns.forEach(function (b) {
+    b.addEventListener("click", function () {
+      catBtns.forEach(function (x) { x.classList.remove("active"); });
+      b.classList.add("active");
+      activeCat = b.getAttribute("data-cat");
+      applyFilter();
+    });
+  });
+})();
+</script>
+{% endblock %}

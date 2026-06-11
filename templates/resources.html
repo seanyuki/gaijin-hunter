@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+{% block title %}Career resources for foreigners in Japan, Gaijin Hunter{% endblock %}
+
+{% block content %}
+<style>
+  .res-hero { text-align: center; padding: 30px 20px 20px; }
+  .res-hero h1 { margin: 0 0 8px; font-size: 32px; }
+  .res-hero p { color: var(--muted); margin: 0; }
+  .toc { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+         padding: 18px 22px; margin: 30px 0; }
+  .toc h3 { margin: 0 0 8px; font-size: 13px; color: var(--muted);
+            text-transform: uppercase; letter-spacing: 0.04em; }
+  .toc ul { margin: 0; padding-left: 18px; columns: 2; column-gap: 30px; }
+  .toc li { margin-bottom: 4px; font-size: 14px; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  .res-section { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+                 padding: 26px 28px; margin-bottom: 18px; }
+  .res-section h2 { margin: 0 0 12px; font-size: 22px; }
+  .res-section h3 { margin: 18px 0 8px; font-size: 16px; color: #374151; }
+  .res-section p, .res-section li { font-size: 15px; line-height: 1.7; color: #374151; }
+  .res-section ul { padding-left: 22px; }
+  .res-section table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 14px; }
+  .res-section table th, .res-section table td {
+    border: 1px solid var(--line); padding: 8px 12px; text-align: left; vertical-align: top;
+  }
+  .res-section table th { background: #f9fafb; font-weight: 600; }
+  .res-section .callout { background: var(--accent-soft); border: 1px solid #eccfca;
+                          padding: 12px 15px; margin: 14px 0; border-radius: 10px;
+                          font-size: 14px; color: var(--accent-dark); }
+  .res-section .warn { background: var(--warn-tint); border: 1px solid #f0d9a8;
+                       padding: 12px 15px; margin: 14px 0; border-radius: 10px;
+                       font-size: 14px; color: #92400e; }
+  @media (max-width: 600px) {
+    .toc ul { columns: 1; }
+  }
+</style>
+
+<div class="res-hero">
+  <h1>Career resources</h1>
+  <p>Practical answers to the questions foreigners actually ask when working in Japan.</p>
+</div>
+
+<nav class="toc">
+  <h3>Contents</h3>
+  <ul>
+    <li><a href="#visa">Visa types for working in Japan</a></li>
+    <li><a href="#jlpt">Japanese language levels &amp; what they mean</a></li>
+    <li><a href="#resume">Japanese resume formats</a></li>
+    <li><a href="#interview">Interview etiquette</a></li>
+    <li><a href="#salary">Salary expectations &amp; negotiation</a></li>
+    <li><a href="#col">Cost of living</a></li>
+    <li><a href="#phrases">Useful Japanese for interviews</a></li>
+    <li><a href="#red-flags">Red flags to watch for</a></li>
+  </ul>
+</nav>
+
+<article id="visa" class="res-section">
+  <h2>Visa types for working in Japan</h2>
+  <p>You can only legally work in Japan with a visa whose status of residence permits paid
+     employment. The most common categories for foreign professionals:</p>
+  <table>
+    <thead>
+      <tr><th>Visa</th><th>Who it's for</th><th>Key requirements</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Engineer / Specialist in Humanities / International Services</strong></td>
+        <td>Tech, finance, business, language teaching, design, marketing, translation.</td>
+        <td>Bachelor's degree in a relevant field OR 10+ years of work experience in the field.
+            Job offer required.</td>
+      </tr>
+      <tr>
+        <td><strong>Highly Skilled Professional (HSP)</strong></td>
+        <td>High earners and senior specialists.</td>
+        <td>Points-based (income, education, age, experience). 70+ points → 5-year visa,
+            permanent residency in 3 years. 80+ → PR in 1 year.</td>
+      </tr>
+      <tr>
+        <td><strong>Business Manager</strong></td>
+        <td>Founders / executives of a Japan-registered business.</td>
+        <td>Real office, ¥5M capital, business plan, at least one full-time local hire (or
+            equivalent investment).</td>
+      </tr>
+      <tr>
+        <td><strong>Instructor</strong></td>
+        <td>Teachers at elementary, junior high, or high schools.</td>
+        <td>Bachelor's degree + teaching credential.</td>
+      </tr>
+      <tr>
+        <td><strong>Working Holiday</strong></td>
+        <td>Citizens of partner countries, age 18–30 (some 18–25).</td>
+        <td>Bilateral agreement, time-limited (6–12 months), restricted to certain industries.</td>
+      </tr>
+      <tr>
+        <td><strong>Designated Activities (J-Find)</strong></td>
+        <td>Recent graduates of top-ranked global universities looking for work in Japan.</td>
+        <td>Up to 2 years to find employment.</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="callout">
+    <strong>Sponsorship:</strong> Most employers will sponsor your visa, but smaller companies
+    sometimes will not. Filter for <em>Apply from abroad</em> jobs on the
+    <a href="/jobs?overseas_application_ok=1">Jobs board</a>, those are explicitly open to
+    overseas candidates.
+  </div>
+</article>
+
+<article id="jlpt" class="res-section">
+  <h2>Japanese language levels &amp; what they mean for hiring</h2>
+  <p>JLPT (日本語能力試験) is the standard certification. Most job listings will refer to one
+     of these levels, knowing what each actually means helps you self-assess honestly.</p>
+  <table>
+    <thead>
+      <tr><th>Level</th><th>What it really means</th><th>Roles you'll see require this</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>N1 / Native / Fluent</strong></td>
+          <td>Comfortable handling all business communication, formal documents, meetings, idioms.</td>
+          <td>Senior / customer-facing / sales / management roles at domestic Japanese companies.</td></tr>
+      <tr><td><strong>N2 / Business</strong></td>
+          <td>Can hold meetings in Japanese, read business emails, handle most workplace situations.</td>
+          <td>Many tech, design, finance, and marketing roles at Japanese companies.</td></tr>
+      <tr><td><strong>N3 / Conversational</strong></td>
+          <td>Daily-life conversation, basic workplace small talk, simple emails.</td>
+          <td>Some engineering and creative roles where English is the team language.</td></tr>
+      <tr><td><strong>N4–N5 / Basic</strong></td>
+          <td>Survival level. Asking for directions, ordering food, basic introductions.</td>
+          <td>Roles that explicitly say "no Japanese required".</td></tr>
+      <tr><td><strong>Not Required</strong></td>
+          <td>Team operates entirely in English. Common at international startups, large multinationals.</td>
+          <td>Filter the board for <a href="/jobs?japanese_level=Not+Required">jobs that don't need Japanese</a>.</td></tr>
+    </tbody>
+  </table>
+  <div class="warn">
+    <strong>Reality check:</strong> Job listings often over-state the Japanese level required.
+    Apply even if you're one level below, many roles have flexible thresholds for the right candidate.
+  </div>
+</article>
+
+<article id="resume" class="res-section">
+  <h2>Japanese resume formats</h2>
+  <p>Japan uses two distinct resume documents, different from a Western CV. You'll typically
+     submit both:</p>
+  <h3>履歴書 (rirekisho)</h3>
+  <p>A standardized personal-history document. Format is fixed: name + furigana, photo,
+     date of birth, address, education and work history in chronological order, certifications,
+     motivation, personal wishes. Hand-written used to be expected; digital is now common.</p>
+  <p>Build one with our <a href="/resume">Resume Builder</a>.</p>
+
+  <h3>職務経歴書 (shokumu keirekisho)</h3>
+  <p>Your career-history document, closer to a Western CV. Tells the story of what you did
+     at each company, projects, technologies, results. Less rigid format. Typically 2 pages.</p>
+
+  <h3>Things to get right</h3>
+  <ul>
+    <li><strong>Photo:</strong> ID-style, 3 cm × 4 cm, neutral background, taken within 3 months.</li>
+    <li><strong>Address:</strong> Write it in Japanese order (大きい→小さい): postal code, prefecture, city, ward, building.</li>
+    <li><strong>Dates:</strong> Use either Western years (西暦) or Japanese era years (和暦), but be consistent throughout the document.</li>
+    <li><strong>Education:</strong> Include high school (高校), not just university.</li>
+    <li><strong>Submission:</strong> Submit as PDF unless the company says otherwise.</li>
+  </ul>
+</article>
+
+<article id="interview" class="res-section">
+  <h2>Interview etiquette</h2>
+  <ul>
+    <li><strong>Arrive 5–10 minutes early</strong>, not earlier, not exactly on time.</li>
+    <li><strong>Business attire:</strong> dark suit (black, navy, charcoal), white shirt, conservative tie.
+        This is the default even at "casual" Japanese companies for first interviews.</li>
+    <li><strong>Bow on entry and exit.</strong> 15° is plenty unless meeting the company president.</li>
+    <li><strong>Business cards (名刺):</strong> if you have them, present with both hands, kanji side up.
+        Receive with both hands, study briefly, place on the table in front of you (not in your pocket).</li>
+    <li><strong>Don't sit until invited.</strong></li>
+    <li><strong>Group interviews are common.</strong> Address the most senior person but speak to all.</li>
+    <li><strong>Salary discussion</strong> typically happens after they've decided to make an offer, not in the first interview.</li>
+    <li><strong>Send a thank-you email</strong> within 24 hours.</li>
+  </ul>
+</article>
+
+<article id="salary" class="res-section">
+  <h2>Salary expectations &amp; negotiation</h2>
+  <p>Japan's salary norms vary wildly by industry and company size. Rough 2026 ballparks for
+     foreigner-friendly roles in Tokyo:</p>
+  <table>
+    <thead><tr><th>Role / level</th><th>Annual base (¥)</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>English Teacher (eikaiwa, ALT)</td><td>2.8M – 4M</td><td>Entry, often ¥250K/month.</td></tr>
+      <tr><td>Junior Engineer (1–3 yrs)</td><td>4M – 6M</td><td>Higher at gaishikei / foreign-cap startups.</td></tr>
+      <tr><td>Mid Engineer (3–7 yrs)</td><td>6M – 10M</td><td>Mercari, SmartNews, etc. pay top of range.</td></tr>
+      <tr><td>Senior Engineer (7+ yrs)</td><td>10M – 16M</td><td>Sometimes 20M+ at FAANG-equivalents.</td></tr>
+      <tr><td>Engineering Manager / Staff</td><td>14M – 22M</td><td>Highly variable; small companies pay less.</td></tr>
+      <tr><td>Sales / Business / Marketing (mid)</td><td>6M – 12M</td><td>Often has variable comp (commission).</td></tr>
+    </tbody>
+  </table>
+  <div class="callout">
+    <strong>Annual = base × 12 + bonus.</strong> Most Japanese companies pay 2× per year in
+    summer and winter bonuses, typically totalling 2–6 months' base salary. Listings usually
+    show base only, so always confirm bonus structure before signing.
+  </div>
+  <h3>Negotiation</h3>
+  <ul>
+    <li>Negotiation is less aggressive than in the US, but it happens. The norm is to ask for
+        10–15% above the offer, citing a competing offer or market data.</li>
+    <li>Be prepared to justify with numbers. "I earn $X now and need $Y to relocate" is more
+        effective than "Industry standard is higher."</li>
+    <li>Non-cash items are often negotiable: signing bonus, relocation, remote-work days, training budget.</li>
+  </ul>
+</article>
+
+<article id="col" class="res-section">
+  <h2>Cost of living (rough monthly, Tokyo)</h2>
+  <table>
+    <thead><tr><th>Item</th><th>¥/month</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>1K/1DK apartment, 30–40 min from central Tokyo</td><td>80K – 130K</td><td>+1–2 months key money on signing.</td></tr>
+      <tr><td>1LDK in central Tokyo</td><td>160K – 280K</td><td>Shibuya, Minato, Shinjuku.</td></tr>
+      <tr><td>Utilities (electric / gas / water / internet)</td><td>15K – 25K</td><td>Higher in winter.</td></tr>
+      <tr><td>Groceries (single person, home-cooked)</td><td>30K – 50K</td><td></td></tr>
+      <tr><td>Mobile phone (MVNO)</td><td>2K – 4K</td><td>IIJmio, mineo, povo.</td></tr>
+      <tr><td>JR Pass / commuter pass</td><td>10K – 20K</td><td>Usually reimbursed by employer.</td></tr>
+      <tr><td>National Health Insurance (employees)</td><td>~5% of salary</td><td>Withheld pre-tax.</td></tr>
+    </tbody>
+  </table>
+  <p>Outside Tokyo, rent is roughly half. Osaka and Fukuoka are particularly good for
+     cost-of-living-to-salary ratio.</p>
+</article>
+
+<article id="phrases" class="res-section">
+  <h2>Useful Japanese for interviews</h2>
+  <table>
+    <tbody>
+      <tr><td>本日はよろしくお願いいたします。</td>
+          <td>Honjitsu wa yoroshiku onegai itashimasu.</td>
+          <td>"Thank you for meeting with me today" (opening).</td></tr>
+      <tr><td>失礼いたします。</td>
+          <td>Shitsurei itashimasu.</td>
+          <td>"Excuse me", when entering or leaving the room.</td></tr>
+      <tr><td>自己紹介させていただきます。</td>
+          <td>Jiko shōkai sasete itadakimasu.</td>
+          <td>"Please allow me to introduce myself."</td></tr>
+      <tr><td>~の経験があります。</td>
+          <td>~no keiken ga arimasu.</td>
+          <td>"I have experience in ~"</td></tr>
+      <tr><td>御社で働きたい理由は…</td>
+          <td>Onsha de hatarakitai riyū wa…</td>
+          <td>"My reason for wanting to work at your company is…"</td></tr>
+      <tr><td>本日はお時間をいただき、ありがとうございました。</td>
+          <td>Honjitsu wa o-jikan o itadaki, arigatō gozaimashita.</td>
+          <td>"Thank you for your time today" (closing).</td></tr>
+    </tbody>
+  </table>
+</article>
+
+<article id="red-flags" class="res-section">
+  <h2>Red flags to watch for</h2>
+  <ul>
+    <li><strong>"Family-like atmosphere":</strong> often code for poor work-life balance and unpaid overtime.</li>
+    <li><strong>Vague salary ("based on experience" / "negotiable"):</strong> sometimes legitimate, but request a written range before interviewing.</li>
+    <li><strong>Resignation difficulty clauses:</strong> Japanese labour law lets you quit with 14 days' notice. Contracts demanding more should be flagged.</li>
+    <li><strong>Excessive social events / drinking expectations:</strong> declining ought to be acceptable. If it isn't, the culture won't work for many foreigners.</li>
+    <li><strong>"Service overtime" (サービス残業):</strong> unpaid overtime. Illegal but widespread; ask explicitly during interviews how overtime is handled.</li>
+    <li><strong>No clear performance review cycle:</strong> companies that can't explain how raises and promotions work usually don't have them.</li>
+  </ul>
+</article>
+
+{% endblock %}

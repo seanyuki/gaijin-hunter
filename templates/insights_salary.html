@@ -1,0 +1,804 @@
+{% extends "base.html" %}
+{% block title %}Japan Salary Insights 2026, Tech, Finance, Marketing Comp by Sector · Gaijin Hunter{% endblock %}
+{% block meta_description %}Comprehensive 2026 salary data across 11 industry sectors and 589 roles in Japan. Based on Robert Walters Japan Salary Survey 2026 and TokyoDev 2025 Developer Survey. Includes bilingual premium, sector outlook, percentile bands, and offer comparator.{% endblock %}
+{% block meta_keywords %}Japan salary 2026, Tokyo salary, Japan compensation, software engineer salary Japan, bilingual premium Japan{% endblock %}
+{% block jsonld %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Dataset",
+  "name": "Japan Salary Insights 2026",
+  "description": "Comprehensive Japan salary data across 11 industry sectors and 589 roles.",
+  "url": "{{ base_url }}/insights/salary",
+  "keywords": ["Japan salary", "Tokyo salary 2026", "software engineer salary Japan", "Japan compensation"],
+  "creator": {"@type": "Organization", "name": "Gaijin Hunter"},
+  "temporalCoverage": "2026"
+}
+</script>
+{% endblock %}
+{% block content %}
+<style>
+  /* ============ HERO ============ */
+  .hero { padding: 36px 20px 22px; text-align: center; max-width: 880px; margin: 0 auto; }
+  .hero h1 { margin: 0 0 10px; font-size: 36px; letter-spacing: -0.025em; line-height: 1.15; }
+  .hero h1 .accent { color: var(--accent); }
+  .hero .sub { color: var(--muted); font-size: 16px; line-height: 1.55; margin: 0 auto;
+                max-width: 720px; }
+  .hero .stats-strip { display: inline-flex; gap: 20px; flex-wrap: wrap;
+                       margin-top: 18px; padding: 10px 22px;
+                       background: var(--indigo-tint); border: 1px solid #bfdbfe; border-radius: 999px; }
+  .hero .stats-strip .stat { font-size: 13px; color: var(--indigo); }
+  .hero .stats-strip .stat strong { color: var(--accent-dark); font-weight: 800; }
+
+  /* ============ TOC NAV ============ */
+  .insights-nav { position: sticky; top: 70px; z-index: 50; background: rgba(255,255,255,0.96);
+                  border-bottom: 1px solid var(--line); margin: 14px -24px 0;
+                  padding: 10px 24px; backdrop-filter: blur(8px); }
+  .insights-nav .inner { max-width: 1100px; margin: 0 auto; display: flex; gap: 6px;
+                          overflow-x: auto; white-space: nowrap; }
+  .insights-nav a { padding: 6px 12px; border-radius: 6px; text-decoration: none;
+                     font-size: 12px; color: #4b5563; font-weight: 600; }
+  .insights-nav a:hover { background: #f3f4f6; color: var(--accent); }
+
+  /* ============ SECTIONS ============ */
+  .insights-section { max-width: 1100px; margin: 28px auto; padding: 0 20px;
+                      scroll-margin-top: 130px; }
+  .insights-section h2 { font-size: 26px; margin: 0 0 6px; letter-spacing: -0.015em; }
+  .insights-section .sub-h { color: var(--muted); font-size: 14px; margin: 0 0 18px;
+                              max-width: 760px; line-height: 1.55; }
+
+  /* ============ MACRO OUTLOOK CARDS ============ */
+  .macro-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 900px) { .macro-grid { grid-template-columns: repeat(2, 1fr); } }
+  .macro-card { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+                 padding: 18px 22px; }
+  .macro-card .big { font-size: 32px; font-weight: 800; letter-spacing: -0.02em;
+                     color: var(--accent); line-height: 1; margin: 0 0 6px; }
+  .macro-card .big.up::after { content: " ↑"; color: #10b981; }
+  .macro-card .lbl { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .macro-card .lbl strong { color: var(--fg); }
+
+  .macro-callout { background: linear-gradient(135deg, var(--indigo) 0%, var(--indigo) 100%);
+                    color: #fff; border-radius: 12px; padding: 24px 28px; margin-top: 14px; }
+  .macro-callout h3 { margin: 0 0 4px; font-size: 16px; }
+  .macro-callout p  { margin: 0; font-size: 13px; opacity: 0.92; line-height: 1.55; }
+  .macro-callout ul { margin: 10px 0 0; padding-left: 18px; }
+  .macro-callout li { font-size: 13px; line-height: 1.55; opacity: 0.95; }
+
+  /* ============ SECTOR DASHBOARD ============ */
+  .sector-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 1000px) { .sector-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px)  { .sector-grid { grid-template-columns: 1fr; } }
+  .sector-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+                  padding: 18px 20px; text-decoration: none; color: inherit; transition: all 0.18s;
+                  display: flex; flex-direction: column; gap: 10px; }
+  .sector-card:hover { border-color: var(--accent); transform: translateY(-2px);
+                       box-shadow: 0 8px 16px rgba(0,0,0,0.05); }
+  .sector-card .top { display: flex; gap: 10px; align-items: flex-start; }
+  .sector-card .icon { font-size: 28px; line-height: 1; }
+  .sector-card h3 { margin: 0 0 4px; font-size: 15px; line-height: 1.3; }
+  .sector-card .bump { color: var(--accent); font-weight: 700; font-size: 12px;
+                       background: var(--indigo-tint); padding: 2px 8px; border-radius: 999px; }
+  .sector-card .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+                          padding-top: 8px; border-top: 1px solid #f3f4f6; }
+  .sector-card .metric { text-align: center; }
+  .sector-card .metric .n { font-size: 16px; font-weight: 700; color: var(--fg); display: block; }
+  .sector-card .metric .ml { font-size: 10px; color: var(--muted);
+                             text-transform: uppercase; letter-spacing: 0.04em; }
+  .sector-card .top3 { font-size: 11px; color: var(--muted); line-height: 1.5; }
+  .sector-card .top3 strong { color: #374151; }
+
+  /* ============ LIVE PERCENTILES (existing) ============ */
+  .live-panel { background: linear-gradient(135deg, #fff7ed, #fff); border: 1px solid #fed7aa;
+                 border-radius: 12px; padding: 20px 24px; }
+  .live-panel h2 { color: #7c2d12; }
+  .live-panel .sub-h { color: #9a3412; }
+  .live-grid { display: grid; gap: 10px; margin-top: 12px; }
+  .live-row { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+              padding: 12px 16px; display: grid; grid-template-columns: 180px 1fr;
+              gap: 14px; align-items: center; }
+  @media (max-width: 700px) { .live-row { grid-template-columns: 1fr; } }
+  .live-row h4 { margin: 0 0 2px; font-size: 14px; }
+  .live-row .n { font-size: 11px; color: var(--muted); }
+  .live-row .pcts { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+  .live-row .pcts .p { background: #f9fafb; border: 1px solid var(--line);
+                       padding: 4px 10px; border-radius: 6px; font-size: 11px; }
+  .live-row .pcts .p b { color: var(--accent); font-size: 13px; }
+  .live-row .pcts .p.median { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .live-row .pcts .p.median b { color: #fff; }
+
+  /* ============ OFFER COMPARATOR ============ */
+  .compare-card { background: linear-gradient(135deg, #ecfdf5, #fff); border: 1px solid #86efac;
+                  border-radius: 12px; padding: 22px 26px; }
+  .compare-card h2 { color: #065f46; margin: 0 0 4px; font-size: 22px; }
+  .compare-card .sub { color: #047857; margin: 0 0 16px; font-size: 13px; }
+  .compare-card .form { display: grid; grid-template-columns: 1.5fr 1fr 1fr auto; gap: 12px;
+                       align-items: end; }
+  @media (max-width: 800px) { .compare-card .form { grid-template-columns: 1fr 1fr; } }
+  .compare-card label { display: block; font-size: 11px; color: #065f46;
+                        text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;
+                        font-weight: 600; }
+  .compare-card input, .compare-card select {
+    width: 100%; padding: 10px 12px; border: 1px solid #86efac; border-radius: 6px;
+    font-size: 14px; background: #fff;
+  }
+  .compare-card button {
+    background: #10b981; color: #fff; border: none; padding: 11px 22px;
+    border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 14px;
+  }
+  .compare-result { margin-top: 14px; padding: 14px 18px; background: #fff;
+                     border-radius: 8px; font-size: 14px; line-height: 1.55;
+                     border-left: 4px solid #10b981; }
+  .compare-result.hidden { display: none; }
+  .compare-result strong { font-size: 16px; }
+
+  /* ============ DETAILED ROLE EXPLORER ============ */
+  .explorer-controls { background: var(--card); border: 1px solid var(--line);
+                        border-radius: 10px; padding: 14px 18px;
+                        position: sticky; top: 115px; z-index: 40; }
+  .explorer-controls .row { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 10px;
+                            align-items: end; }
+  @media (max-width: 900px) { .explorer-controls .row { grid-template-columns: 1fr 1fr; } }
+  .explorer-controls label { display: block; font-size: 11px; color: var(--muted);
+                              text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+  .explorer-controls input, .explorer-controls select {
+    width: 100%; padding: 9px 11px; border: 1px solid var(--line); border-radius: 6px;
+    font-size: 13px; background: #fff;
+  }
+  .explorer-controls .meta { text-align: center; color: var(--muted); font-size: 12px;
+                              margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+  .explorer-controls .meta strong { color: var(--accent); font-weight: 800; }
+
+  .sector-block { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+                  margin-top: 14px; overflow: hidden; }
+  .sector-block.hidden { display: none; }
+  .sector-block > .head { padding: 16px 20px; background: #f9fafb;
+                          display: flex; justify-content: space-between; align-items: center;
+                          gap: 14px; border-bottom: 1px solid var(--line); cursor: pointer; }
+  .sector-block > .head:hover { background: #f3f4f6; }
+  .sector-block > .head .ttl { display: flex; gap: 10px; align-items: center; }
+  .sector-block > .head .ttl .ic { font-size: 22px; line-height: 1; }
+  .sector-block > .head .ttl h3 { margin: 0; font-size: 16px; }
+  .sector-block > .head .ttl .role-count { font-size: 11px; color: var(--muted);
+                                            margin-left: 6px; font-weight: 400; }
+  .sector-block > .head .right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .sector-block > .head .right .pill { font-size: 11px; padding: 3px 9px; border-radius: 999px;
+                                        background: var(--indigo-tint); color: var(--indigo); font-weight: 600; }
+  .sector-block > .head .right .pill.bump { background: #ecfdf5; color: #065f46; }
+  .sector-block > .head .right .pill.demand { background: #fef3c7; color: #92400e; }
+  .sector-block > .head .toggle { color: var(--muted); font-size: 12px; padding: 0 4px; }
+  .sector-block.open > .head .toggle::after { content: " ▴"; }
+  .sector-block:not(.open) > .head .toggle::after { content: " ▾"; }
+  .sector-block .body { padding: 18px 22px; display: none; }
+  .sector-block.open .body { display: block; }
+
+  .trend-card { background: linear-gradient(135deg, var(--indigo-tint), #fff); border-left: 4px solid var(--accent);
+                 padding: 12px 16px; border-radius: 6px; margin-bottom: 14px; }
+  .trend-card h4 { margin: 0 0 4px; font-size: 12px; color: var(--accent-dark);
+                    text-transform: uppercase; letter-spacing: 0.05em; }
+  .trend-card p { margin: 0 0 6px; font-size: 13px; color: var(--indigo); line-height: 1.55; }
+  .trend-card .east-west { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
+  @media (max-width: 700px) { .trend-card .east-west { grid-template-columns: 1fr; } }
+  .trend-card .ew-block { background: #fff; padding: 10px 14px; border-radius: 6px;
+                           border: 1px solid #bfdbfe; }
+  .trend-card .ew-block strong { color: var(--accent); display: block; margin-bottom: 4px;
+                                  font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .trend-card .ew-block p { color: var(--indigo); font-size: 12.5px; }
+
+  .region-tabs { display: flex; gap: 6px; margin: 0 0 10px; border-bottom: 1px solid var(--line); }
+  .region-tabs button { background: transparent; border: none; padding: 8px 14px;
+                       font-size: 13px; cursor: pointer; color: var(--muted);
+                       border-bottom: 2px solid transparent; margin-bottom: -1px; font-weight: 600; }
+  .region-tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .region-tabs button:hover { color: var(--accent); }
+
+  .role-tables .region-table { display: none; }
+  .role-tables .region-table.active { display: block; }
+  .role-tables .empty { color: var(--muted); padding: 20px 0; text-align: center;
+                       font-style: italic; font-size: 13px; }
+
+  table.role-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.role-table th, table.role-table td {
+    padding: 7px 10px; text-align: left; border-bottom: 1px solid #f3f4f6;
+  }
+  table.role-table th { background: #f9fafb; font-weight: 600; color: var(--muted);
+                        font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;
+                        position: sticky; top: 0; }
+  table.role-table tr.subcat-row td { background: var(--indigo-tint); color: var(--accent-dark);
+                                       font-weight: 700; padding: 6px 10px;
+                                       font-size: 11px; text-transform: uppercase;
+                                       letter-spacing: 0.05em; }
+  table.role-table tr.role-row.hidden { display: none; }
+  table.role-table tr.role-row:hover { background: #fafbff; }
+  table.role-table td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  table.role-table td.range { font-weight: 600; color: var(--fg); }
+  table.role-table td.range .mid { color: var(--accent); }
+  table.role-table .role-name { font-weight: 500; color: var(--fg); }
+  table.role-table .empty { color: #d1d5db; }
+
+  /* ============ DETAILS / METHODOLOGY ============ */
+  .method { background: #f9fafb; border: 1px solid var(--line); border-radius: 10px;
+            padding: 18px 22px; font-size: 13px; color: var(--muted); line-height: 1.65; }
+  .method h3 { margin: 0 0 8px; font-size: 14px; color: #374151; text-transform: uppercase;
+                letter-spacing: 0.06em; }
+  .method p { margin: 0 0 8px; }
+  .method ul { padding-left: 22px; margin: 6px 0 0; }
+  .method li { margin-bottom: 4px; }
+</style>
+
+<div class="hero">
+  <h1>Japan salary insights <span class="accent">2026</span></h1>
+  <p class="sub">Comprehensive benchmarks across {{ sectors|length }} sectors, {{ total_roles }}+ roles,
+     East and West Japan. Combined with live percentile data from active job-board postings.
+     Built for foreign professionals deciding what to ask for, and when to walk away.</p>
+  <div class="stats-strip">
+    <span class="stat"><strong>{{ outlook.companies_planning_raises_pct }}%</strong> of companies planning raises in 2026</span>
+    <span class="stat"><strong>{{ outlook.union_settlement_2025_pct }}%</strong> avg 2025 union settlement</span>
+    <span class="stat"><strong>{{ outlook.ai_daily_use_2025_pct }}%</strong> use AI tools daily</span>
+  </div>
+</div>
+
+<nav class="insights-nav">
+  <div class="inner">
+    <a href="#outlook">2026 outlook</a>
+    <a href="#dashboard">Sector dashboard</a>
+    <a href="#live">Live percentiles</a>
+    <a href="#comparator">Offer comparator</a>
+    <a href="#explorer">Detailed role explorer</a>
+    <a href="#methodology">Methodology</a>
+  </div>
+</nav>
+
+<!-- ============ 1. MACRO OUTLOOK ============ -->
+<section class="insights-section" id="outlook">
+  <h2>Japan 2026 market outlook</h2>
+  <p class="sub-h">The macro forces shaping pay this year. Nominal wage growth is the strongest in
+     decades, but inflation has kept real wages subdued, pushing companies to revisit base salary
+     structures, bonuses, and benefits more aggressively than at any point since the late 1990s.</p>
+
+  <div class="macro-grid">
+    <div class="macro-card">
+      <p class="big up">{{ outlook.union_settlement_2025_pct }}%</p>
+      <p class="lbl"><strong>Average 2025 union settlement</strong><br>
+         Building on the substantial hikes of 2023–24, this is now the third consecutive year of
+         5%+ headline raises, the strongest sustained nominal wage growth in over 30 years.</p>
+    </div>
+    <div class="macro-card">
+      <p class="big">{{ outlook.companies_planning_raises_pct }}%</p>
+      <p class="lbl"><strong>Companies planning raises in 2026</strong><br>
+         Driven by inflation pressure and fierce competition for skilled professionals.
+         Bilingual roles and STEM specialists are seeing the largest gains.</p>
+    </div>
+    <div class="macro-card">
+      <p class="big up">{{ outlook.ai_daily_use_2025_pct }}%</p>
+      <p class="lbl"><strong>Use AI tools daily at work</strong><br>
+         Up from {{ outlook.ai_daily_use_2024_pct }}% the previous year. "Data analysis", "critical
+         thinking", and "human-AI collaboration" are now the top three skills employers say they
+         most need.</p>
+    </div>
+    <div class="macro-card">
+      <p class="big">{{ outlook.foreign_workers_2024_millions }}M</p>
+      <p class="lbl"><strong>Foreign workers in Japan (2024 record)</strong><br>
+         Foreign residents now ~{{ outlook.foreign_residents_2025_millions }}M nationwide.
+         Manufacturing, logistics, care, construction, and hospitality already rely on international
+         talent to sustain operations.</p>
+    </div>
+  </div>
+
+  <div class="macro-callout">
+    <h3>What this means for foreigners job-hunting in Japan</h3>
+    <p>Three forces are stacked in foreign candidates' favour right now:</p>
+    <ul>
+      <li><strong>Bilinguals command premium offers.</strong> Companies entering Japan and Japanese
+          firms going global both compete intensely for English+Japanese talent. Job-changer raises
+          of 10–20% are now normal, up to 30% for cybersecurity, AI, M&A, and HSP-qualifying profiles.</li>
+      <li><strong>Visa-sponsorship reluctance is fading.</strong> Foreign-resident count has nearly
+          doubled in a decade. Some multinationals are now hiring engineers and infrastructure
+          specialists without requiring Japanese.</li>
+      <li><strong>Flexible work is a deal-breaker.</strong> Employers without remote/hybrid options
+          are losing top candidates regardless of base pay. Verify policy before signing.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ 2. SECTOR DASHBOARD ============ -->
+<section class="insights-section" id="dashboard">
+  <h2>Sector dashboard</h2>
+  <p class="sub-h">Quick view of all {{ sectors|length }} sectors: how confident employees feel,
+     how many expect a raise, and the expected pay bump for job-changers. Click any sector to jump
+     to its full role-by-role salary table below.</p>
+
+  <div class="sector-grid">
+    {% for s in sectors %}
+      <a class="sector-card" href="#sector-{{ s.slug }}">
+        <div class="top">
+          <div class="icon">{{ s.icon }}</div>
+          <div style="flex:1; min-width:0;">
+            <h3>{{ s.name }}</h3>
+            <span class="bump">+{{ s.expected_pay_bump_low }}–{{ s.expected_pay_bump_high }}% job change</span>
+          </div>
+        </div>
+        <div class="top3">
+          <strong>Top in demand:</strong>
+          {% for t in s.top_demand %}{{ t }}{% if not loop.last %}; {% endif %}{% endfor %}
+        </div>
+        <div class="metrics">
+          <div class="metric">
+            <span class="n">{{ s.salary_increase_pct }}%</span>
+            <span class="ml">Expect raise</span>
+          </div>
+          <div class="metric">
+            <span class="n">{{ s.confidence_pct }}%</span>
+            <span class="ml">Confident</span>
+          </div>
+          <div class="metric">
+            <span class="n">{{ s.mobility_pct }}%</span>
+            <span class="ml">Mobile</span>
+          </div>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- ============ 3. LIVE PERCENTILES ============ -->
+{% if insights %}
+<section class="insights-section live-panel" id="live">
+  <h2>Live percentiles from active postings</h2>
+  <p class="sub-h">Salary percentiles computed in real time from the actual job-board postings
+     on this site (last 30 days). Treat this as the lower-bound benchmark: postings disclose
+     <em>posted</em> salary, which is usually 5–15% below what a skilled negotiator actually
+     gets in a final offer.</p>
+  <div class="live-grid">
+    {% for r in insights %}
+      <div class="live-row">
+        <div>
+          <h4>{{ r.family }}</h4>
+          <div class="n">{{ r.n }} active postings</div>
+        </div>
+        <div class="pcts">
+          <span class="p">P25 <b>¥{{ (r.p25 / 1000000) | round(1) }}M</b></span>
+          <span class="p median">Median <b>¥{{ (r.p50 / 1000000) | round(1) }}M</b></span>
+          <span class="p">P75 <b>¥{{ (r.p75 / 1000000) | round(1) }}M</b></span>
+          <span class="p">P90 <b>¥{{ (r.p90 / 1000000) | round(1) }}M</b></span>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- ============ 4. OFFER COMPARATOR ============ -->
+<section class="insights-section" id="comparator">
+  <div class="compare-card">
+    <h2>Got an offer? See where it lands.</h2>
+    <p class="sub">Pick the role family, enter the salary, and we'll tell you what percentile it
+       sits in based on our 11-sector industry data, plus where it falls on the live job-board
+       percentile curve.</p>
+    <div class="form">
+      <div>
+        <label>Industry sector</label>
+        <select id="cmp-sector">
+          <option value="">Pick a sector</option>
+          {% for s in sectors %}
+            <option value="{{ s.slug }}">{{ s.icon }} {{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label>Offered salary (¥)</label>
+        <input type="number" id="cmp-salary" min="0" step="100000" placeholder="9000000">
+      </div>
+      <div>
+        <label>Region</label>
+        <select id="cmp-region">
+          <option value="east">East Japan (Tokyo)</option>
+          <option value="west">West Japan (Osaka/Kansai)</option>
+        </select>
+      </div>
+      <button id="cmp-btn">Analyze →</button>
+    </div>
+    <div class="compare-result hidden" id="cmp-result"></div>
+  </div>
+</section>
+
+<!-- ============ 5. DETAILED ROLE EXPLORER ============ -->
+<section class="insights-section" id="explorer">
+  <h2>Detailed role explorer</h2>
+  <p class="sub-h">Browse every benchmark we have: {{ total_roles }}+ roles across
+     {{ sectors|length }} sectors with East/West Japan splits. Search by role title, filter by
+     sector and region, and click any sector header to expand its full table.</p>
+
+  <div class="explorer-controls">
+    <div class="row">
+      <div>
+        <label>Search role title</label>
+        <input id="search-role" type="search" placeholder="e.g. 'project manager', 'pharma'…" autocomplete="off">
+      </div>
+      <div>
+        <label>Sector</label>
+        <select id="filter-sector">
+          <option value="">All sectors</option>
+          {% for s in sectors %}
+            <option value="{{ s.slug }}">{{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label>Min salary (¥M)</label>
+        <input id="filter-min-salary" type="number" min="0" max="100" step="1" placeholder="e.g. 10">
+      </div>
+      <div>
+        <label>Expand all</label>
+        <select id="expand-all">
+          <option value="collapse">Collapse all</option>
+          <option value="expand">Expand all</option>
+        </select>
+      </div>
+    </div>
+    <div class="meta" id="explorer-stats">
+      Showing <strong id="stat-roles">all</strong> roles across <strong id="stat-sectors">{{ sectors|length }}</strong> sectors
+    </div>
+  </div>
+
+  {% for s in sectors %}
+    <article class="sector-block" id="sector-{{ s.slug }}" data-slug="{{ s.slug }}">
+      <header class="head">
+        <div class="ttl">
+          <span class="ic">{{ s.icon }}</span>
+          <h3>{{ s.name }}<span class="role-count">
+            {{ (s.roles_east|length) + (s.roles_west|length) }} roles
+          </span></h3>
+        </div>
+        <div class="right">
+          <span class="pill bump">+{{ s.expected_pay_bump_low }}–{{ s.expected_pay_bump_high }}% job change</span>
+          <span class="pill">{{ s.salary_increase_pct }}% expect raise</span>
+          <span class="pill demand">Hot: {{ s.top_demand[0] }}</span>
+          <span class="toggle"></span>
+        </div>
+      </header>
+      <div class="body">
+
+        <div class="trend-card">
+          <h4>2026 hiring trends</h4>
+          <p>{{ s.trend_summary }}</p>
+          <div class="east-west">
+            {% if s.trend_east %}
+              <div class="ew-block">
+                <strong>East Japan (Tokyo) hiring trends</strong>
+                <p>{{ s.trend_east }}</p>
+              </div>
+            {% endif %}
+            {% if s.trend_west %}
+              <div class="ew-block">
+                <strong>West Japan (Osaka/Kansai) hiring trends</strong>
+                <p>{{ s.trend_west }}</p>
+              </div>
+            {% endif %}
+          </div>
+          <p style="margin-top:10px; font-size:12px; color:var(--indigo);">
+            <strong>Expected job-changer pay bump:</strong> {{ s.expected_pay_bump_note }}
+          </p>
+        </div>
+
+        <div class="region-tabs">
+          <button class="active" data-region="east">East Japan (Tokyo)</button>
+          {% if s.roles_west %}<button data-region="west">West Japan (Osaka/Kansai)</button>{% endif %}
+        </div>
+
+        <div class="role-tables">
+          {# East Japan #}
+          <div class="region-table active" data-region="east">
+            {% if s.roles_east %}
+              <table class="role-table">
+                <thead>
+                  <tr>
+                    <th>Role</th>
+                    <th>Years</th>
+                    <th class="num">Perm salary range (¥/yr)</th>
+                    <th class="num">Contract (¥/hr)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% set ns = namespace(last_subcat='') %}
+                  {% for subcat, role, ymin, ymax, pmin, pmax, cmin, cmax in s.roles_east %}
+                    {% if subcat != ns.last_subcat %}
+                      <tr class="subcat-row"><td colspan="4">{{ subcat }}</td></tr>
+                      {% set ns.last_subcat = subcat %}
+                    {% endif %}
+                    <tr class="role-row"
+                        data-role="{{ role | lower }}"
+                        data-min="{{ pmin or 0 }}"
+                        data-max="{{ pmax or 0 }}">
+                      <td class="role-name">{{ role }}</td>
+                      <td>{% if ymin is not none %}{{ ymin }}{% if ymax %}–{{ ymax }}{% else %}+{% endif %}y{% else %}, {% endif %}</td>
+                      <td class="num range">
+                        {% if pmin %}¥<span class="mid">{{ pmin }}–{{ pmax }}M</span>{% else %}<span class="empty">–</span>{% endif %}
+                      </td>
+                      <td class="num">
+                        {% if cmin %}¥{{ "{:,}".format(cmin) }}–{{ "{:,}".format(cmax) }}{% else %}<span class="empty">–</span>{% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            {% else %}
+              <div class="empty">No East Japan roles tracked yet for this sector.</div>
+            {% endif %}
+          </div>
+          {# West Japan #}
+          {% if s.roles_west %}
+            <div class="region-table" data-region="west">
+              <table class="role-table">
+                <thead>
+                  <tr>
+                    <th>Role</th>
+                    <th>Years</th>
+                    <th class="num">Perm salary range (¥/yr)</th>
+                    <th class="num">Contract (¥/hr)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% set ns = namespace(last_subcat='') %}
+                  {% for subcat, role, ymin, ymax, pmin, pmax, cmin, cmax in s.roles_west %}
+                    {% if subcat != ns.last_subcat %}
+                      <tr class="subcat-row"><td colspan="4">{{ subcat }}</td></tr>
+                      {% set ns.last_subcat = subcat %}
+                    {% endif %}
+                    <tr class="role-row"
+                        data-role="{{ role | lower }}"
+                        data-min="{{ pmin or 0 }}"
+                        data-max="{{ pmax or 0 }}">
+                      <td class="role-name">{{ role }}</td>
+                      <td>{% if ymin is not none %}{{ ymin }}{% if ymax %}–{{ ymax }}{% else %}+{% endif %}y{% else %}, {% endif %}</td>
+                      <td class="num range">
+                        {% if pmin %}¥<span class="mid">{{ pmin }}–{{ pmax }}M</span>{% else %}<span class="empty">–</span>{% endif %}
+                      </td>
+                      <td class="num">
+                        {% if cmin %}¥{{ "{:,}".format(cmin) }}–{{ "{:,}".format(cmax) }}{% else %}<span class="empty">–</span>{% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </article>
+  {% endfor %}
+</section>
+
+<!-- ============ 6. METHODOLOGY ============ -->
+<section class="insights-section" id="methodology">
+  <h2>Methodology &amp; how to read these numbers</h2>
+  <div class="method">
+    <h3>What's in the data</h3>
+    <p>Industry-wide 2026 forecast salaries are aggregated from permanent placements made across
+       major recruitment disciplines in 2025 plus forward-looking projections. Each number is the
+       advertised salary range (basic salary only, excluding bonuses and benefits unless noted).
+       Live percentile data is computed from the actual postings indexed on this job board
+       (last 30 days), using the midpoint of each posting's disclosed range.</p>
+    <h3>Reading the ranges</h3>
+    <ul>
+      <li><strong>Permanent salary:</strong> annual gross JPY before tax. Most Japanese contracts
+          quote 年収 (nenshu), annual base + bonus. Some employers list base only; always confirm.</li>
+      <li><strong>Contract rates:</strong> hourly JPY for fixed-term / temp staffing. Multiply by
+          ~2000 hours/yr for rough annual equivalent (no bonus, no benefits).</li>
+      <li><strong>Years:</strong> minimum experience expected, not a hard floor. Strong candidates
+          routinely slot in below.</li>
+      <li><strong>Where you'll land:</strong> for first-time candidates without leverage, expect
+          the bottom 1/3 of the range. For experienced bilinguals or in-demand specialists,
+          mid-to-top.</li>
+    </ul>
+    <h3>How to use this with the rest of the site</h3>
+    <ul>
+      <li><a href="#live">Live percentile data</a> tells you what the market is actually paying
+          this month.</li>
+      <li><a href="#comparator">Offer comparator</a> shows where a specific offer falls in the
+          distribution.</li>
+      <li><a href="/tools/take-home-pay">Take-home pay calculator</a> converts any gross JPY
+          into estimated net after Japan's tax + social-insurance burden (~25–30% for typical
+          earners).</li>
+      <li><a href="/tools/col-comparator">Cost-of-living comparator</a> compares a Japan offer
+          against your current city for purchasing power.</li>
+      <li><a href="/pillars/negotiation-playbook">Negotiation playbook</a> shows how to ask for
+          10–20% above the offer without burning the bridge.</li>
+    </ul>
+  </div>
+</section>
+
+<script>
+(function () {
+  // ===== Build a quick lookup of sector salary stats for the comparator =====
+  var SECTOR_STATS = {
+    {% for s in sectors %}
+      "{{ s.slug }}": (function () {
+        var mids = [];
+        var addRoles = function (arr) {
+          arr.forEach(function (r) {
+            if (r.min && r.max) mids.push((r.min + r.max) / 2);
+          });
+        };
+        var east = [
+          {% for subcat, role, ymin, ymax, pmin, pmax, cmin, cmax in s.roles_east %}
+            { min: {{ pmin or 0 }}, max: {{ pmax or 0 }} }{% if not loop.last %},{% endif %}
+          {% endfor %}
+        ];
+        var west = [
+          {% for subcat, role, ymin, ymax, pmin, pmax, cmin, cmax in s.roles_west %}
+            { min: {{ pmin or 0 }}, max: {{ pmax or 0 }} }{% if not loop.last %},{% endif %}
+          {% endfor %}
+        ];
+        return { east: east, west: west };
+      })(){% if not loop.last %},{% endif %}
+    {% endfor %}
+  };
+
+  function pct(arr, p) {
+    if (!arr.length) return 0;
+    arr.sort(function (a, b) { return a - b; });
+    var k = (arr.length - 1) * p;
+    var f = Math.floor(k), c = Math.min(f + 1, arr.length - 1);
+    return arr[f] + (arr[c] - arr[f]) * (k - f);
+  }
+
+  document.getElementById("cmp-btn").addEventListener("click", function () {
+    var slug = document.getElementById("cmp-sector").value;
+    var sal  = parseInt(document.getElementById("cmp-salary").value, 10) || 0;
+    var reg  = document.getElementById("cmp-region").value;
+    var box  = document.getElementById("cmp-result");
+    if (!slug || !sal) {
+      box.classList.remove("hidden");
+      box.innerHTML = "Pick a sector and enter a salary.";
+      return;
+    }
+    var src = SECTOR_STATS[slug];
+    if (!src) { box.classList.remove("hidden"); box.innerHTML = "No data."; return; }
+    var roles = src[reg].length ? src[reg] : src["east"];
+    var mids = [];
+    roles.forEach(function (r) { if (r.min && r.max) mids.push((r.min + r.max) / 2 * 1000000); });
+    if (!mids.length) {
+      box.classList.remove("hidden");
+      box.innerHTML = "Not enough data for that sector + region combo.";
+      return;
+    }
+    var p25 = pct(mids.slice(), 0.25);
+    var p50 = pct(mids.slice(), 0.50);
+    var p75 = pct(mids.slice(), 0.75);
+    var p90 = pct(mids.slice(), 0.90);
+
+    var verdict;
+    if (sal >= p90) verdict = "<strong>Top 10%</strong> (P90 = ¥" + (p90/1e6).toFixed(1) + "M). Outstanding offer — accept with confidence.";
+    else if (sal >= p75) verdict = "💪 <strong>Top quartile</strong> (P75 ¥" + (p75/1e6).toFixed(1) + "M – P90 ¥" + (p90/1e6).toFixed(1) + "M). Strong — solid place to be.";
+    else if (sal >= p50) verdict = "✅ <strong>Above median</strong> (P50 ¥" + (p50/1e6).toFixed(1) + "M – P75 ¥" + (p75/1e6).toFixed(1) + "M). Solid offer; minor room to negotiate up.";
+    else if (sal >= p25) verdict = "⚠️ <strong>Below median</strong> (P25 ¥" + (p25/1e6).toFixed(1) + "M – P50 ¥" + (p50/1e6).toFixed(1) + "M). Worth negotiating — push for 10–15% more, citing market data.";
+    else                 verdict = "🚨 <strong>Below P25</strong>. Significantly under-market — push back hard or walk away.";
+
+    var name = document.querySelector("#cmp-sector option:checked").textContent;
+    box.classList.remove("hidden");
+    box.innerHTML = "Your offer of <strong>¥" + (sal/1e6).toFixed(1) + "M</strong> for " + name +
+      " (" + reg + " Japan): " + verdict +
+      "<br><br><small>Sector benchmarks — P25 ¥" + (p25/1e6).toFixed(1) +
+      "M · Median ¥" + (p50/1e6).toFixed(1) +
+      "M · P75 ¥" + (p75/1e6).toFixed(1) +
+      "M · P90 ¥" + (p90/1e6).toFixed(1) +
+      "M. Based on " + mids.length + " role benchmarks.</small>";
+  });
+
+  // ===== Explorer: collapse/expand and search/filter =====
+  document.querySelectorAll(".sector-block .head").forEach(function (h) {
+    h.addEventListener("click", function () {
+      h.closest(".sector-block").classList.toggle("open");
+    });
+  });
+  document.querySelectorAll(".region-tabs button").forEach(function (b) {
+    b.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var tabs = b.parentNode;
+      tabs.querySelectorAll("button").forEach(function (x) { x.classList.remove("active"); });
+      b.classList.add("active");
+      var region = b.getAttribute("data-region");
+      var tablesWrap = b.closest(".body").querySelector(".role-tables");
+      tablesWrap.querySelectorAll(".region-table").forEach(function (t) {
+        t.classList.toggle("active", t.getAttribute("data-region") === region);
+      });
+    });
+  });
+  document.querySelectorAll(".region-tabs").forEach(function (rt) {
+    rt.addEventListener("click", function (e) { e.stopPropagation(); });
+  });
+
+  // Expand-all toggle
+  document.getElementById("expand-all").addEventListener("change", function () {
+    var open = this.value === "expand";
+    document.querySelectorAll(".sector-block").forEach(function (b) {
+      b.classList.toggle("open", open);
+    });
+  });
+
+  // Search + filter
+  var searchEl = document.getElementById("search-role");
+  var sectorEl = document.getElementById("filter-sector");
+  var minSalEl = document.getElementById("filter-min-salary");
+  function applyFilters() {
+    var q = searchEl.value.trim().toLowerCase();
+    var sectorOnly = sectorEl.value;
+    var minSal = parseFloat(minSalEl.value) || 0;
+    var sectorsVisible = 0, rolesVisible = 0;
+    document.querySelectorAll(".sector-block").forEach(function (block) {
+      var slug = block.getAttribute("data-slug");
+      if (sectorOnly && slug !== sectorOnly) {
+        block.classList.add("hidden");
+        return;
+      }
+      var anyMatch = false;
+      block.querySelectorAll(".role-row").forEach(function (row) {
+        var name = row.getAttribute("data-role");
+        var rmax = parseFloat(row.getAttribute("data-max")) || 0;
+        var matchQ = !q || name.indexOf(q) !== -1;
+        var matchSal = !minSal || rmax >= minSal;
+        var show = matchQ && matchSal;
+        row.classList.toggle("hidden", !show);
+        if (show) { anyMatch = true; rolesVisible++; }
+      });
+      // Hide subcat headers whose every role is hidden
+      block.querySelectorAll(".region-table.active").forEach(function (region) {
+        var subcat = null;
+        region.querySelectorAll("tbody tr").forEach(function (tr) {
+          if (tr.classList.contains("subcat-row")) {
+            if (subcat) subcat.classList.toggle("hidden", !subcatHasVisible);
+            subcat = tr;
+            var subcatHasVisible = false;
+          } else if (tr.classList.contains("role-row")) {
+            if (!tr.classList.contains("hidden")) {
+              if (subcat) subcat.classList.remove("hidden");
+            }
+          }
+        });
+      });
+      block.classList.toggle("hidden", !anyMatch);
+      if (anyMatch) {
+        sectorsVisible++;
+        // Auto-expand sectors that match a search
+        if (q || minSal) block.classList.add("open");
+      }
+    });
+    var statRoles = document.getElementById("stat-roles");
+    var statSectors = document.getElementById("stat-sectors");
+    if (q || sectorOnly || minSal) {
+      statRoles.textContent = rolesVisible;
+      statSectors.textContent = sectorsVisible;
+    } else {
+      statRoles.textContent = "all";
+      statSectors.textContent = "{{ sectors|length }}";
+    }
+  }
+  [searchEl, sectorEl, minSalEl].forEach(function (el) {
+    el.addEventListener("input", applyFilters);
+    el.addEventListener("change", applyFilters);
+  });
+
+  // Smooth-scroll TOC + sector-card anchors
+  document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+    a.addEventListener("click", function (e) {
+      var id = a.getAttribute("href").slice(1);
+      var el = document.getElementById(id);
+      if (el) {
+        e.preventDefault();
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (el.classList.contains("sector-block")) {
+          el.classList.add("open");
+        }
+      }
+    });
+  });
+
+  // Prefill comparator from profile
+  if (window.GH) {
+    var p = GH.profile.get();
+    if (p.minSalary) document.getElementById("cmp-salary").value = p.minSalary;
+  }
+})();
+</script>
+{% endblock %}

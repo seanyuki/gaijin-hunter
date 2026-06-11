@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+{% block title %}Compare jobs side-by-side, Gaijin Hunter{% endblock %}
+{% block meta_robots %}noindex{% endblock %}
+{% block content %}
+<style>
+  .hero { padding: 18px 0 14px; }
+  .hero h1 { margin: 0 0 6px; font-size: 28px; letter-spacing: -0.02em; }
+  .hero p  { color: var(--muted); margin: 0; max-width: 740px; font-size: 14px; line-height: 1.55; }
+
+  .picker { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+            padding: 18px 22px; margin: 16px 0; }
+  .picker h2 { margin: 0 0 8px; font-size: 15px; }
+  .picker .lede { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+  .candidate-list { display: flex; flex-direction: column; gap: 6px;
+                     max-height: 280px; overflow-y: auto; }
+  .candidate { display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+                background: #f9fafb; border-radius: 6px; }
+  .candidate:hover { background: #f3f4f6; }
+  .candidate input { margin: 0; }
+  .candidate-title { font-size: 13px; flex: 1; }
+  .candidate-meta  { font-size: 11px; color: var(--muted); }
+  .actions { margin-top: 12px; display: flex; gap: 8px; }
+  .actions button { padding: 9px 18px; font-size: 13px; border: none; border-radius: 6px;
+                     font-weight: 600; cursor: pointer; }
+  .actions .go    { background: var(--accent); color: #fff; }
+  .actions .clear { background: #fff; border: 1px solid var(--line); color: #374151; }
+
+  table.compare-table { width: 100%; border-collapse: collapse; background: var(--card);
+                         border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+                         margin-bottom: 16px; }
+  table.compare-table th, table.compare-table td {
+    padding: 12px 16px; vertical-align: top; font-size: 13px;
+    border-bottom: 1px solid var(--line);
+  }
+  table.compare-table tr:last-child td, table.compare-table tr:last-child th { border-bottom: none; }
+  table.compare-table th.row-label { background: #f9fafb; width: 200px;
+                                       font-weight: 600; color: var(--muted);
+                                       text-align: left; font-size: 11px;
+                                       text-transform: uppercase; letter-spacing: 0.04em; }
+  table.compare-table td { background: var(--card); min-width: 240px; }
+  table.compare-table td.empty { color: var(--muted); font-style: italic; }
+  table.compare-table .fit { display: inline-block; background: #dcfce7; color: #166534;
+                              padding: 2px 8px; border-radius: 999px; font-weight: 700;
+                              font-size: 11px; }
+  table.compare-table .fit.mid { background: #fef3c7; color: #92400e; }
+  table.compare-table .fit.low { background: #fee2e2; color: #991b1b; }
+  table.compare-table .h-title { font-size: 14px; font-weight: 700; color: var(--accent);
+                                  display: block; margin-bottom: 4px; }
+  table.compare-table .h-company { font-size: 12px; color: var(--muted); }
+  table.compare-table .col-header { background: #f0f9ff; }
+
+  .badge { display: inline-block; padding: 1px 8px; border-radius: 999px;
+            font-size: 11px; margin: 2px 4px 2px 0; background: #f3f4f6; color: #374151; }
+  .badge.remote { background: #d1fae5; color: #065f46; }
+  .badge.en { background: #dbeafe; color: #1e40af; }
+  .badge.jp { background: #fef3c7; color: #92400e; }
+
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .empty-state h2 { color: var(--fg); margin: 0 0 8px; }
+</style>
+
+<div class="hero">
+  <h1>Compare jobs side-by-side</h1>
+  <p>Pick up to 4 jobs from your saved or tracker list, see them aligned in one table.
+     Highlights the actual differences in salary, language, location, and visa support.</p>
+</div>
+
+<div class="picker">
+  <h2>Pick 2-4 jobs</h2>
+  <p class="lede">Showing jobs from your saved + tracker lists. Tick the checkboxes, then click compare.</p>
+  <div class="candidate-list" id="candidate-list"></div>
+  <div class="actions">
+    <button class="go" id="compare-btn">Compare →</button>
+    <button class="clear" id="clear-btn">Clear selection</button>
+  </div>
+</div>
+
+<div id="result-container">
+{% if jobs %}
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th class="row-label">Field</th>
+        {% for j in jobs %}
+          <td class="col-header">
+            <a href="/job/{{ j['id'] }}" class="h-title">{{ j['title'] }}</a>
+            <div class="h-company">{{ j['company_name'] or ', ' }}</div>
+          </td>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      <tr><th class="row-label">Foreigner Fit</th>
+        {% for j in jobs %}
+          {% set s = j['foreigner_fit_score'] %}
+          <td>{% if s is not none %}<span class="fit {{ 'low' if s < 60 else 'mid' if s < 75 else '' }}">Fit {{ s }}</span>{% else %}<span class="empty">–</span>{% endif %}</td>
+        {% endfor %}
+      </tr>
+      <tr><th class="row-label">Salary</th>
+        {% for j in jobs %}
+          <td>{% if j['salary'] %}{{ j['salary'] }}{% elif j['salary_min_annual_jpy'] %}{{ j['salary_min_annual_jpy'] | yen_short }}{% if j['salary_max_annual_jpy'] %} ~ {{ j['salary_max_annual_jpy'] | yen_short }}{% endif %}{% else %}<span class="empty">Not listed</span>{% endif %}</td>
+        {% endfor %}
+      </tr>
+      <tr><th class="row-label">Location</th>
+        {% for j in jobs %}
+          <td>{{ j['location'] or ', ' }}</td>
+        {% endfor %}
+      </tr>
+      <tr><th class="row-label">Role family</th>
+        {% for j in jobs %}
+          <td>{{ j['role_family'] or ', ' }}</td>
+        {% endfor %}
+      </tr>
+      <tr><th class="row-label">Employment terms</th>
+        {% for j in jobs %}
+          <td>{{ j['employment_terms'] or ', ' }}</td>
+        {% endfor %}
+      </tr>
+      <tr><th class="row-label">Career level</th>
+        {% for j in jobs %}
+          <td>{{ j['career_level'] or ', ' }}</td>
+        {% endfor %}
+      </tr>
+      <tr><th class="row-label">Japanese required</th>
+        {% for j in jobs %}
+          <td>{% if j['japanese_level'] %}<span class="badge jp">{{ j['japanese_level'] }}</span>{% else %}<span class="empty">–</span>{% endif %}</td>
+        {% endfor %}
+      </tr>
+      <tr><th class="row-label">English level</th>
+        {% for j in jobs %}
+          <td>{% if j['english_level'] %}<span class="badge en">{{ j['english_level'] }}</span>{% else %}<span class="empty">–</span>{% endif %}</td>
+        {% endfor %}
+      </tr>
+      <tr><th class="row-label">Visa sponsorship</th>
+        {% for j in jobs %}
+          <td>{% if j['visa_sponsorship_mentioned'] == 1 %}✅ Yes{% elif j['visa_sponsorship_mentioned'] == 0 %}❌ No{% else %}<span class="empty">Not stated</span>{% endif %}</td>
+        {% endfor %}
+      </tr>
+      <tr><th class="row-label">Apply from abroad</th>
+        {% for j in jobs %}
+          <td>{% if j['overseas_application_ok'] == 1 %}✅ Yes{% else %}<span class="empty">Not stated</span>{% endif %}</td>
+        {% endfor %}
+      </tr>
+      <tr><th class="row-label">Remote work</th>
+        {% for j in jobs %}
+          <td>{% if j['remote_work_ok'] == 1 %}<span class="badge remote">Remote OK</span>{% elif j['remote_work_ok'] == 0 %}Onsite only{% else %}<span class="empty">–</span>{% endif %}</td>
+        {% endfor %}
+      </tr>
+      <tr><th class="row-label">Posted</th>
+        {% for j in jobs %}
+          <td>{{ j['post_date'] or ', ' }}</td>
+        {% endfor %}
+      </tr>
+      <tr><th class="row-label">Source</th>
+        {% for j in jobs %}
+          <td>{{ j['source'] }}{% if j['source_quality'] %} · <small>{{ j['source_quality'] }}</small>{% endif %}</td>
+        {% endfor %}
+      </tr>
+      <tr><th class="row-label">Apply</th>
+        {% for j in jobs %}
+          <td><a href="{{ j['url'] }}" target="_blank" rel="noopener" style="color:var(--accent); font-weight:600;">Open original →</a></td>
+        {% endfor %}
+      </tr>
+    </tbody>
+  </table>
+{% else %}
+  <div class="empty-state" id="empty-state">
+    <h2>Nothing to compare yet</h2>
+    <p>Save or track 2-4 jobs first. Their checkboxes will appear in the picker above.</p>
+    <p style="margin-top: 14px;"><a href="/jobs" style="color:var(--accent); font-weight:600;">Browse jobs →</a></p>
+  </div>
+{% endif %}
+</div>
+
+<script>
+(function () {
+  // Build the candidate list from GH state: saved + tracker IDs.
+  var ids = [];
+  if (window.GH) {
+    ids = Array.from(new Set([].concat(GH.saved.list(), GH.tracker.ids())));
+  }
+
+  if (!ids.length) {
+    var list = document.getElementById("candidate-list");
+    list.innerHTML = '<div style="font-size:13px; color:var(--muted); font-style:italic;">' +
+      'No saved or tracked jobs yet. <a href="/jobs">Browse and save some first →</a></div>';
+    return;
+  }
+
+  // Fetch job details
+  fetch("/api/jobs_by_ids?ids=" + ids.join(","))
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      var rows = data.jobs || [];
+      var list = document.getElementById("candidate-list");
+      list.innerHTML = rows.map(function (j) {
+        var saved = GH.saved.has(j.id);
+        var tracker = !!GH.tracker.get(j.id);
+        var tag = saved && tracker ? "⭐+📋" : saved ? "⭐" : "📋";
+        return '<label class="candidate">' +
+          '<input type="checkbox" value="' + j.id + '">' +
+          '<div class="candidate-title">' +
+            '<strong>' + (j.title || '').replace(/</g, '&lt;') + '</strong>' +
+            ' <span style="color:var(--muted); font-size:11px;">' + tag + '</span>' +
+            '<div class="candidate-meta">' + (j.company_name || '—') + ' · ' +
+              (j.location || '—') + (j.foreigner_fit_score != null ? ' · Fit ' + j.foreigner_fit_score : '') +
+            '</div>' +
+          '</div>' +
+          '</label>';
+      }).join("");
+    });
+
+  document.getElementById("compare-btn").addEventListener("click", function () {
+    var checked = Array.prototype.slice.call(document.querySelectorAll("#candidate-list input:checked"));
+    if (checked.length < 2) { alert("Pick at least 2 jobs."); return; }
+    if (checked.length > 4) { alert("Max 4 at a time."); return; }
+    var ids = checked.map(function (c) { return c.value; }).join(",");
+    window.location.href = "/compare?ids=" + ids;
+  });
+  document.getElementById("clear-btn").addEventListener("click", function () {
+    document.querySelectorAll("#candidate-list input").forEach(function (c) { c.checked = false; });
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,440 @@
+{% extends "base.html" %}
+{% block title %}Japan Visa Timeline & Document Checklist (2026), Gaijin Hunter{% endblock %}
+{% block meta_description %}Step-by-step Japan visa application timeline and document checklist. Covers Certificate of Eligibility (COE), embassy visa stamp, in-Japan arrival procedures, residence card, MyNumber, and bank account opening.{% endblock %}
+{% block meta_keywords %}Japan visa timeline, Japan COE process, Certificate of Eligibility Japan, Japan visa documents, residence card procedure{% endblock %}
+{% block jsonld %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to Apply for a Japan Work Visa (Step by Step)",
+  "description": "End-to-end Japan visa application timeline: Certificate of Eligibility, embassy visa, arrival procedures, residence card, MyNumber, and bank account.",
+  "url": "{{ base_url }}/tools/visa-timeline",
+  "totalTime": "P90D",
+  "step": [
+    {"@type": "HowToStep", "name": "Employer sponsors Certificate of Eligibility (COE)", "text": "Your Japanese employer applies for the COE at their local Immigration office. Processing time is typically 4-8 weeks."},
+    {"@type": "HowToStep", "name": "Visa stamp at Japanese embassy or consulate", "text": "Once COE is granted, you apply for the visa stamp at the Japanese embassy/consulate in your home country. Processing 5-10 business days."},
+    {"@type": "HowToStep", "name": "Enter Japan and receive residence card", "text": "Upon arrival at major airports, Immigration issues your residence card (zairyu card) directly. Smaller airports require ward office follow-up."},
+    {"@type": "HowToStep", "name": "Register at ward office (within 14 days)", "text": "Register your address at your local ward office within 14 days of moving in. Receive MyNumber notification card."},
+    {"@type": "HowToStep", "name": "Open bank account and enroll in shakai hoken", "text": "Open a Japanese bank account (Shinsei, Sony Bank, or SBI Shinsei work for foreigners). Employer enrolls you in social insurance (shakai hoken)."}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ base_url }}/"},
+    {"@type": "ListItem", "position": 2, "name": "Tools", "item": "{{ base_url }}/tools"},
+    {"@type": "ListItem", "position": 3, "name": "Visa Timeline & Checklist", "item": "{{ base_url }}/tools/visa-timeline"}
+  ]
+}
+</script>
+{% endblock %}
+{% block content %}
+<style>
+  .hero { padding: 20px 0 14px; }
+  .hero .crumb { font-size: 13px; color: var(--muted); }
+  .hero .crumb a { color: var(--muted); text-decoration: none; }
+  .hero h1 { margin: 8px 0 6px; font-size: 28px; }
+  .hero p { color: var(--muted); margin: 0; max-width: 720px; line-height: 1.55; }
+
+  .layout { display: grid; grid-template-columns: 1fr 1.4fr; gap: 22px;
+            margin-top: 18px; align-items: start; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+           padding: 22px 24px; }
+  .panel h2 { margin: 0 0 6px; font-size: 17px; }
+  .panel .sub { color: var(--muted); margin: 0 0 14px; font-size: 13px; }
+
+  .visa-picker { display: flex; flex-direction: column; gap: 8px; }
+  .visa-picker label { display: flex; gap: 10px; padding: 12px 14px; background: #f9fafb;
+                        border: 2px solid var(--line); border-radius: 8px; cursor: pointer;
+                        transition: all 0.15s; }
+  .visa-picker label:hover { background: #eff6ff; border-color: #bfdbfe; }
+  .visa-picker input[type=radio] { margin-top: 3px; }
+  .visa-picker label.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .visa-picker .v-title { font-weight: 600; font-size: 14px; }
+  .visa-picker .v-desc  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .visa-picker label.selected .v-desc { color: rgba(255,255,255,0.9); }
+
+  .timeline { position: relative; padding-left: 30px; }
+  .timeline::before { content: ""; position: absolute; left: 9px; top: 6px; bottom: 6px;
+                       width: 2px; background: var(--line); }
+  .step { position: relative; padding-bottom: 18px; }
+  .step::before { content: ""; position: absolute; left: -25px; top: 4px;
+                  width: 20px; height: 20px; border-radius: 50%;
+                  background: #fff; border: 2px solid var(--accent); }
+  .step.done::before { background: var(--accent); content: "✓"; color: #fff;
+                       text-align: center; line-height: 18px; font-size: 11px;
+                       font-weight: 700; }
+  .step h3 { margin: 0 0 4px; font-size: 15px; }
+  .step .duration { font-size: 11px; color: var(--accent); font-weight: 600;
+                     text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .step p { margin: 0 0 6px; font-size: 13px; color: #4b5563; line-height: 1.55; }
+  .step .docs { background: #f9fafb; padding: 8px 12px; border-radius: 6px; margin-top: 6px; }
+  .step .docs ul { margin: 0; padding-left: 18px; font-size: 12px; line-height: 1.55; }
+  .step .docs li { margin-bottom: 4px; display: flex; align-items: flex-start; gap: 6px; }
+  .step .docs li input { margin-top: 2px; }
+  .step .docs li.checked { color: var(--muted); text-decoration: line-through; }
+
+  .summary { background: linear-gradient(135deg, #f0f9ff, #fff); border: 1px solid #bae6fd;
+              border-radius: 10px; padding: 16px 18px; margin-top: 14px; }
+  .summary h3 { color: #0c4a6e; margin: 0 0 6px; font-size: 14px; }
+  .summary p { margin: 0; font-size: 13px; color: #075985; line-height: 1.55; }
+</style>
+
+<div class="hero">
+  <div class="crumb"><a href="/tools">← All tools</a></div>
+  <h1>Visa timeline & document checklist</h1>
+  <p>Pick a visa type below; we'll show you the realistic timeline and exactly which documents
+     you'll need at each step. Checkbox state saves to your browser so you can come back later.</p>
+</div>
+
+<div class="layout">
+  <aside class="panel">
+    <h2>1. Pick your visa</h2>
+    <p class="sub">Not sure which fits? Run the <a href="/tools/visa-eligibility">eligibility checker</a> first.</p>
+    <div class="visa-picker" id="visa-picker">
+      <label data-visa="engineer">
+        <input type="radio" name="visa" value="engineer" checked>
+        <div><div class="v-title">Engineer / Specialist in Humanities</div>
+        <div class="v-desc">Tech, finance, business, design, marketing, language teaching.</div></div>
+      </label>
+      <label data-visa="hsp">
+        <input type="radio" name="visa" value="hsp">
+        <div><div class="v-title">Highly Skilled Professional (HSP)</div>
+        <div class="v-desc">Points-based fast-track for high earners and specialists.</div></div>
+      </label>
+      <label data-visa="business">
+        <input type="radio" name="visa" value="business">
+        <div><div class="v-title">Business Manager</div>
+        <div class="v-desc">Founders / executives of a Japan-registered business.</div></div>
+      </label>
+      <label data-visa="instructor">
+        <input type="radio" name="visa" value="instructor">
+        <div><div class="v-title">Instructor (K-12 teaching)</div>
+        <div class="v-desc">Public / private schools. Eikaiwa uses Engineer/Specialist instead.</div></div>
+      </label>
+      <label data-visa="spouse">
+        <input type="radio" name="visa" value="spouse">
+        <div><div class="v-title">Spouse of Japanese / PR</div>
+        <div class="v-desc">Unrestricted work rights.</div></div>
+      </label>
+    </div>
+    <p class="summary" id="overall-summary"></p>
+  </aside>
+
+  <div class="panel">
+    <h2>2. Your timeline</h2>
+    <p class="sub" id="visa-desc"></p>
+    <div class="timeline" id="timeline"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var TIMELINES = {
+    engineer: {
+      desc: "Engineer/Specialist is the most common work visa. Process is initiated by your sponsoring employer in Japan; you receive a Certificate of Eligibility (COE) by mail, then convert it into a visa at the embassy.",
+      total: "8-14 weeks from offer to landing",
+      steps: [
+        { title: "Receive job offer and signed contract",
+          duration: "Week 0",
+          desc: "Employment contract triggers the visa process. Your employer needs your CV, passport copy, degree certificate, and signed offer letter.",
+          docs: [
+            "Signed employment contract (English + Japanese)",
+            "Photocopy of your passport (information page)",
+            "Original or certified copy of bachelor's degree",
+            "University transcript (sealed if possible)",
+            "CV / résumé in English",
+            "2× passport photos (3×4 cm, white background)",
+          ],
+        },
+        { title: "Employer files COE application with Immigration Bureau",
+          duration: "Week 1-2",
+          desc: "Your sponsoring company submits the COE application at the Immigration Bureau in Japan. You don't do anything here except wait.",
+          docs: [
+            "Application is filed in Japan — no action needed from you",
+          ],
+        },
+        { title: "Immigration reviews application",
+          duration: "Weeks 2-10",
+          desc: "Typical processing is 4-10 weeks. Officers may request additional documents through your employer.",
+          docs: [
+            "Be reachable by email — your employer may need quick clarifications",
+          ],
+        },
+        { title: "Certificate of Eligibility (COE) issued",
+          duration: "Around week 8-12",
+          desc: "Employer mails the original COE to your address. You'll need this physical document for the embassy step.",
+          docs: [
+            "Original COE (mailed; can take 1-2 weeks internationally)",
+          ],
+        },
+        { title: "Apply for visa sticker at Japanese embassy / consulate",
+          duration: "Weeks 11-13",
+          desc: "Visit your nearest Japanese embassy / consulate with the COE + passport + photos. Visa sticker is issued in 3-7 business days.",
+          docs: [
+            "Original Certificate of Eligibility (COE)",
+            "Passport (valid 6+ months)",
+            "Filled visa application form",
+            "2× passport photos",
+            "Visa fee (¥3,000 single / ¥6,000 multi — varies by country)",
+            "Employment contract copy (some consulates request)",
+          ],
+        },
+        { title: "Travel to Japan",
+          duration: "Week 13-14",
+          desc: "COE is valid for 90 days; visa sticker for 3 months. Plan to enter Japan within these windows.",
+          docs: [
+            "Booked one-way or round-trip ticket",
+            "All original documents on hand at immigration",
+            "Initial accommodation arrangement",
+          ],
+        },
+        { title: "Receive residence card at airport",
+          duration: "Day of arrival",
+          desc: "Major airports issue the 在留カード (residence card) at immigration on arrival. Smaller airports mail it within 2 weeks.",
+          docs: [
+            "Passport with visa sticker",
+            "COE (just in case officers request it)",
+          ],
+        },
+        { title: "Register address at local ward office",
+          duration: "Within 14 days of arrival",
+          desc: "Legally required. Visit your municipal ward office (区役所) and register your residence. Address gets printed on the back of your residence card.",
+          docs: [
+            "Residence card",
+            "Passport",
+            "Lease agreement or proof of address",
+          ],
+        },
+      ],
+    },
+    hsp: {
+      desc: "HSP requires demonstrating you've scored 70+ on the point sheet. Process is otherwise similar to Engineer/Specialist but with more supporting documentation.",
+      total: "10-16 weeks (similar to E/S, with extra docs)",
+      steps: [
+        { title: "Score yourself on the HSP point sheet",
+          duration: "Before applying",
+          desc: "Run our <a href='/tools/hsp-points'>HSP points calculator</a>. You need 70+ to qualify. Gather evidence for every point you claim.",
+          docs: [
+            "Degree certificates (Japanese-issued = +10)",
+            "Salary verification (paystubs, offer letter)",
+            "JLPT certificate (if claiming N1/N2 points)",
+            "Top-uni / MEXT-program proof (if applicable)",
+            "Research achievements (patents, publications, grants)",
+          ],
+        },
+        { title: "Employer files HSP-specific COE application",
+          duration: "Week 1-3",
+          desc: "The HSP application includes the point sheet plus all supporting evidence. The employer files in Japan.",
+          docs: [
+            "Completed HSP point sheet (kept by employer)",
+            "All evidence you gathered in step 1",
+          ],
+        },
+        { title: "Immigration verifies points",
+          duration: "Weeks 3-12",
+          desc: "Reviews take 6-12 weeks; longer if your point claim is borderline. Officers may ask for supplementary proof.",
+          docs: [
+            "Be reachable for clarifications",
+          ],
+        },
+        { title: "COE issued + visa sticker + arrival",
+          duration: "Weeks 12-16",
+          desc: "Same path as Engineer/Specialist from here. HSP grants you a 5-year visa from the start, plus PR eligibility in 3 years (or 1 year if you scored 80+).",
+          docs: [
+            "Same documents as E/S above",
+          ],
+        },
+      ],
+    },
+    business: {
+      desc: "Business Manager visa is significantly more involved because Immigration scrutinizes whether your business is real. Allow 3-6 months for the full setup.",
+      total: "3-6 months",
+      steps: [
+        { title: "Pre-arrival: choose business structure",
+          duration: "Month 0-1",
+          desc: "Decide between 株式会社 (KK — joint-stock) or 合同会社 (GK — LLC). KK is more prestigious; GK is cheaper. Most foreigners pick KK.",
+          docs: [
+            "Business plan (1-3 years projection)",
+            "Articles of incorporation (drafted by gyōseishoshi 行政書士)",
+          ],
+        },
+        { title: "Register company in Japan",
+          duration: "Month 1-2",
+          desc: "Hire a 行政書士 (administrative scrivener) to handle company registration. Deposit ¥5M capital into a personal account first (any Japanese ally helps).",
+          docs: [
+            "Articles of incorporation",
+            "Capital deposit certificate (¥5M+)",
+            "Address proof (commercial lease, not residential)",
+            "Hanko (personal seal)",
+          ],
+        },
+        { title: "Secure office space",
+          duration: "Month 1-3",
+          desc: "Must be a real commercial office — virtual offices are usually rejected. Immigration may physically visit to verify.",
+          docs: [
+            "Commercial lease agreement",
+            "Photos of the office (interior + signage)",
+          ],
+        },
+        { title: "Hire local staff or invest operationally",
+          duration: "Month 2-3",
+          desc: "You need either 2 full-time non-foreign employees OR ¥5M+ in operational expenses each year. Most go with the employee route.",
+          docs: [
+            "Employment contracts for at least 2 Japanese / PR staff",
+            "Payroll plan",
+          ],
+        },
+        { title: "Apply for Business Manager COE",
+          duration: "Month 3-4",
+          desc: "Filed at Immigration in Japan. Officers will review the business plan and likely visit your office.",
+          docs: [
+            "Full business plan + financial projections",
+            "All registration / lease / employee docs",
+            "Personal background (CV, degree, work history)",
+          ],
+        },
+        { title: "Visa issuance + arrival",
+          duration: "Month 5-6",
+          desc: "Similar to E/S from here. Initial visa is typically 1 year; renews to 3 or 5 years once the business proves viable.",
+          docs: [
+            "Same as E/S — COE, embassy visa, arrival registration",
+          ],
+        },
+      ],
+    },
+    instructor: {
+      desc: "Instructor visa is straightforward but only for K-12 teaching at Japanese schools. Eikaiwa, ALT through dispatch, and corporate teaching all use Engineer/Specialist instead.",
+      total: "8-12 weeks",
+      steps: [
+        { title: "Receive job offer from a Japanese school",
+          duration: "Week 0",
+          desc: "Must be a Japan-recognized school (elementary, junior high, high school, or vocational).",
+          docs: [
+            "Employment contract",
+            "Bachelor's degree (any field)",
+            "Teaching credential (PGCE, state license, etc.) preferred",
+          ],
+        },
+        { title: "School files COE application",
+          duration: "Weeks 1-8",
+          desc: "Same general process as E/S. Officers may take longer if your degree is non-education.",
+          docs: [
+            "Diploma, transcript, teaching license, contract",
+          ],
+        },
+        { title: "Visa + arrival",
+          duration: "Weeks 9-12",
+          desc: "Same path as E/S from here.",
+          docs: [
+            "Standard E/S documents",
+          ],
+        },
+      ],
+    },
+    spouse: {
+      desc: "Spouse visa is the simplest. Your Japanese / PR spouse acts as your sponsor; you get unrestricted work rights and a clear path to your own PR in 3 years.",
+      total: "6-10 weeks",
+      steps: [
+        { title: "Gather marriage documents",
+          duration: "Week 0",
+          desc: "If you married in Japan, the koseki (family register) is your proof. If overseas, get the marriage certificate translated + apostilled.",
+          docs: [
+            "Marriage certificate (original + Japanese translation)",
+            "Spouse's koseki tōhon (family register)",
+            "Spouse's residence card or PR proof",
+          ],
+        },
+        { title: "Spouse files COE application",
+          duration: "Weeks 1-6",
+          desc: "Your spouse files in Japan as your sponsor. Application is reviewed similarly to other visas.",
+          docs: [
+            "All marriage docs",
+            "Your CV + passport copy",
+            "Spouse's income proof (tax certificate, last 3 paystubs)",
+          ],
+        },
+        { title: "Visa + arrival",
+          duration: "Weeks 7-10",
+          desc: "Standard COE → embassy → arrival flow. Spouse visa typically issued for 1 or 3 years initially, renewing to 5 years.",
+          docs: [
+            "Standard arrival documents",
+          ],
+        },
+      ],
+    },
+  };
+
+  var STORAGE_KEY = "gh-visa-timeline-state-v1";
+  var state = (function () {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") || {}; }
+    catch (e) { return {}; }
+  })();
+  state.currentVisa = state.currentVisa || "engineer";
+  state.checked = state.checked || {};
+
+  function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+  function render() {
+    var data = TIMELINES[state.currentVisa];
+    document.getElementById("visa-desc").textContent = data.desc;
+    document.getElementById("overall-summary").innerHTML =
+      "<h3>Estimated total</h3><p>" + data.total + "</p>";
+
+    var t = document.getElementById("timeline");
+    t.innerHTML = data.steps.map(function (step, idx) {
+      var stepKey = state.currentVisa + "-" + idx;
+      return '<div class="step" data-step="' + stepKey + '">' +
+        '<div class="duration">' + step.duration + '</div>' +
+        '<h3>' + step.title + '</h3>' +
+        '<p>' + step.desc + '</p>' +
+        (step.docs.length ? '<div class="docs"><ul>' + step.docs.map(function (doc, di) {
+          var ck = state.checked[stepKey + "-" + di] ? "checked" : "";
+          var liCls = state.checked[stepKey + "-" + di] ? "checked" : "";
+          return '<li class="' + liCls + '">' +
+            '<input type="checkbox" data-doc="' + stepKey + "-" + di + '" ' + ck + '>' +
+            doc + '</li>';
+        }).join("") + '</ul></div>' : '') +
+        '</div>';
+    }).join("");
+
+    // Wire up checkboxes
+    t.querySelectorAll('input[type=checkbox]').forEach(function (cb) {
+      cb.addEventListener("change", function () {
+        state.checked[cb.getAttribute("data-doc")] = cb.checked;
+        save();
+        cb.closest("li").classList.toggle("checked", cb.checked);
+      });
+    });
+
+    // Mark steps "done" if all docs checked
+    t.querySelectorAll(".step").forEach(function (s) {
+      var cbs = s.querySelectorAll('input[type=checkbox]');
+      if (cbs.length && Array.prototype.every.call(cbs, function (cb) { return cb.checked; })) {
+        s.classList.add("done");
+      }
+    });
+
+    // Highlight selected visa
+    document.querySelectorAll(".visa-picker label").forEach(function (l) {
+      l.classList.toggle("selected", l.getAttribute("data-visa") === state.currentVisa);
+    });
+  }
+
+  document.querySelectorAll('.visa-picker input[type=radio]').forEach(function (r) {
+    if (r.value === state.currentVisa) r.checked = true;
+    r.addEventListener("change", function () {
+      state.currentVisa = r.value; save(); render();
+    });
+  });
+
+  render();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block meta_robots %}noindex{% endblock %}
+{% block content %}
+<nav class="view-tabs">
+  <a href="/" class="{% if view == 'all' %}active{% endif %}">All jobs</a>
+  <a href="/saved" class="{% if view == 'saved' %}active{% endif %}">⭐ Saved <span id="saved-count" class="tab-count"></span></a>
+  <a href="/applied" class="{% if view == 'applied' %}active{% endif %}">✓ Applied <span id="applied-count" class="tab-count"></span></a>
+  <a href="/archived" class="{% if view == 'archived' %}active{% endif %}">Archived</a>
+</nav>
+
+<div class="empty">
+  <h2 style="margin-top:40px;">{{ title }}</h2>
+  <p>{{ body }}</p>
+  <p><a href="/">← Browse all jobs</a></p>
+</div>
+{% endblock %}

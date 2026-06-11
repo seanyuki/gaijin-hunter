@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+{% block title %}Get started, Gaijin Hunter{% endblock %}
+{% block content %}
+<style>
+  .quiz-wrap { max-width: 720px; margin: 30px auto; padding: 0 20px; }
+  .quiz-h { text-align: center; margin-bottom: 22px; }
+  .quiz-h h1 { font-size: 32px; margin: 0 0 8px; letter-spacing: -0.02em; }
+  .quiz-h p { color: var(--muted); margin: 0; font-size: 15px; }
+
+  .progress-bar { background: #f3f4f6; border-radius: 999px; height: 8px;
+                   overflow: hidden; margin: 20px 0 26px; }
+  .progress-bar .fill { background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+                         height: 100%; transition: width 0.3s ease; }
+
+  .q-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+             padding: 30px 32px; min-height: 380px; }
+  .q-card .step { font-size: 12px; color: var(--accent); font-weight: 600;
+                   text-transform: uppercase; letter-spacing: 0.06em; }
+  .q-card h2 { margin: 6px 0 22px; font-size: 22px; line-height: 1.3; }
+
+  .opts { display: flex; flex-direction: column; gap: 10px; }
+  .opt { display: block; padding: 14px 18px; background: #f9fafb; border: 2px solid var(--line);
+          border-radius: 10px; cursor: pointer; transition: all 0.15s; font-size: 15px;
+          color: var(--fg); }
+  .opt:hover { background: #eff6ff; border-color: #bfdbfe; }
+  .opt.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .opt .opt-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .opt.selected .opt-sub { color: rgba(255,255,255,0.85); }
+
+  .nav-row { display: flex; justify-content: space-between; margin-top: 22px;
+              gap: 10px; flex-wrap: wrap; }
+  .btn { padding: 11px 22px; border-radius: 8px; font-weight: 600; cursor: pointer;
+          font-size: 14px; border: 1px solid transparent; text-decoration: none;
+          display: inline-flex; align-items: center; gap: 6px; }
+  .btn.primary { background: var(--accent); color: #fff; }
+  .btn.primary:hover { background: var(--accent-dark); }
+  .btn.primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn.ghost { background: #fff; color: #374151; border-color: var(--line); }
+  .btn.ghost:hover { background: #f9fafb; }
+
+  /* Results screen */
+  .results h2 { font-size: 26px; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .results .lead { color: var(--muted); font-size: 15px; margin: 0 0 20px; line-height: 1.55; }
+  .rec { display: flex; gap: 14px; align-items: flex-start; padding: 16px 18px;
+          background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 10px;
+          margin-bottom: 10px; text-decoration: none; color: inherit; transition: all 0.15s; }
+  .rec:hover { transform: translateY(-1px); border-color: var(--accent); }
+  .rec .ic { font-size: 26px; line-height: 1; flex-shrink: 0; }
+  .rec h3 { margin: 0 0 4px; font-size: 16px; color: #0c4a6e; }
+  .rec p  { margin: 0; font-size: 13px; color: #075985; line-height: 1.55; }
+  .rec.priority { background: #fef3c7; border-color: #fbbf24; }
+  .rec.priority h3 { color: #92400e; }
+  .rec.priority p { color: #78350f; }
+  .priority-tag { display: inline-block; background: #f59e0b; color: #fff;
+                   padding: 1px 8px; border-radius: 999px; font-size: 11px;
+                   font-weight: 700; margin-left: 6px; }
+</style>
+
+<div class="quiz-wrap">
+  <div class="quiz-h">
+    <h1>Let's get you to the right tool </h1>
+    <p>5 questions. 3 minutes. We'll point you to what matters first.</p>
+  </div>
+
+  <div class="progress-bar"><div class="fill" id="bar-fill" style="width: 0%"></div></div>
+
+  <div class="q-card" id="qcard">
+    <!-- populated by JS -->
+  </div>
+
+  <div class="nav-row">
+    <button class="btn ghost" id="back-btn" style="visibility: hidden;">← Back</button>
+    <button class="btn primary" id="next-btn" disabled>Next →</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  var QUESTIONS = [
+    {
+      key: "stage",
+      title: "Where are you in your Japan career plan?",
+      options: [
+        { val: "exploring",     label: "Exploring — figuring out if Japan makes sense for me.",
+          sub: "You're researching, weighing options, maybe a year out." },
+        { val: "abroad",        label: "Living abroad, planning to apply.",
+          sub: "You want to land a Japan job remotely and relocate." },
+        { val: "in-japan",      label: "Already in Japan — switching jobs or starting work.",
+          sub: "On a visa already, hunting for your next role." },
+        { val: "interviewing",  label: "Mid-process — interviewing right now.",
+          sub: "You have leads / offers and need help closing." },
+      ],
+    },
+    {
+      key: "visa",
+      title: "What's your visa situation?",
+      options: [
+        { val: "need",     label: "I need to be sponsored.", sub: "No Japan visa yet." },
+        { val: "have",     label: "I already have a Japan work visa.", sub: "Engineer/Specialist or similar." },
+        { val: "spouse-pr",label: "I have spouse or PR.",    sub: "Unrestricted work rights." },
+        { val: "unsure",   label: "I'm not sure which I'd qualify for.", sub: "We can help you figure it out." },
+      ],
+    },
+    {
+      key: "field",
+      title: "What field are you in?",
+      options: [
+        { val: "tech",        label: "Engineering / data / IT" },
+        { val: "design",      label: "Design / creative" },
+        { val: "business",    label: "Product / business / finance / sales" },
+        { val: "teaching",    label: "Teaching English" },
+        { val: "other",       label: "Something else" },
+      ],
+    },
+    {
+      key: "japanese",
+      title: "What's your Japanese level?",
+      options: [
+        { val: "none",       label: "None / Basic", sub: "Less than JLPT N4." },
+        { val: "conv",       label: "Conversational",      sub: "Around JLPT N3 — daily life, basic email." },
+        { val: "business",   label: "Business-level",      sub: "JLPT N2 — meetings, formal emails." },
+        { val: "fluent",     label: "Fluent / Native",     sub: "JLPT N1 or native." },
+      ],
+    },
+    {
+      key: "priority",
+      title: "What's the most urgent thing for you right now?",
+      options: [
+        { val: "find-jobs",  label: "Find jobs I might actually get hired for." },
+        { val: "salary",     label: "Understand realistic salaries / take-home pay." },
+        { val: "visa",       label: "Figure out my visa pathway." },
+        { val: "resume",     label: "Build a Japanese resume / cover letter." },
+        { val: "interview",  label: "Prepare for an interview." },
+        { val: "negotiate",  label: "Negotiate a current offer." },
+      ],
+    },
+  ];
+
+  var state = { idx: 0, answers: {} };
+  var qcard   = document.getElementById("qcard");
+  var bar     = document.getElementById("bar-fill");
+  var nextBtn = document.getElementById("next-btn");
+  var backBtn = document.getElementById("back-btn");
+
+  function render() {
+    if (state.idx >= QUESTIONS.length) { renderResults(); return; }
+    var q = QUESTIONS[state.idx];
+    bar.style.width = (state.idx / QUESTIONS.length * 100) + "%";
+    backBtn.style.visibility = state.idx === 0 ? "hidden" : "visible";
+    nextBtn.textContent = state.idx === QUESTIONS.length - 1 ? "See my recommendations →" : "Next →";
+    nextBtn.disabled = !state.answers[q.key];
+
+    qcard.innerHTML =
+      '<div class="step">Question ' + (state.idx + 1) + ' / ' + QUESTIONS.length + '</div>' +
+      '<h2>' + q.title + '</h2>' +
+      '<div class="opts">' +
+      q.options.map(function (o) {
+        var sel = state.answers[q.key] === o.val ? ' selected' : '';
+        return '<div class="opt' + sel + '" data-val="' + o.val + '">' +
+          o.label + (o.sub ? '<div class="opt-sub">' + o.sub + '</div>' : '') +
+          '</div>';
+      }).join("") +
+      '</div>';
+
+    qcard.querySelectorAll(".opt").forEach(function (el) {
+      el.addEventListener("click", function () {
+        state.answers[q.key] = el.getAttribute("data-val");
+        // Save partial state to localStorage in case the user refreshes
+        try { localStorage.setItem("gh-quiz-state", JSON.stringify(state)); } catch (e) {}
+        render();
+      });
+    });
+  }
+
+  function recommendations() {
+    var a = state.answers;
+    var recs = [];
+
+    // Priority-based: surface what they said is urgent first.
+    if (a.priority === "find-jobs") {
+      var qs = "?";
+      if (a.japanese === "none")  qs += "japanese_level=Not+Required&japanese_level=Basic+%2F+Beginner&";
+      if (a.field === "tech")     qs += "role_family=Software+Engineering&role_family=Data+%2F+AI&";
+      if (a.field === "teaching") qs += "role_family=Teaching+%2F+Education&";
+      if (a.visa === "need")      qs += "visa_sponsorship_mentioned=1&";
+      if (a.stage === "abroad")   qs += "overseas_application_ok=1&";
+      qs += "foreigner_fit_min=60";
+      recs.push({ priority: true, icon: "", url: "/jobs" + qs,
+        title: "Your filtered job board",
+        body: "We've prefilled the filters based on your answers. Save your favorites with a click." });
+    }
+    if (a.priority === "salary") {
+      recs.push({ priority: true, icon: "", url: "/insights/salary",
+        title: "Live salary percentiles",
+        body: "By role family, drawn directly from active postings." });
+      recs.push({ icon: "", url: "/tools/take-home-pay",
+        title: "Take-home pay calculator", body: "Gross JPY → net after tax." });
+    }
+    if (a.priority === "visa") {
+      recs.push({ priority: true, icon: "", url: "/tools/visa-eligibility",
+        title: "Visa eligibility checker", body: "4 questions → which categories you might qualify for." });
+      recs.push({ icon: "", url: "/tools/hsp-points",
+        title: "HSP points calculator", body: "Run if HSP came up as a possibility." });
+      recs.push({ icon: "", url: "/tools/visa-timeline",
+        title: "Visa timeline & document checklist", body: "Step-by-step process." });
+    }
+    if (a.priority === "resume") {
+      if (a.japanese === "none" || a.field !== "teaching") {
+        recs.push({ priority: true, icon: "", url: "/resume/cv",
+          title: "English CV builder", body: "Modern Western CV — print to PDF." });
+      }
+      recs.push({ priority: a.japanese !== "none", icon: "", url: "/resume",
+        title: "Japanese rirekisho builder", body: "MHLW-standard format, photo upload, prints to two A4 pages." });
+      recs.push({ icon: "", url: "/resume/cover-letter",
+        title: "Cover letter builder", body: "4 templates, live preview." });
+    }
+    if (a.priority === "interview") {
+      recs.push({ priority: true, icon: "🎤", url: "/interview-prep",
+        title: "Interview prep hub",
+        body: "Role-specific questions, STAR answer builder, Japanese phrases." });
+      recs.push({ icon: "", url: "/templates",
+        title: "Bilingual email templates",
+        body: "Confirm interviews, send thank-yous, follow up." });
+    }
+    if (a.priority === "negotiate") {
+      recs.push({ priority: true, icon: "", url: "/pillars/negotiation-playbook",
+        title: "Salary negotiation playbook",
+        body: "What works and what backfires in Japan." });
+      recs.push({ icon: "", url: "/tools/take-home-pay",
+        title: "Take-home pay calculator",
+        body: "Know exactly what each offer pays you net." });
+      recs.push({ icon: "", url: "/templates",
+        title: "Negotiation email templates",
+        body: "Counter-offer + 'time to think it over' scripts." });
+    }
+
+    // Always include: profile + tracker if not already there
+    if (!recs.some(function (r) { return r.url === "/profile"; })) {
+      recs.push({ icon: "👤", url: "/profile",
+        title: "Set up your profile (90 sec)",
+        body: "Unlocks personalized Match scores on every job card." });
+    }
+    if (a.stage === "interviewing") {
+      recs.push({ icon: "", url: "/jobs/tracker",
+        title: "Open the application tracker",
+        body: "Pipeline view with notes and follow-up reminders." });
+    }
+
+    // Visa shortcut for the unsure
+    if (a.visa === "unsure") {
+      recs.unshift({ priority: true, icon: "", url: "/tools/visa-eligibility",
+        title: "Start with the visa eligibility checker",
+        body: "Before anything else — confirm you can actually work here. Takes 90 seconds." });
+    }
+
+    return recs;
+  }
+
+  function renderResults() {
+    bar.style.width = "100%";
+    backBtn.style.visibility = "visible";
+    nextBtn.style.display = "none";
+
+    var recs = recommendations();
+    qcard.innerHTML =
+      '<div class="results">' +
+        '<h2>Here\'s where to start →</h2>' +
+        '<p class="lead">Tailored to your answers. Open the top one first; come back for the rest later.</p>' +
+        recs.map(function (r) {
+          return '<a class="rec' + (r.priority ? " priority" : "") + '" href="' + r.url + '">' +
+            '<div class="ic">' + r.icon + '</div>' +
+            '<div><h3>' + r.title + (r.priority ? '<span class="priority-tag">Start here</span>' : '') + '</h3>' +
+            '<p>' + r.body + '</p></div>' +
+            '</a>';
+        }).join("") +
+      '</div>';
+  }
+
+  nextBtn.addEventListener("click", function () {
+    state.idx += 1;
+    render();
+  });
+  backBtn.addEventListener("click", function () {
+    if (state.idx > 0) {
+      state.idx -= 1;
+      nextBtn.style.display = "";
+      render();
+    }
+  });
+
+  // Restore partial state if user refreshed
+  try {
+    var saved = JSON.parse(localStorage.getItem("gh-quiz-state") || "null");
+    if (saved && typeof saved === "object" && saved.answers) state = saved;
+  } catch (e) {}
+
+  render();
+})();
+</script>
+{% endblock %}

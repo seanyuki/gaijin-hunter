@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Career Resources for Foreigners in Japan: Visa, JLPT, Resume, Salary · Gaijin Hunter{% endblock %}
+{% block meta_description %}In-depth career resources for foreigners working in Japan: work visas, JLPT levels, Japanese resume formats, interview etiquette, salary expectations, cost of living, and black-company red flags. Each guide is research-backed with 2026 data.{% endblock %}
+{% block jsonld %}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"CollectionPage","name":"Career Resources for Foreigners in Japan","description":"Long-form articles on Japan work visas, JLPT, resumes, interviews, salary, and cost of living.","url":"{{ base_url }}/resources"}
+</script>
+{% endblock %}
+{% block content %}
+<style>
+  /* hero */
+  .hub-wrap { position: relative; overflow: hidden; border-bottom: 1px solid var(--line);
+    background: radial-gradient(45% 60% at 88% 0%, var(--accent-tint) 0%, rgba(247,244,238,0) 72%),
+      linear-gradient(180deg, #fffdf9 0%, var(--bg) 100%); margin: -1px 0 0; }
+  .hub-hero { max-width: 1080px; margin: 0 auto; padding: 48px 24px 30px; }
+  .hub-hero h1 { font-family: var(--font-display); font-weight: 600; font-size: clamp(30px, 4vw, 46px);
+    letter-spacing: -0.028em; margin: 14px 0 12px; max-width: 16ch; color: var(--ink); }
+  .hub-hero p { color: var(--fg-soft); font-size: 17px; line-height: 1.6; max-width: 60ch; margin: 0; }
+
+  /* search */
+  .res-filter { position: relative; max-width: 520px; margin: 22px 0 0; }
+  .res-filter input { width: 100%; padding: 11px 14px 11px 40px; border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm); font-size: 14px; background: var(--card); font-family: inherit; color: var(--fg); }
+  .res-filter input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
+  .res-filter .res-filter-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--muted-soft); pointer-events: none; }
+  .res-filter .res-filter-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 6px; border-radius: 6px; display: none; }
+  .res-filter.has-value .res-filter-clear { display: inline-flex; }
+
+  /* generic hub section frame */
+  .hub-sec { max-width: 1080px; margin: 0 auto; padding: 30px 24px 0; }
+  .hub-sec .sec-head { margin-bottom: 14px; }
+  .hub-sec .sec-head h2 { font-family: var(--font-display); font-weight: 600; font-size: 24px; margin: 6px 0 3px; letter-spacing: -0.02em; }
+  .hub-sec .sec-head p { color: var(--muted); font-size: 14px; margin: 0; }
+
+  /* "Start here" pathway: compact problem rows, not big equal cards */
+  .pathways { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  @media (max-width: 860px) { .pathways { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 540px) { .pathways { grid-template-columns: 1fr; } }
+  .pway { display: flex; align-items: center; gap: 12px; padding: 14px 16px; text-decoration: none;
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard), transform var(--motion-fast) var(--ease-standard); }
+  .pway:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+  .pway .pic { width: 34px; height: 34px; flex: none; border-radius: 9px; background: var(--accent-soft);
+    color: var(--accent); display: inline-flex; align-items: center; justify-content: center; }
+  .pway .pt { min-width: 0; }
+  .pway .pt b { display: block; font-size: 13.5px; color: var(--ink); }
+  .pway .pt span { font-size: 12px; color: var(--muted); }
+
+  /* resource library: varied grid, first item featured */
+  .res-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 14px; }
+  @media (max-width: 800px) { .res-grid { grid-template-columns: 1fr; } }
+  .res-card { display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 20px 22px; text-decoration: none; color: inherit; }
+  .res-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .res-card .icon-wrap { width: 38px; height: 38px; border-radius: 9px; background: var(--accent-soft);
+    color: var(--accent); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+  .res-card h3 { margin: 0 0 6px; font-size: 16px; color: var(--ink); }
+  .res-card p { margin: 0 0 12px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+  .res-card .arrow { color: var(--accent); font-weight: 600; font-size: 13px; margin-top: auto;
+    display: inline-flex; align-items: center; gap: 4px; }
+  /* featured first card spans full width, horizontal */
+  .res-card.feat { grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 22px;
+    background: linear-gradient(120deg, var(--accent-tint), var(--card) 60%); border-color: #e6c4bf; }
+  .res-card.feat .icon-wrap { width: 52px; height: 52px; margin: 0; flex: none; }
+  .res-card.feat .fc-body { flex: 1; }
+  .res-card.feat h3 { font-family: var(--font-display); font-weight: 600; font-size: 21px; }
+  .res-card.feat p { font-size: 14px; max-width: 64ch; }
+  @media (max-width: 640px) { .res-card.feat { flex-direction: column; align-items: flex-start; gap: 14px; } }
+  .res-empty { text-align: center; padding: 40px 20px; color: var(--muted); display: none; }
+  .res-empty.show { display: block; }
+
+  /* next steps band */
+  .nextsteps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 14px 0 8px; }
+  @media (max-width: 800px) { .nextsteps { grid-template-columns: 1fr; } }
+  .nscard { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; }
+  .nscard h3 { margin: 0 0 4px; font-size: 14.5px; color: var(--ink); }
+  .nscard p { margin: 0 0 12px; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+  .nscard .nslinks { display: flex; flex-wrap: wrap; gap: 7px; }
+  .nscard .nslinks a { font-size: 12.5px; font-weight: 600; text-decoration: none; color: var(--accent);
+    background: var(--accent-soft); border-radius: var(--radius-pill); padding: 5px 11px; }
+  .nscard .nslinks a:hover { background: var(--accent); color: #fff; }
+  .hub-pad { padding-bottom: 36px; }
+</style>
+
+<div class="hub-wrap">
+  <div class="hub-hero">
+    <span class="eyebrow-rule">Career resources</span>
+    <h1>Everything you need to work in Japan, researched.</h1>
+    <p>Long-form, 2026-current answers to the questions foreigners actually hit: which visa, what
+      JLPT really buys you, how Japanese resumes differ, what to expect in interviews and salary,
+      and how to spot a black company before you sign.</p>
+    <div class="res-filter" id="res-filter">
+      <span class="res-filter-icon">{{ icon('search', size=16) }}</span>
+      <input id="res-filter-input" type="search" placeholder="Filter resources…" aria-label="Filter resources">
+      <button type="button" class="res-filter-clear" id="res-filter-clear" aria-label="Clear filter">{{ icon('close', size=14) }}</button>
+    </div>
+  </div>
+</div>
+
+<!-- Start here: by what you need right now -->
+<section class="hub-sec">
+  <div class="sec-head">
+    <span class="eyebrow-rule">Start here</span>
+    <h2>Jump in by what you need</h2>
+    <p>Six common situations, each pointed at the fastest useful answer.</p>
+  </div>
+  <div class="pathways">
+    <a class="pway" href="/tools/visa-eligibility"><span class="pic">{{ icon('badge', size=18) }}</span><span class="pt"><b>I need a visa</b><span>Check which visa fits you</span></span></a>
+    <a class="pway" href="/resume"><span class="pic">{{ icon('document', size=18) }}</span><span class="pt"><b>I need a Japanese resume</b><span>Build 履歴書 + 職務経歴書</span></span></a>
+    <a class="pway" href="/interview-prep"><span class="pic">{{ icon('megaphone', size=18) }}</span><span class="pt"><b>I need interview prep</b><span>Etiquette and questions</span></span></a>
+    <a class="pway" href="/insights/salary"><span class="pic">{{ icon('currency-yen', size=18) }}</span><span class="pt"><b>I need salary expectations</b><span>Real pay bands by role</span></span></a>
+    <a class="pway" href="/jobs?overseas_application_ok=1"><span class="pic">{{ icon('plane', size=18) }}</span><span class="pt"><b>I'm applying from overseas</b><span>Roles that hire from abroad</span></span></a>
+    <a class="pway" href="/living"><span class="pic">{{ icon('home', size=18) }}</span><span class="pt"><b>I'm already in Japan</b><span>Settle in and thrive</span></span></a>
+  </div>
+</section>
+
+<!-- The full library -->
+<section class="hub-sec">
+  <div class="sec-head">
+    <span class="eyebrow-rule">The library</span>
+    <h2>All resources</h2>
+    <p>Every guide is a 5 to 10 minute read with a sidebar table of contents.</p>
+  </div>
+  <div class="res-grid" id="res-grid">
+    {% for r in resources %}
+      <a class="res-card{% if loop.first %} feat{% endif %}" href="/resources/{{ r.slug }}"
+         data-search="{{ r.title|lower }} {{ r.summary|lower }} {{ r.slug }}">
+        <div class="icon-wrap">{{ icon(r.icon, size=loop.first and 26 or 20) }}</div>
+        {% if loop.first %}<div class="fc-body">{% endif %}
+        <h3>{{ r.title }}</h3>
+        <p>{{ r.summary }}</p>
+        <span class="arrow">Read {{ icon('arrow-right', size=12) }}</span>
+        {% if loop.first %}</div>{% endif %}
+      </a>
+    {% endfor %}
+  </div>
+  <div class="res-empty" id="res-empty">No matching resources. Try a different keyword.</div>
+</section>
+
+<script>
+(function () {
+  var input = document.getElementById('res-filter-input');
+  var wrap = document.getElementById('res-filter');
+  var grid = document.getElementById('res-grid');
+  var empty = document.getElementById('res-empty');
+  var clearBtn = document.getElementById('res-filter-clear');
+  if (!input) return;
+  var cards = Array.prototype.slice.call(grid.querySelectorAll('.res-card'));
+  function applyFilter() {
+    var q = input.value.trim().toLowerCase();
+    var anyVisible = false;
+    cards.forEach(function (c) {
+      var hay = c.getAttribute('data-search') || '';
+      var matches = !q || q.split(/\s+/).every(function (t) { return hay.indexOf(t) !== -1; });
+      c.style.display = matches ? '' : 'none';
+      if (matches) anyVisible = true;
+    });
+    empty.classList.toggle('show', !anyVisible);
+    wrap.classList.toggle('has-value', q.length > 0);
+  }
+  input.addEventListener('input', applyFilter);
+  clearBtn.addEventListener('click', function () { input.value = ''; applyFilter(); input.focus(); });
+})();
+</script>
+
+<!-- Most useful next steps -->
+<section class="hub-sec hub-pad">
+  <div class="sec-head">
+    <span class="eyebrow-rule">Keep going</span>
+    <h2>Most useful next steps</h2>
+  </div>
+  <div class="nextsteps">
+    <div class="nscard">
+      <h3>Run the numbers</h3>
+      <p>Calculators instead of articles: eligibility, points, and take-home pay.</p>
+      <div class="nslinks">
+        <a href="/tools/visa-eligibility">Visa checker</a>
+        <a href="/tools/hsp-points">HSP points</a>
+        <a href="/tools/take-home-pay">Take-home pay</a>
+      </div>
+    </div>
+    <div class="nscard">
+      <h3>Place and role guides</h3>
+      <p>Focused advice for a specific city or career track.</p>
+      <div class="nslinks">
+        <a href="/guides/tokyo">Tokyo</a>
+        <a href="/guides/osaka">Osaka</a>
+        <a href="/guides/software-engineering">Software</a>
+        <a href="/guides/teaching-english">Teaching</a>
+      </div>
+    </div>
+    <div class="nscard">
+      <h3>Vetted external sites</h3>
+      <p>60+ job boards, recruiters, and learning tools with honest notes on each.</p>
+      <div class="nslinks">
+        <a href="/resources/external-resources">Open directory</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+{% block title %}Japan Take-Home Pay Calculator (2026), Net Salary After Tax · Gaijin Hunter{% endblock %}
+{% block meta_description %}Free Japan take-home pay calculator. Computes your monthly net pay after income tax, residence tax, health insurance, pension, and unemployment insurance. 2026 rates with ward-level residence tax.{% endblock %}
+{% block meta_keywords %}Japan take-home pay calculator, Japan net salary calculator, Japan income tax 2026, Japan residence tax, shakai hoken, Tokyo net salary{% endblock %}
+{% block jsonld %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Japan Take-Home Pay Calculator",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any (web-based)",
+  "description": "Calculate your monthly net take-home pay in Japan after income tax, residence tax, social insurance, and pension contributions. Updated for 2026 rates.",
+  "url": "{{ base_url }}/tools/take-home-pay",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "JPY"},
+  "creator": {"@type": "Organization", "name": "Gaijin Hunter"}
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ base_url }}/"},
+    {"@type": "ListItem", "position": 2, "name": "Tools", "item": "{{ base_url }}/tools"},
+    {"@type": "ListItem", "position": 3, "name": "Take-Home Pay Calculator", "item": "{{ base_url }}/tools/take-home-pay"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How much income tax do I pay in Japan?",
+      "acceptedAnswer": {"@type": "Answer", "text": "Japan's national income tax is progressive, ranging from 5% on the first ¥1.95M up to 45% on income above ¥40M. Plus 10% local residence tax. For a ¥10M salary, effective tax including residence tax is roughly 22–25%."}
+    },
+    {
+      "@type": "Question",
+      "name": "What is shakai hoken (社会保険) in Japan?",
+      "acceptedAnswer": {"@type": "Answer", "text": "Shakai hoken is Japan's employee social insurance bundle, covering health insurance (健康保険), pension (厚生年金), unemployment insurance (雇用保険), and workers' compensation. Total deductions roughly 14–15% of salary, split between employee and employer."}
+    },
+    {
+      "@type": "Question",
+      "name": "When does residence tax start in Japan?",
+      "acceptedAnswer": {"@type": "Answer", "text": "Residence tax (住民税) in Japan is paid in your second year of residency, based on income earned in the prior calendar year. First-year residents typically don't pay residence tax."}
+    }
+  ]
+}
+</script>
+{% endblock %}
+{% block content %}
+<style>
+  .tool-h { padding: 14px 0 18px; }
+  .tool-h .crumb { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .tool-h .crumb a { color: var(--muted); text-decoration: none; }
+  .tool-h .crumb a:hover { color: var(--accent); }
+  .tool-h h1 { margin: 0 0 4px; font-size: 28px; }
+  .tool-h .lede { color: var(--muted); margin: 0; max-width: 720px; }
+
+  .layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 22px; align-items: start; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+           padding: 22px 24px; }
+  .panel h2 { margin: 0 0 14px; font-size: 17px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; color: var(--muted);
+                 text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .field input, .field select {
+    width: 100%; padding: 9px 12px; border: 1px solid var(--line); border-radius: 6px;
+    font-size: 14px; background: #fff; font-family: inherit;
+  }
+  .checkbox-row label { font-size: 13px; color: #374151; display: flex; align-items: center;
+                        gap: 8px; text-transform: none; letter-spacing: 0; font-weight: 400;
+                        margin: 0 0 6px; }
+  .checkbox-row input { width: auto; }
+  .hint { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+
+  /* Result */
+  .result { position: sticky; top: 90px; }
+  .summary-card { background: linear-gradient(180deg, #f0f9ff 0%, #fff 100%);
+                  border: 1px solid #bae6fd; border-radius: 12px; padding: 26px 28px;
+                  text-align: center; }
+  .summary-card h3 { margin: 0 0 4px; font-size: 13px; color: var(--muted);
+                     text-transform: uppercase; letter-spacing: 0.06em; }
+  .net-amount { font-size: 46px; font-weight: 800; color: var(--accent);
+                margin: 6px 0; letter-spacing: -0.02em; }
+  .net-monthly { font-size: 18px; color: var(--fg); font-weight: 600; }
+  .net-pct { font-size: 14px; color: var(--muted); margin-top: 8px; }
+
+  table.breakdown { width: 100%; border-collapse: collapse; margin-top: 18px;
+                    background: var(--card); border: 1px solid var(--line);
+                    border-radius: 10px; overflow: hidden; }
+  table.breakdown th, table.breakdown td { padding: 10px 14px; text-align: left;
+                                            border-bottom: 1px solid var(--line);
+                                            font-size: 13px; }
+  table.breakdown th { background: #f9fafb; font-weight: 600; color: #374151;
+                       font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+  table.breakdown td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  table.breakdown tr.section-head td { background: #f9fafb; font-weight: 600;
+                                        font-size: 12px; color: #6b7280;
+                                        text-transform: uppercase; letter-spacing: 0.04em; }
+  table.breakdown tr.total td { font-weight: 700; font-size: 14px;
+                                background: #eff6ff; color: var(--accent-dark); }
+
+  .disclaimer { font-size: 11px; color: var(--muted); margin-top: 14px;
+                font-style: italic; line-height: 1.55; }
+</style>
+
+<div class="tool-h">
+  <div class="crumb"><a href="/tools">← All tools</a></div>
+  <h1>Japan take-home pay calculator</h1>
+  <p class="lede">Enter gross annual salary. Get an estimate of monthly and annual net after
+     social insurance (健康保険・厚生年金・雇用保険), income tax (所得税), and residence tax (住民税).</p>
+</div>
+
+<div class="layout">
+  <form class="panel" id="thp-form" onsubmit="return false;">
+    <h2>Your salary</h2>
+
+    <div class="field">
+      <label for="t-gross">Gross annual salary (¥)</label>
+      <input type="number" id="t-gross" min="0" step="100000" value="7000000">
+      <div class="hint">Base + bonus. Most Japanese contracts list this as 年収.</div>
+    </div>
+
+    <div class="field">
+      <label for="t-bonus">Bonus structure</label>
+      <select id="t-bonus">
+        <option value="annual">Annual figure includes bonus (recommended)</option>
+        <option value="base12">Annual = base × 12 only (no bonus)</option>
+      </select>
+      <div class="hint">If your contract only quotes monthly base, multiply ×12 here. Bonus
+        figures move the monthly net up and down.</div>
+    </div>
+
+    <div class="field">
+      <label for="t-age">Age</label>
+      <select id="t-age">
+        <option value="35">Under 40</option>
+        <option value="45">40+ (long-term care insurance applies)</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="t-dependents">Dependents (eligible for tax deduction)</label>
+      <input type="number" id="t-dependents" min="0" max="10" value="0">
+      <div class="hint">¥380,000 deduction per dependent in Japan for income-tax purposes.</div>
+    </div>
+
+    <div class="checkbox-row">
+      <label><input type="checkbox" id="t-spouse"> I have a spouse who is a dependent (income &lt; ¥1.03M/yr)</label>
+      <label><input type="checkbox" id="t-no-residence-tax" checked> Apply residence tax (typical from year 2+)</label>
+    </div>
+    <div class="hint" style="margin-top:4px;">
+      Residence tax is paid in arrears, you typically pay no residence tax in your first calendar
+      year in Japan. Uncheck the box to model year 1.
+    </div>
+  </form>
+
+  <aside class="result">
+    <div class="summary-card">
+      <h3>Net annual</h3>
+      <div class="net-amount" id="net-amount">¥0</div>
+      <div class="net-monthly">~ <span id="net-monthly">¥0</span>/month</div>
+      <div class="net-pct"><span id="net-pct">0</span>% of gross goes home</div>
+    </div>
+
+    <table class="breakdown">
+      <thead>
+        <tr><th>Line item</th><th class="num">Annual ¥</th></tr>
+      </thead>
+      <tbody id="breakdown-rows"></tbody>
+    </table>
+
+    <p class="disclaimer">
+      Estimates based on 2026 standard rates for Tokyo (Kyokai Kenpo health insurance, 厚生年金).
+      Real numbers vary by ward, employer's specific insurance plan, dependent details, and any
+      special deductions you may claim. For exact figures, consult a tax accountant (税理士).
+    </p>
+  </aside>
+</div>
+
+<script>
+(function () {
+  // -------- Constants --------
+  // Standard health-insurance grade caps. Used to cap the salary that's
+  // assessable for social-insurance contributions.
+  var PENSION_MONTHLY_CAP = 650000;   // 厚生年金 max grade
+  var HEALTH_MONTHLY_CAP  = 1390000;  // 健康保険 max grade
+
+  var PENSION_RATE   = 0.0915;   // 9.15% employee share
+  var HEALTH_RATE    = 0.0494;   // ~4.94% employee share (Tokyo / Kyokai Kenpo, age <40)
+  var LTC_RATE       = 0.00915;  // 介護保険 — additional for age 40+
+  var EMPLOY_RATE    = 0.0055;   // 雇用保険 — employee share
+
+  // Income-tax brackets (2026). Rate + subtraction.
+  var IT_BRACKETS = [
+    { limit: 1950000,  rate: 0.05, sub: 0 },
+    { limit: 3300000,  rate: 0.10, sub: 97500 },
+    { limit: 6950000,  rate: 0.20, sub: 427500 },
+    { limit: 9000000,  rate: 0.23, sub: 636000 },
+    { limit: 18000000, rate: 0.33, sub: 1536000 },
+    { limit: 40000000, rate: 0.40, sub: 2796000 },
+    { limit: Infinity, rate: 0.45, sub: 4796000 },
+  ];
+  var RECON_SURTAX   = 0.021;    // 復興特別所得税 — multiplied on income tax
+  var RESIDENCE_RATE = 0.10;     // 住民税 — 10% of taxable income
+  var BASIC_DEDUCT   = 480000;   // 基礎控除
+  var DEPENDENT_DED  = 380000;   // 扶養控除 per dependent
+  var SPOUSE_DED     = 380000;   // 配偶者控除
+
+  // 給与所得控除 (employment-income deduction)
+  function employmentIncomeDeduction(gross) {
+    if (gross <= 1625000) return 550000;
+    if (gross <= 1800000) return Math.floor(gross * 0.40 - 100000);
+    if (gross <= 3600000) return Math.floor(gross * 0.30 + 80000);
+    if (gross <= 6600000) return Math.floor(gross * 0.20 + 440000);
+    if (gross <= 8500000) return Math.floor(gross * 0.10 + 1100000);
+    return 1950000;
+  }
+
+  function socialInsurance(gross, age40plus) {
+    // Cap monthly grade for pension + health
+    var monthly = gross / 12;
+    var pensionBase = Math.min(monthly, PENSION_MONTHLY_CAP) * 12;
+    var healthBase  = Math.min(monthly, HEALTH_MONTHLY_CAP) * 12;
+    var pension = pensionBase * PENSION_RATE;
+    var health  = healthBase  * HEALTH_RATE;
+    var ltc     = age40plus ? healthBase * LTC_RATE : 0;
+    var employ  = gross * EMPLOY_RATE;   // no cap
+    return {
+      pension: Math.round(pension),
+      health:  Math.round(health),
+      ltc:     Math.round(ltc),
+      employ:  Math.round(employ),
+      total:   Math.round(pension + health + ltc + employ),
+    };
+  }
+
+  function incomeTaxOn(taxable) {
+    if (taxable <= 0) return 0;
+    for (var i = 0; i < IT_BRACKETS.length; i++) {
+      if (taxable <= IT_BRACKETS[i].limit) {
+        return Math.floor(taxable * IT_BRACKETS[i].rate - IT_BRACKETS[i].sub);
+      }
+    }
+    return 0;
+  }
+
+  function compute() {
+    var gross = parseInt(document.getElementById("t-gross").value, 10) || 0;
+    var age40 = (parseInt(document.getElementById("t-age").value, 10) || 35) >= 40;
+    var deps  = parseInt(document.getElementById("t-dependents").value, 10) || 0;
+    var spouse = document.getElementById("t-spouse").checked;
+    var applyResi = document.getElementById("t-no-residence-tax").checked;
+
+    var si = socialInsurance(gross, age40);
+
+    // Salary income (after employment-income deduction)
+    var empDeduct = employmentIncomeDeduction(gross);
+    var salaryIncome = Math.max(0, gross - empDeduct);
+
+    // Personal deductions
+    var personalDeducts = BASIC_DEDUCT
+      + si.total                     // social insurance is fully deductible
+      + deps * DEPENDENT_DED
+      + (spouse ? SPOUSE_DED : 0);
+
+    var taxableNational = Math.max(0, salaryIncome - personalDeducts);
+    var rawIncomeTax = incomeTaxOn(taxableNational);
+    var incomeTax = Math.max(0, Math.floor(rawIncomeTax * (1 + RECON_SURTAX)));
+
+    // Residence-tax taxable base uses slightly different deduction values, but
+    // for foreigner-friendly use we approximate with the same base.
+    var resiTaxable = Math.max(0, taxableNational - 100000);   // approx residence-tax adjustment
+    var residenceTax = applyResi ? Math.floor(resiTaxable * RESIDENCE_RATE + 5000) : 0;
+
+    var net = gross - si.total - incomeTax - residenceTax;
+    return {
+      gross: gross, si: si,
+      empDeduct: empDeduct, salaryIncome: salaryIncome,
+      personalDeducts: personalDeducts,
+      taxableNational: taxableNational,
+      incomeTax: incomeTax, residenceTax: residenceTax,
+      net: net, monthlyNet: Math.round(net / 12),
+      pct: gross > 0 ? Math.round(net / gross * 1000) / 10 : 0,
+    };
+  }
+
+  function yen(n) {
+    if (n === 0) return "¥0";
+    var s = Math.abs(n).toLocaleString();
+    return (n < 0 ? "-" : "") + "¥" + s;
+  }
+
+  function render() {
+    var r = compute();
+    document.getElementById("net-amount").textContent = yen(r.net);
+    document.getElementById("net-monthly").textContent = yen(r.monthlyNet);
+    document.getElementById("net-pct").textContent = r.pct;
+
+    var rows = [
+      { section: "Gross",
+        items: [["Annual gross", r.gross]] },
+      { section: "Social insurance (社会保険)",
+        items: [
+          ["厚生年金 — Pension (9.15%)", -r.si.pension],
+          ["健康保険 — Health insurance (~4.94%)", -r.si.health],
+        ]
+          .concat(r.si.ltc > 0 ? [["介護保険 — Long-term care", -r.si.ltc]] : [])
+          .concat([["雇用保険 — Employment insurance (0.55%)", -r.si.employ]]),
+        subtotalLabel: "Social insurance total", subtotal: -r.si.total },
+      { section: "Income tax (所得税)",
+        items: [
+          ["Employment income deduction", "(" + yen(r.empDeduct) + " removed)"],
+          ["Personal + dependent deductions", "(" + yen(r.personalDeducts) + " removed)"],
+          ["Taxable income", "= " + yen(r.taxableNational)],
+        ],
+        subtotalLabel: "Income tax (incl. recon surtax)", subtotal: -r.incomeTax },
+    ];
+    if (r.residenceTax > 0) {
+      rows.push({ section: "Residence tax (住民税)",
+        items: [["Residence tax (~10%)", -r.residenceTax]] });
+    } else {
+      rows.push({ section: "Residence tax (住民税)",
+        items: [["Year 1 in Japan — typically ¥0 (paid in arrears)", "—"]] });
+    }
+    rows.push({ section: "Net annual take-home", items: [], total: r.net });
+
+    var tbody = document.getElementById("breakdown-rows");
+    var html = "";
+    rows.forEach(function (section) {
+      html += '<tr class="section-head"><td colspan="2">' + section.section + '</td></tr>';
+      section.items.forEach(function (item) {
+        var val = item[1];
+        var cell = (typeof val === "number") ? yen(val) : val;
+        html += '<tr><td>' + item[0] + '</td><td class="num">' + cell + '</td></tr>';
+      });
+      if (section.subtotal !== undefined) {
+        html += '<tr><td><em>' + section.subtotalLabel + '</em></td>' +
+          '<td class="num"><em>' + yen(section.subtotal) + '</em></td></tr>';
+      }
+      if (section.total !== undefined) {
+        html += '<tr class="total"><td>Net annual</td><td class="num">' + yen(section.total) + '</td></tr>';
+      }
+    });
+    tbody.innerHTML = html;
+  }
+
+  document.querySelectorAll("#thp-form input, #thp-form select").forEach(function (el) {
+    el.addEventListener("input", render);
+    el.addEventListener("change", render);
+  });
+  render();
+  window._thpCompute = compute;
+})();
+</script>
+{% endblock %}

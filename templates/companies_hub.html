@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Companies hiring foreigners, Gaijin Hunter{% endblock %}
+{% block content %}
+<style>
+  .hero { text-align: center; padding: 30px 20px 22px; }
+  .hero h1 { margin: 0 0 8px; font-size: 32px; }
+  .hero p { color: var(--muted); margin: 0 auto; max-width: 600px; font-size: 15px; }
+
+  .filter-bar { display: flex; gap: 10px; margin: 20px 0 14px; align-items: center;
+                flex-wrap: wrap; }
+  .filter-bar input { padding: 9px 12px; border: 1px solid var(--line); border-radius: 6px;
+                      font-size: 14px; flex: 1; min-width: 200px; background: #fff; }
+  .filter-bar .count { color: var(--muted); font-size: 13px; }
+
+  .co-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  @media (max-width: 800px) { .co-grid { grid-template-columns: 1fr; } }
+
+  .co-card { display: flex; justify-content: space-between; align-items: flex-start;
+             gap: 14px; background: var(--card); border: 1px solid var(--line);
+             border-radius: 10px; padding: 14px 18px; text-decoration: none; color: inherit;
+             transition: all 0.18s; }
+  .co-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .co-card.hidden { display: none; }
+  .co-card .left { display: flex; gap: 12px; align-items: flex-start; flex: 1; min-width: 0; }
+  .co-card .avatar { width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0;
+                     display: flex; align-items: center; justify-content: center;
+                     font-weight: 700; color: #fff; font-size: 13px; letter-spacing: -0.01em; }
+  .co-card h3 { margin: 0 0 4px; font-size: 15px; color: var(--fg); }
+  .co-card .name-jp { color: var(--muted); font-size: 12px; }
+  .co-card .meta { color: var(--muted); font-size: 12px; margin-top: 4px;
+                    display: flex; flex-wrap: wrap; gap: 10px; }
+  .co-card .meta span { white-space: nowrap; }
+  .co-card .right { text-align: right; flex-shrink: 0; }
+  .co-card .right .jobs-pill { background: var(--accent); color: #fff;
+                                padding: 4px 10px; border-radius: 999px;
+                                font-size: 13px; font-weight: 700; }
+  .co-card .right .avg-fit { font-size: 11px; color: var(--muted); margin-top: 6px; }
+</style>
+
+<div class="hero">
+  <h1>Companies</h1>
+  <p>{{ companies | length }} companies with 2+ active foreigner-friendly job postings in our
+     database, sorted by current openings.</p>
+</div>
+
+<div class="filter-bar">
+  <input id="co-filter" type="search" placeholder="Filter by company name…" autocomplete="off">
+  <span class="count" id="co-count">{{ companies | length }} companies</span>
+</div>
+
+<div class="co-grid" id="co-grid">
+  {% set palettes = [
+    '#2563eb,#1d4ed8', '#0891b2,#0e7490', '#7c3aed,#6d28d9',
+    '#db2777,#a21caf', '#dc2626,#991b1b', '#ea580c,#c2410c',
+    '#65a30d,#3f6212', '#0d9488,#115e59', '#0284c7,#075985',
+  ] %}
+  {% for c in companies %}
+    {% set initials = (c.name[:2] | upper) %}
+    {% set palette_idx = (c.name | length) % palettes | length %}
+    {% set bg = palettes[palette_idx] %}
+    <a class="co-card" href="/companies/{{ c.slug }}" data-name="{{ c.name | lower }}">
+      <div class="left">
+        <div class="avatar" style="background: linear-gradient(135deg, {{ bg }});">{{ initials }}</div>
+        <div style="min-width:0;">
+          <h3>{{ c.name }}</h3>
+          {% if c.name_jp %}<div class="name-jp">{{ c.name_jp }}</div>{% endif %}
+          <div class="meta">
+            {% if c.company_size %}<span>{{ c.company_size }} employees</span>{% endif %}
+            {% if c.company_year_founded %}<span>Est. {{ c.company_year_founded }}</span>{% endif %}
+            {% if c.source_quality %}<span>{{ c.source_quality }}</span>{% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="right">
+        <div class="jobs-pill">{{ c.n_jobs }} open</div>
+        <div class="avg-fit">avg fit {{ c.avg_fit }}</div>
+      </div>
+    </a>
+  {% endfor %}
+</div>
+
+<script>
+  (function () {
+    var input = document.getElementById("co-filter");
+    var count = document.getElementById("co-count");
+    var cards = Array.prototype.slice.call(document.querySelectorAll(".co-card"));
+    var totalShown = cards.length;
+    input.addEventListener("input", function () {
+      var q = this.value.trim().toLowerCase();
+      totalShown = 0;
+      cards.forEach(function (c) {
+        var hit = !q || c.getAttribute("data-name").indexOf(q) !== -1;
+        c.classList.toggle("hidden", !hit);
+        if (hit) totalShown++;
+      });
+      count.textContent = totalShown + (totalShown === 1 ? " company" : " companies");
+    });
+  })();
+</script>
+{% endblock %}

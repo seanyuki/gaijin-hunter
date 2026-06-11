@@ -1,0 +1,563 @@
+{% extends "base.html" %}
+{% block meta_robots %}{% if view in ('saved','applied','archived') %}noindex{% else %}index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1{% endif %}{% endblock %}
+{% block content %}
+
+<nav class="view-tabs">
+  <a href="/" class="{% if view == 'all' %}active{% endif %}">All jobs</a>
+  <a href="/saved" class="{% if view == 'saved' %}active{% endif %}">{{ icon('star', size=14) }} Saved <span id="saved-count" class="tab-count"></span></a>
+  <a href="/applied" class="{% if view == 'applied' %}active{% endif %}">{{ icon('check', size=14) }} Applied <span id="applied-count" class="tab-count"></span></a>
+  <a href="/tracker" class="{% if view == 'tracker' %}active{% endif %}">{{ icon('clipboard', size=14) }} Tracker <span id="tracker-count" class="tab-count"></span></a>
+  <a href="/archived" class="{% if view == 'archived' %}active{% endif %}">Archived</a>
+</nav>
+
+<a class="gh-followup-banner" href="/tracker?filter=followup_due"
+   style="display:none; align-items:center; gap:8px; background:#fffbeb; border:1px solid #fde68a;
+          border-radius:10px; padding:11px 15px; margin:0 0 16px; color:#92400e; font-size:14px;
+          font-weight:600; text-decoration:none;">
+  {{ icon('bell', size=15) }} <span class="gh-followup-text">applications need follow-up</span> <span style="margin-left:auto; color:#b45309;">Open tracker →</span>
+</a>
+
+<!-- Quick-filter chips: one preset per real decision foreigners make -->
+<div class="quick-chips">
+  <span class="quick-chips-label">Popular:</span>
+  {% for chip in quick_chips %}
+    <a class="chip" href="?{{ request_args | chip_querystring(chip.params) }}">{{ chip.label }}</a>
+  {% endfor %}
+</div>
+
+<!-- Saved searches: hidden entirely until the user has saved one. The
+     "save this search" control lives in the filter form's action row. -->
+<div id="saved-searches" class="quick-chips" style="margin-bottom:18px; display:none;">
+  <span class="quick-chips-label">Saved searches:</span>
+  <span id="saved-searches-list" style="display:inline-flex; gap:8px; flex-wrap:wrap;"></span>
+</div>
+
+<script>
+  // Saved-searches widget. Reads/writes GH.savedSearches; persists in the
+  // unified localStorage bucket so it rides along with profile export.
+  (function () {
+    function render() {
+      var list = document.getElementById("saved-searches-list");
+      var row = document.getElementById("saved-searches");
+      list.innerHTML = "";
+      var items = GH.savedSearches.list();
+      row.style.display = items.length ? "" : "none";
+      if (items.length === 0) return;
+      items.forEach(function (s) {
+        var wrap = document.createElement("span");
+        wrap.style.cssText = "display:inline-flex; align-items:center; gap:0;";
+        var a = document.createElement("a");
+        a.className = "chip";
+        a.href = "/jobs?" + s.querystring;
+        a.textContent = s.name;
+        a.title = "?" + s.querystring;
+        var del = document.createElement("button");
+        del.type = "button";
+        del.title = "Delete this saved search";
+        del.style.cssText = "background:transparent; border:none; color:var(--muted);" +
+          " cursor:pointer; font-size:14px; padding:0 6px;";
+        del.textContent = "✕";
+        del.addEventListener("click", function () {
+          if (confirm("Delete saved search '" + s.name + "'?")) {
+            GH.savedSearches.remove(s.name); render();
+          }
+        });
+        wrap.appendChild(a); wrap.appendChild(del);
+        list.appendChild(wrap);
+      });
+    }
+    var saveBtn = document.getElementById("ss-save-btn");
+    if (saveBtn) saveBtn.addEventListener("click", function () {
+      var qs = window.location.search.replace(/^\?/, "");
+      // Strip 'page' to keep the saved search clean — first page is implied.
+      qs = qs.split("&").filter(function (p) { return p && !/^page=/.test(p); }).join("&");
+      if (!qs) {
+        if (window.ghToast) ghToast("Set some filters first, then save them as a search.", "error");
+        return;
+      }
+      var name = prompt("Name this search:");
+      if (!name) return;
+      GH.savedSearches.add(name.trim(), qs);
+      if (window.ghToast) ghToast("Search saved");
+      render();
+    });
+    render();
+  })();
+</script>
+
+<form class="filters" method="get">
+  <div class="row search">
+    <div>
+      <label for="q">Keywords</label>
+      <input id="q" name="q" value="{{ q }}" placeholder="Title, company, requirements, description…">
+    </div>
+    <div>
+      <label for="location">Location</label>
+      <input id="location" name="location" value="{{ location }}" placeholder="Tokyo, Osaka, …">
+    </div>
+    <div>
+      <label for="salary_min">Min salary (¥/yr)</label>
+      <input id="salary_min" name="salary_min" type="number" min="0" step="100000" value="{{ salary_min }}" placeholder="e.g. 6000000">
+    </div>
+    <div>
+      <label for="days_within">Posted</label>
+      <select id="days_within" name="days_within">
+        {% for v, label in days_options %}
+          <option value="{{ v }}" {% if days_within and v == days_within|string %}selected{% elif not days_within and v == "" %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="sort">Sort by</label>
+      <select id="sort" name="sort">
+        {% for v, label in sort_labels %}
+          <option value="{{ v }}" {% if v == sort %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="actions">
+      <button type="submit">Search</button>
+      <a class="reset" href="/{{ view if view != 'all' else '' }}">Reset</a>
+      <button id="ss-save-btn" type="button" class="reset"
+              style="background:none; border:none; cursor:pointer; font-family:inherit;"
+              title="Save the current filters as a named search">Save search</button>
+    </div>
+  </div>
+
+  {% macro ms_dropdown(col, label) %}
+    <details class="multi" {% if selected[col] %}open{% endif %}>
+      <summary>
+        <span class="ms-label">{{ label }}</span>
+        <span class="ms-summary">
+          {% if selected[col]|length == 0 %}Any
+          {% elif selected[col]|length == 1 %}
+            {% for v in selected[col] %}{% if v == undisclosed %}Undisclosed{% else %}{{ v }}{% endif %}{% endfor %}
+          {% else %}{{ selected[col]|length }} selected{% endif %}
+        </span>
+      </summary>
+      <div class="ms-options">
+        {% for opt in dropdown_options[col] %}
+          <label class="ms-option">
+            <input type="checkbox" name="{{ col }}" value="{{ opt }}"
+                   {% if opt in selected[col] %}checked{% endif %}>
+            <span>{{ opt }}</span>
+            <small class="ms-count">{{ counts[col].get(opt, 0) }}</small>
+          </label>
+        {% endfor %}
+        <label class="ms-option undisclosed">
+          <input type="checkbox" name="{{ col }}" value="{{ undisclosed }}"
+                 {% if undisclosed in selected[col] %}checked{% endif %}>
+          <span>Undisclosed</span>
+        </label>
+      </div>
+    </details>
+  {% endmacro %}
+
+  {# Primary filters: the four decisions foreign applicants make constantly. #}
+  <div class="row dropdowns">
+    {% for col, label in primary_dropdowns %}{{ ms_dropdown(col, label) }}{% endfor %}
+  </div>
+
+  {# Everything else folds away unless in use. #}
+  {% set more_active = [] %}
+  {% for col, label in secondary_dropdowns %}{% if selected[col] %}{% set _ = more_active.append(col) %}{% endif %}{% endfor %}
+  <details class="more-filters" {% if more_active %}open{% endif %}>
+    <summary>More filters{% if more_active %} · {{ more_active|length }} active{% endif %}</summary>
+    <div class="row dropdowns" style="margin-top:10px;">
+      {% for col, label in secondary_dropdowns %}{{ ms_dropdown(col, label) }}{% endfor %}
+    </div>
+  </details>
+  <style>
+    .more-filters { margin: 2px 0 12px; }
+    .more-filters > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center;
+      gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--muted); padding: 4px 0; }
+    .more-filters > summary::-webkit-details-marker { display: none; }
+    .more-filters > summary::after { content: "▾"; font-size: 10px; opacity: 0.7; }
+    .more-filters[open] > summary::after { content: "▴"; }
+    .more-filters > summary:hover { color: var(--accent); }
+  </style>
+
+  <div class="row checkboxes">
+    {% for col, label in checkbox_filters %}
+      <label class="checkbox">
+        <input type="checkbox" name="{{ col }}" value="1" {% if flags.get(col) %}checked{% endif %}>
+        {{ label }}
+      </label>
+    {% endfor %}
+
+    <label class="checkbox" title="Full-time / contract career roles only — hides part-time, temp, dispatch and service or light-labor listings">
+      <input type="checkbox" name="professional_only" value="1" {% if professional_only %}checked{% endif %}>
+      Professional roles only
+    </label>
+    <label class="checkbox">
+      <input type="checkbox" name="exclude_teaching" value="1" {% if exclude_teaching %}checked{% endif %}>
+      Exclude teaching roles
+    </label>
+    <label class="checkbox">
+      <input type="checkbox" name="exclude_japanese_only" value="1" {% if exclude_japanese_only %}checked{% endif %}>
+      Exclude Japanese-only postings
+    </label>
+    <label class="checkbox">
+      <input type="checkbox" name="salary_listed_only" value="1" {% if salary_listed_only %}checked{% endif %}>
+      Salary listed only
+    </label>
+
+    <label class="checkbox" style="display: inline-flex; align-items: center; gap: 4px;">
+      Min Foreigner Fit:
+      <input type="number" name="foreigner_fit_min" min="0" max="100" step="5"
+             value="{{ foreigner_fit_min }}"
+             style="width: 60px; padding: 3px 6px; font-size: 12px;">
+    </label>
+
+    {% if view != 'archived' %}
+      <label class="checkbox archived-toggle">
+        <input type="checkbox" name="archived" value="1" {% if include_archived %}checked{% endif %}>
+        Show archived (stale > {{ 30 }} days)
+      </label>
+    {% endif %}
+  </div>
+</form>
+
+{# Active-filter chips: each removes just itself and reloads. #}
+{% set has_active = q or location or salary_min or days_within or foreigner_fit_min
+   or exclude_teaching or exclude_japanese_only or salary_listed_only or professional_only
+   or flags|length or (selected.values()|map('length')|sum) %}
+{% if has_active %}
+<div class="active-filters" aria-label="Active filters">
+  <span class="active-filters-label">Active:</span>
+  {% if q %}<a class="tag" href="?{{ request_args|remove_value('q', q) }}">“{{ q }}” <span class="x">✕</span></a>{% endif %}
+  {% if location %}<a class="tag" href="?{{ request_args|remove_value('location', location) }}">📍 {{ location }} <span class="x">✕</span></a>{% endif %}
+  {% if salary_min %}<a class="tag" href="?{{ request_args|remove_value('salary_min', salary_min|string) }}">≥ {{ salary_min|yen_short }} <span class="x">✕</span></a>{% endif %}
+  {% if days_within %}<a class="tag" href="?{{ request_args|remove_value('days_within', days_within|string) }}">≤ {{ days_within }}d <span class="x">✕</span></a>{% endif %}
+  {% if foreigner_fit_min %}<a class="tag" href="?{{ request_args|remove_value('foreigner_fit_min', foreigner_fit_min|string) }}">Fit ≥ {{ foreigner_fit_min }} <span class="x">✕</span></a>{% endif %}
+  {% if professional_only %}<a class="tag" href="?{{ request_args|remove_value('professional_only', '1') }}">Professional roles <span class="x">✕</span></a>{% endif %}
+  {% if exclude_teaching %}<a class="tag" href="?{{ request_args|remove_value('exclude_teaching', '1') }}">No teaching <span class="x">✕</span></a>{% endif %}
+  {% if exclude_japanese_only %}<a class="tag" href="?{{ request_args|remove_value('exclude_japanese_only', '1') }}">No Japanese-only <span class="x">✕</span></a>{% endif %}
+  {% if salary_listed_only %}<a class="tag" href="?{{ request_args|remove_value('salary_listed_only', '1') }}">Salary listed <span class="x">✕</span></a>{% endif %}
+  {% for col, label in checkbox_filters %}
+    {% if flags.get(col) %}<a class="tag" href="?{{ request_args|remove_value(col, '1') }}">{{ label }} <span class="x">✕</span></a>{% endif %}
+  {% endfor %}
+  {% for col, label in dropdown_filters %}
+    {% for v in selected[col] %}
+      <a class="tag" href="?{{ request_args|remove_value(col, v) }}">{{ v if v != undisclosed else 'Undisclosed' }} <span class="x">✕</span></a>
+    {% endfor %}
+  {% endfor %}
+  <a class="tag clear-all" href="/{{ view if view != 'all' else '' }}">Clear all</a>
+</div>
+{% endif %}
+
+<div class="stats" style="display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; position:relative;">
+  <span><strong>{{ total }}</strong> job{{ '' if total == 1 else 's' }}
+  {% if view == 'saved' %}saved{% elif view == 'archived' %}archived{% else %}match your filters{% endif %}</span>
+  {% if sort == 'recommended' and view not in ('saved', 'archived') %}
+    <details class="gh-reveal" style="display:inline-block; font-size:12px; color:var(--muted); position:relative;">
+      <summary style="cursor:pointer; list-style:none; text-decoration:underline dotted; text-underline-offset:3px;">sorted by Recommended — what does that mean?</summary>
+      <div style="position:absolute; left:0; top:100%; z-index:20; width:min(380px, 86vw); background:var(--card);
+                  border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-top:6px;
+                  box-shadow:var(--shadow-md); line-height:1.55; color:var(--fg-soft);">
+        Ranking starts from each job's <strong>Foreigner Fit score</strong> (0–100, based on posting language,
+        Japanese requirement, visa/relocation signals, apply-from-abroad, salary disclosure, remote option),
+        with small adjustments: full-time +6, part-time/temp −8, salary listed +2, trusted source up to +4.
+        The "Why it fits" line on each card shows the exact signals.
+      </div>
+    </details>
+  {% endif %}
+</div>
+
+<!-- Profile-aware quick filters (client-side; only shown when a profile exists). -->
+<div id="gh-profile-filters" style="display:none; margin:0 0 14px;">
+  <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+    <span style="font-size:12px; color:var(--muted); font-weight:600; margin-right:2px;">For you:</span>
+    <button type="button" class="gh-pf-chip" data-pf="recommended">Recommended for me</button>
+    <button type="button" class="gh-pf-chip" data-pf="salary">Meets my salary</button>
+    <button type="button" class="gh-pf-chip" data-pf="jp">Fits my Japanese level</button>
+    <button type="button" class="gh-pf-chip" data-pf="visa">Visa-friendly for me</button>
+    <button type="button" class="gh-pf-chip" data-pf="location">Remote / location fit</button>
+    <button type="button" class="gh-pf-chip" data-pf="min60">Hide below 60% match</button>
+    <button type="button" class="gh-pf-chip gh-pf-clear" data-pf="clear" style="display:none;">Clear ✕</button>
+  </div>
+  <p id="gh-pf-note" style="display:none; font-size:11.5px; color:var(--muted); margin:8px 0 0;">
+    Profile filters apply to the jobs currently loaded on this page. Use the search filters above to narrow the full database.
+  </p>
+</div>
+<style>
+  .gh-pf-chip { font-size:12.5px; padding:6px 12px; border-radius:999px; cursor:pointer;
+    border:1px solid var(--line); background:#fff; color:var(--fg-soft); font-weight:600; }
+  .gh-pf-chip:hover { border-color:var(--accent); color:var(--accent); }
+  .gh-pf-chip.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .gh-pf-clear { color:#b91c1c; border-color:#fca5a5; }
+</style>
+
+{% if jobs %}
+  {% for j in jobs %}
+    <article class="job"
+             data-job-id="{{ j['id'] }}"
+             data-fit="{{ j['foreigner_fit_score'] if j['foreigner_fit_score'] is not none else '' }}"
+             data-role-family="{{ j['role_family'] or '' }}"
+             data-jp="{{ j['japanese_level'] or '' }}"
+             data-remote="{{ j['remote_work_ok'] if j['remote_work_ok'] is not none else '' }}"
+             data-visa="{{ j['visa_sponsorship_mentioned'] if j['visa_sponsorship_mentioned'] is not none else '' }}"
+             data-abroad="{{ j['overseas_application_ok'] if j['overseas_application_ok'] is not none else '' }}"
+             data-location="{{ j['location'] or '' }}"
+             data-employment="{{ j['employment_terms'] or j['work_type'] or '' }}"
+             data-title="{{ j['title'] or '' }}"
+             data-tags="{{ j['tags'] or '' }}"
+             data-salary-min="{{ j['salary_min_annual_jpy'] or '' }}"
+             data-salary-max="{{ j['salary_max_annual_jpy'] or '' }}">
+      <button class="save-btn" type="button" data-job-id="{{ j['id'] }}" aria-label="Save job">
+        <span class="star">☆</span>
+      </button>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; flex-wrap:wrap;">
+        <h2 style="margin:0;"><a href="/job/{{ j['id'] }}">{{ j['title'] }}</a></h2>
+        {% if j['foreigner_fit_score'] is not none %}
+          {% set score = j['foreigner_fit_score'] %}
+          {% set bg = '#dcfce7' if score >= 75 else '#fef3c7' if score >= 60 else '#fee2e2' %}
+          {% set fg = '#166534' if score >= 75 else '#92400e' if score >= 60 else '#991b1b' %}
+          <span class="gh-fit-badge"
+                style="font-size:12px; background:{{ bg }}; color:{{ fg }};
+                border-radius:999px; padding:3px 10px; font-weight:700; white-space:nowrap;"
+                title="Foreigner Fit: higher = more accessible to foreign applicants">
+            Fit {{ score }}
+          </span>
+        {% endif %}
+      </div>
+      <div class="meta">
+        {% if j['company_name'] %}<span>{{ j['company_name'] }}</span>{% endif %}
+        {% if j['location'] %}<span>{{ j['location'] }}</span>{% endif %}
+        {% if j['salary'] %}<span class="num" style="color:var(--ink); font-weight:600;">{{ j['salary'] | snippet(48) }}{% if j['salary_period'] %} <small style="color:var(--muted); font-weight:400;">/{{ j['salary_period'] | lower }}</small>{% endif %}</span>
+        {% elif j['salary_min_annual_jpy'] %}<span class="num" style="color:var(--ink); font-weight:600;">{{ j['salary_min_annual_jpy'] | yen_short }}{% if j['salary_max_annual_jpy'] and j['salary_max_annual_jpy'] != j['salary_min_annual_jpy'] %}–{{ j['salary_max_annual_jpy'] | yen_short }}{% endif %}<small style="color:var(--muted); font-weight:400;">/yr</small></span>{% endif %}
+        {% if j['post_date'] %}<span>{{ j['post_date'] }}</span>{% endif %}
+        <span class="source">{{ j['source'] }}{% if j['source_quality'] %} · {{ j['source_quality'] }}{% endif %}</span>
+      </div>
+      {# Badges: only what changes the apply/skip decision. #}
+      <div class="badges">
+        {% if j['japanese_level'] %}<span class="badge jp">Japanese: {{ j['japanese_level'] }}</span>{% endif %}
+        {% if j['visa_sponsorship_mentioned'] %}<span class="badge remote">Visa support</span>{% endif %}
+        {% if j['overseas_application_ok'] %}<span class="badge remote">Apply from abroad</span>{% endif %}
+        {% if j['remote_work_ok'] %}<span class="badge remote">Remote OK</span>{% endif %}
+        {% if j['english_level'] %}<span class="badge en">English: {{ j['english_level'] }}</span>{% endif %}
+        {% if j['employment_terms'] in ('Part-time', 'Temporary') %}
+          <span class="badge term" style="background:transparent; border:1px dashed var(--line-strong); color:var(--muted);">{{ j['employment_terms'] }}{% if 'entry-level' in (j['tags'] or '') %} · entry-level{% endif %}</span>
+        {% elif j['employment_terms'] and j['employment_terms'] != 'Full-time' %}
+          <span class="badge term">{{ j['employment_terms'] }}</span>
+        {% endif %}
+        {% if j['posting_language'] == 'Japanese' %}<span class="badge jp" style="background:var(--warn-tint); color:var(--warn);">Posting in Japanese</span>{% endif %}
+        {% if j['is_employer_post'] %}<span class="badge applied" style="background:var(--indigo-tint);color:var(--indigo);">Direct from employer</span>{% endif %}
+      </div>
+      {% set sc = salary_ctx.get(j['id']) if salary_ctx else None %}
+      {% if sc %}
+        {% if sc.kind == 'actual' %}
+          <div class="salary-context {{ 'good' if sc.percentile >= 60 else 'low' if sc.percentile <= 25 else '' }}">
+            {{ icon('currency-yen', size=13) }} {{ sc.label }} <span class="sc-range">· role median {{ sc.p50|yen_short }} (n={{ sc.n }})</span>
+          </div>
+        {% else %}
+          <div class="salary-context est">
+            {{ icon('currency-yen', size=13) }} No salary listed. Typical {{ sc.role }} pay {{ sc.p25|yen_short }}–{{ sc.p75|yen_short }} <span class="sc-range">(n={{ sc.n }})</span>
+          </div>
+        {% endif %}
+      {% endif %}
+      <p class="snippet">{{ (j['description'] or j['requirements'] or '') | snippet }}</p>
+      {% if j['foreigner_fit_reasons'] %}
+        {% set reasons = j['foreigner_fit_reasons'].split(',') %}
+        {% set positive = [] %}{% set negative = [] %}
+        {% for r in reasons %}
+          {% if r in ['no_location','no_description','salary_missing','japanese_heavy_posting','japanese_required','aggregator_source','no_visa_sponsorship'] %}
+            {% if negative.append(r) %}{% endif %}
+          {% else %}
+            {% if positive.append(r) %}{% endif %}
+          {% endif %}
+        {% endfor %}
+        {% if positive %}
+          <div style="font-size:12px; color:#0f6b4a; margin-top:6px; display:flex; gap:5px; align-items:baseline;">
+            <strong style="color:#0f6b4a;">Why it fits:</strong>
+            <span>{% for r in positive[:3] %}{% if r in fit_reason_labels %}{{ fit_reason_labels[r] }}{% if not loop.last %} · {% endif %}{% endif %}{% endfor %}</span>
+          </div>
+        {% endif %}
+        {% if negative %}
+          <div style="font-size:12px; color:#92400e; margin-top:3px; display:flex; gap:5px; align-items:baseline;">
+            <strong style="color:#92400e;">Check:</strong>
+            <span>{% for r in negative[:2] %}{% if r in fit_reason_labels %}{{ fit_reason_labels[r] }}{% if not loop.last %} · {% endif %}{% endif %}{% endfor %}</span>
+          </div>
+        {% endif %}
+      {% endif %}
+      <div class="card-actions" data-job-id="{{ j['id'] }}">
+        <button type="button" class="action-btn applied-btn" data-action="applied" data-job-id="{{ j['id'] }}">
+          <span class="ab-ic">{{ icon('check', size=14) }}</span><span class="applied-label">Mark applied</span>
+        </button>
+        {% if view == 'archived' %}
+          <button type="button" class="action-btn restore-btn" data-action="restore" data-job-id="{{ j['id'] }}">
+            Restore
+          </button>
+        {% else %}
+          <button type="button" class="action-btn hide-btn" data-action="hide" data-job-id="{{ j['id'] }}">
+            Hide
+          </button>
+        {% endif %}
+      </div>
+    </article>
+  {% endfor %}
+
+  <nav class="pagination" aria-label="Pagination">
+    {% if page > 1 %}
+      <a href="?{{ request_args | keep_querystring(page=page-1) }}" class="prev">← Prev</a>
+    {% else %}
+      <span class="disabled">← Prev</span>
+    {% endif %}
+
+    {% for p in pagination %}
+      {% if p is none %}
+        <span class="ellipsis">…</span>
+      {% elif p == page %}
+        <span class="current" aria-current="page">{{ p }}</span>
+      {% else %}
+        <a href="?{{ request_args | keep_querystring(page=p) }}">{{ p }}</a>
+      {% endif %}
+    {% endfor %}
+
+    {% if page < n_pages %}
+      <a href="?{{ request_args | keep_querystring(page=page+1) }}" class="next">Next →</a>
+    {% else %}
+      <span class="disabled">Next →</span>
+    {% endif %}
+  </nav>
+{% else %}
+  <div class="empty">
+    {% if stats.total == 0 %}
+      <h3 style="margin:0 0 6px;">No jobs in the database yet</h3>
+      <p>Run <code>python update.py</code> to fetch the latest listings.</p>
+    {% else %}
+      <h3 style="margin:0 0 6px;">No jobs match your search</h3>
+      {% set active = [] %}
+      {% if q %}{% set _ = active.append('keyword "' ~ q ~ '"') %}{% endif %}
+      {% if location %}{% set _ = active.append('location ' ~ location) %}{% endif %}
+      {% if salary_min %}{% set _ = active.append('salary ≥ ' ~ salary_min|yen_short) %}{% endif %}
+      {% if foreigner_fit_min %}{% set _ = active.append('Foreigner Fit ≥ ' ~ foreigner_fit_min) %}{% endif %}
+      {% for col in selected %}{% for v in selected[col] %}{% set _ = active.append(v) %}{% endfor %}{% endfor %}
+      {% if active %}
+        <p style="margin:0 0 4px;">Active filters: {{ active|join(', ') }}.</p>
+      {% endif %}
+      <p style="color:var(--muted); max-width:46ch; margin:0 auto 16px;">
+        Try widening one filter at a time. Lowering the required Japanese level, broadening the
+        location, or removing the salary floor usually surfaces the most roles.
+      </p>
+      <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+        <a class="btn primary" href="/jobs" style="text-decoration:none;">Clear all filters</a>
+        <a class="btn secondary" href="/profile" style="text-decoration:none;">Set up your profile</a>
+        <a class="btn ghost" href="/resources" style="text-decoration:none;">Browse resources</a>
+      </div>
+    {% endif %}
+  </div>
+{% endif %}
+
+<!-- Profile-aware quick filters: hide/show already-loaded cards client-side. -->
+<script>
+(function () {
+  if (!window.GH) return;
+  document.addEventListener("DOMContentLoaded", function () {
+    var bar = document.getElementById("gh-profile-filters");
+    if (!bar || !GH.profile.isConfigured()) return;
+    bar.style.display = "";
+    var note = document.getElementById("gh-pf-note");
+    var clearChip = bar.querySelector(".gh-pf-clear");
+    var p = GH.profile.get();
+    var active = {};
+
+    function cards() { return Array.prototype.slice.call(document.querySelectorAll(".job[data-job-id]")); }
+    function job(card) {
+      function a(n) { return card.getAttribute(n); }
+      return {
+        match: parseInt(card.getAttribute("data-match"), 10),
+        jp: a("data-jp") || "",
+        visa: a("data-visa"),
+        abroad: a("data-abroad"),
+        remote: a("data-remote"),
+        location: (a("data-location") || "").toLowerCase(),
+        salMin: parseInt(a("data-salary-min"), 10) || 0,
+        salMax: parseInt(a("data-salary-max"), 10) || 0,
+      };
+    }
+    var JP_RANK = { "None":0,"Not Required":0,"Basic":1,"Basic / Beginner":1,"Conversational":2,
+                    "Business":3,"Business / Professional":3,"Native":4,"Native / Fluent":4,"Fluent":4 };
+
+    function passes(j) {
+      for (var key in active) {
+        if (!active[key]) continue;
+        if (key === "recommended" && !(j.match >= 75)) return false;
+        if (key === "min60" && !(j.match >= 60)) return false;
+        if (key === "salary") {
+          var floor = parseInt(p.minSalary, 10) || 0;
+          var jm = j.salMax || j.salMin;
+          if (floor && jm && jm < floor) return false;
+        }
+        if (key === "jp") {
+          var ur = JP_RANK[p.japaneseLevel], jr = JP_RANK[j.jp];
+          if (ur !== undefined && jr !== undefined && jr > ur) return false;
+        }
+        if (key === "visa") {
+          var needs = p.visaNeed === "yes";
+          if (needs && j.visa === "0") return false;
+        }
+        if (key === "location") {
+          var locs = (p.preferredLocations || []).map(function (s) { return s.toLowerCase(); });
+          var anywhere = locs.indexOf("anywhere in japan") !== -1;
+          var remoteWanted = (p.remotePreference === "remote-only") || locs.indexOf("remote japan") !== -1;
+          if (!anywhere && locs.length) {
+            var locHit = locs.some(function (l) { return l !== "remote japan" && l && j.location.indexOf(l) !== -1; });
+            var remoteHit = remoteWanted && j.remote === "1";
+            if (!locHit && !remoteHit) return false;
+          } else if (p.remotePreference === "remote-only" && j.remote === "0") return false;
+        }
+      }
+      return true;
+    }
+
+    function apply() {
+      var anyActive = Object.keys(active).some(function (k) { return active[k]; });
+      clearChip.style.display = anyActive ? "" : "none";
+      note.style.display = anyActive ? "" : "none";
+      var shown = 0;
+      var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      cards().forEach(function (card) {
+        var ok = passes(job(card));
+        if (ok) {
+          shown++;
+          if (card.style.display === "none") { card.style.display = ""; card.classList.remove("gh-filtering"); }
+        } else if (card.style.display !== "none") {
+          if (reduce) { card.style.display = "none"; }
+          else {
+            // quick fade/scale out, then collapse from layout
+            card.classList.add("gh-filtering");
+            setTimeout(function () { if (card.classList.contains("gh-filtering")) card.style.display = "none"; }, 130);
+          }
+        }
+      });
+      var empty = document.getElementById("gh-pf-empty");
+      if (anyActive && shown === 0) {
+        if (!empty) {
+          empty = document.createElement("div");
+          empty.id = "gh-pf-empty"; empty.className = "empty";
+          empty.innerHTML = "<p>None of the jobs loaded on this page match these profile filters. Try clearing one, or adjust the search filters above.</p>";
+          bar.parentNode.insertBefore(empty, bar.nextSibling);
+        }
+        empty.style.display = "";
+      } else if (empty) { empty.style.display = "none"; }
+    }
+
+    bar.querySelectorAll(".gh-pf-chip").forEach(function (chip) {
+      chip.addEventListener("click", function () {
+        var pf = chip.getAttribute("data-pf");
+        if (pf === "clear") {
+          active = {};
+          bar.querySelectorAll(".gh-pf-chip").forEach(function (c) { c.classList.remove("active"); });
+        } else {
+          active[pf] = !active[pf];
+          chip.classList.toggle("active", active[pf]);
+        }
+        apply();
+      });
+    });
+  });
+})();
+</script>
+
+{% endblock %}

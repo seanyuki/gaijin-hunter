@@ -1,0 +1,869 @@
+{% extends "base.html" %}
+{% block title %}Shokumu Keirekisho Builder, Gaijin Hunter{% endblock %}
+
+{% block content %}
+<style>
+  /* ============== layout ============== */
+  .rr-page-h { padding: 8px 0 4px; }
+  .rr-page-h h1 { margin: 0 0 6px; font-size: 28px; }
+  .rr-page-h p  { margin: 0 0 14px; color: var(--muted); }
+  .resume-subnav { display: flex; gap: 4px; border-bottom: 2px solid var(--line);
+                   margin-bottom: 20px; }
+  .resume-subnav a { padding: 10px 18px; text-decoration: none; color: var(--muted);
+                     border-bottom: 2px solid transparent; margin-bottom: -2px;
+                     font-size: 15px; font-weight: 500; }
+  .resume-subnav a:hover { color: var(--accent); }
+  .resume-subnav a.active { color: var(--accent); border-bottom-color: var(--accent);
+                            font-weight: 600; }
+  .resume-subnav a .en { font-size: 12px; color: var(--muted); margin-left: 4px;
+                         font-weight: 400; }
+  .resume-subnav a.active .en { color: var(--accent); }
+
+  .rr-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+  @media (max-width: 1100px) { .rr-layout { grid-template-columns: 1fr; } }
+
+  /* ============== form pane ============== */
+  .form-pane { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+               padding: 0; overflow: hidden; }
+  .form-section { border-top: 1px solid var(--line); }
+  .form-section:first-child { border-top: none; }
+  .form-section .head { padding: 14px 22px; background: #f9fafb;
+                        display: flex; align-items: center; justify-content: space-between; }
+  .form-section .head h2 { margin: 0; font-size: 16px; }
+  .form-section .head .num { display: inline-block; width: 22px; height: 22px;
+                              border-radius: 50%; background: var(--accent); color: #fff;
+                              text-align: center; line-height: 22px; font-size: 12px;
+                              font-weight: 700; margin-right: 8px; }
+  .form-section .help-toggle { background: transparent; border: 1px solid var(--line);
+                                border-radius: 999px; padding: 3px 10px; font-size: 12px;
+                                color: var(--muted); cursor: pointer; }
+  .form-section .help-toggle:hover { color: var(--accent); border-color: var(--accent); }
+  .form-section details.help-panel summary { display: none; }
+  .form-section details.help-panel[open] .help-body {
+    background: #eff6ff; padding: 14px 22px; border-top: 1px solid #dbeafe;
+    font-size: 13px; line-height: 1.6; color: #1e3a8a;
+  }
+  .form-section .help-body code { background: #fff; padding: 1px 6px; border-radius: 3px;
+                                  font-family: "MS Mincho", "Yu Mincho", serif;
+                                  font-size: 13px; color: #1a1a1a; }
+  .form-section .body { padding: 14px 22px 18px; }
+
+  .field-grid { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
+  .field-grid.single { grid-template-columns: 1fr; }
+  .field-grid label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 3px; }
+  .field-grid input, .field-grid textarea, .field-grid select {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px;
+    font-size: 14px; font-family: inherit; background: #fff;
+  }
+  .field-grid textarea { resize: vertical; min-height: 90px; }
+  .field-grid .span2 { grid-column: 1 / -1; }
+  .ph-hint { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .template-paste { display: inline-block; margin-top: 6px; color: var(--accent);
+                     background: transparent; border: none; cursor: pointer;
+                     font-size: 12px; text-decoration: underline; padding: 0; }
+
+  /* Company card */
+  .company-card { background: #fafafa; border: 1px solid var(--line); border-radius: 8px;
+                  padding: 14px 16px; margin-bottom: 12px; }
+  .company-card .card-head { display: flex; justify-content: space-between;
+                              align-items: center; margin-bottom: 10px; }
+  .company-card .card-head h3 { margin: 0; font-size: 14px; color: #374151; }
+  .company-card .del-card { background: transparent; color: #b91c1c; border: none;
+                             cursor: pointer; font-size: 12px; font-weight: 500; }
+  .company-card .del-card:hover { color: #7f1d1d; }
+  .company-card .period-row { display: grid; grid-template-columns: 1fr 1fr auto;
+                               gap: 8px; align-items: end; margin-bottom: 8px; }
+  .company-card .period-row label { font-size: 11px; color: var(--muted); display: block;
+                                     margin-bottom: 3px; }
+  .company-card .period-row input { width: 100%; padding: 7px 9px;
+                                     border: 1px solid var(--line); border-radius: 6px;
+                                     font-size: 13px; }
+  .company-card .current-toggle { display: inline-flex; gap: 5px; align-items: center;
+                                   font-size: 12px; padding: 7px 10px;
+                                   border: 1px solid var(--line); border-radius: 6px;
+                                   background: #fff; cursor: pointer; }
+  .company-card .current-toggle.on { background: #dcfce7; color: #166534;
+                                       border-color: #86efac; font-weight: 600; }
+
+  /* Row list (skills / licenses) */
+  .row-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .row-list .row { display: grid; grid-template-columns: 80px 60px 1fr auto;
+                   gap: 8px; align-items: end; }
+  .row-list .row.skill { grid-template-columns: 1fr auto; }
+  .row-list .row input[type="number"],
+  .row-list .row input[type="text"] {
+    width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px;
+    font-size: 13px; background: #fff;
+  }
+  .row-list .row .del { background: transparent; color: #b91c1c; border: none;
+                         cursor: pointer; font-size: 16px; padding: 4px 8px; }
+  .add-row { background: transparent; color: var(--accent);
+             border: 1px dashed var(--accent); padding: 6px 12px; border-radius: 6px;
+             cursor: pointer; font-size: 13px; margin-top: 8px; }
+  .add-row:hover { background: var(--accent); color: #fff; }
+  .add-company { background: var(--accent); color: #fff; border: none;
+                  padding: 8px 16px; border-radius: 6px; cursor: pointer;
+                  font-size: 13px; font-weight: 600; margin-top: 4px; }
+  .add-company:hover { background: var(--accent-dark); }
+
+  .actions { display: flex; gap: 10px; padding: 16px 22px; background: #f9fafb;
+             border-top: 1px solid var(--line); }
+  .actions button { padding: 10px 18px; border: none; border-radius: 6px;
+                    font-weight: 600; font-size: 14px; cursor: pointer; }
+  .actions .print-btn { background: var(--accent); color: #fff; }
+  .actions .print-btn:hover { background: var(--accent-dark); }
+  .actions .save-btn { background: #d1fae5; color: #065f46; }
+  .actions .reset-btn { background: #fee2e2; color: #991b1b; margin-left: auto; }
+
+  /* ============== preview pane ============== */
+  .preview-pane { position: sticky; top: 100px; max-height: calc(100vh - 110px);
+                  overflow-y: auto; padding-right: 4px; }
+  .preview-pane .scale-wrap { background: #e5e7eb; padding: 14px; border-radius: 8px; }
+  .scale-wrap .page-sep { text-align: center; font-size: 11px; color: #6b7280;
+                          margin: 14px 0; }
+
+  /* Shokumu keirekisho — A4. Looser layout than rirekisho. */
+  .shokumu {
+    background: #fff; color: #1a1a1a;
+    font-family: "MS Mincho", "Yu Mincho", "Hiragino Mincho ProN", serif;
+    font-size: 12px; line-height: 1.6;
+    width: 580px; max-width: 100%;
+    margin: 0 auto; padding: 28px 32px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.10);
+    border: 1px solid #1a1a1a;
+  }
+  .shokumu.page2 { margin-top: 24px; }
+  .sh-title { text-align: center; font-size: 22px; font-weight: 700;
+              letter-spacing: 0.5em; margin: 0 0 14px; }
+  .sh-meta-row { display: flex; justify-content: space-between; font-size: 11px;
+                  margin-bottom: 18px; }
+  .sh-meta-row .name { font-size: 13px; }
+  .sh-section-h { font-size: 14px; font-weight: 700; margin: 18px 0 8px;
+                   border-bottom: 1px solid #1a1a1a; padding-bottom: 3px; }
+  .sh-section-h::before { content: "■ "; color: #1a1a1a; }
+  .sh-block { margin-bottom: 14px; white-space: pre-wrap; font-size: 11.5px; }
+  .sh-block.empty { color: #9ca3af; font-style: italic; }
+
+  /* Company block inside 職務経歴 */
+  .sh-company { margin-bottom: 16px; padding-bottom: 12px;
+                 border-bottom: 1px dashed #9ca3af; }
+  .sh-company:last-child { border-bottom: none; padding-bottom: 0; }
+  .sh-company-head { display: grid; grid-template-columns: 1fr 1fr;
+                      gap: 8px; font-size: 11.5px; margin-bottom: 6px; }
+  .sh-company-name { font-size: 13px; font-weight: 700; }
+  .sh-company-period { color: #374151; }
+  .sh-company-row { display: grid; grid-template-columns: 100px 1fr;
+                     gap: 6px 12px; font-size: 11px; margin-bottom: 3px; }
+  .sh-company-row .lbl { color: #6b7280; }
+  .sh-company-subtitle { font-weight: 600; margin-top: 8px; margin-bottom: 4px;
+                          font-size: 11.5px; color: #1a1a1a; }
+  .sh-bullets { padding-left: 20px; margin: 4px 0; }
+  .sh-bullets li { font-size: 11.5px; margin-bottom: 3px; }
+  .sh-empty { color: #9ca3af; font-style: italic; font-size: 11px; }
+
+  .sh-licenses { width: 100%; border-collapse: collapse; }
+  .sh-licenses td { padding: 2px 0; font-size: 11.5px; }
+  .sh-licenses td.date { width: 130px; color: #374151; }
+
+  .sh-footer { text-align: right; margin-top: 18px; font-size: 11.5px;
+                font-weight: 600; }
+
+  /* Print: zero the @page margin so the browser has nowhere to draw its
+     default URL / timestamp / page-number header & footer. The shokumu
+     document supplies its own padding instead. */
+  @media print {
+    @page { size: A4; margin: 0; }
+    html, body { background: #fff; margin: 0; }
+    header, footer, nav, .nav-center, .nav-right,
+    .rr-page-h, .resume-subnav, .form-pane { display: none !important; }
+    main { max-width: 100%; padding: 0; margin: 0; }
+    .rr-layout { display: block; grid-template-columns: 1fr; }
+    .preview-pane { position: static; max-height: none; overflow: visible; padding: 0; }
+    .scale-wrap { background: #fff; padding: 0; }
+    .scale-wrap .page-sep { display: none !important; }
+    .shokumu { width: 100%; box-shadow: none; border: none;
+                padding: 12mm 14mm; font-size: 10.5px; margin: 0; }
+    .shokumu.page2 { page-break-before: always; margin-top: 0; }
+    .sh-company { page-break-inside: avoid; }
+  }
+</style>
+
+<div class="rr-page-h">
+  <h1>Resume Builder</h1>
+  <p>
+    Build the two documents Japanese employers ask for. Fill the form in
+    English on the left; output renders in Japanese on the right. Nothing
+    leaves your browser.
+  </p>
+  {% include "_resume_subnav.html" %}
+</div>
+
+<div class="rr-layout">
+
+  <!-- ================================ FORM ================================ -->
+  <div class="form-pane">
+
+    <!-- 1. Personal -->
+    <section class="form-section">
+      <div class="head">
+        <h2><span class="num">1</span> Header info</h2>
+        <button type="button" class="help-toggle" data-toggle="help-personal">? Tips</button>
+      </div>
+      <details class="help-panel" id="help-personal"><summary></summary>
+        <div class="help-body">
+          The 職務経歴書 header is simpler than the 履歴書, just today's date
+          (top right) and your name (right-aligned, below the date). No photo
+          required. We auto-fill today's date; you only need to type your name.
+        </div>
+      </details>
+      <div class="body">
+        <div class="field-grid">
+          <div>
+            <label>Name (kanji / katakana), shown on document</label>
+            <input type="text" data-field="nameJp" placeholder="山田 太郎">
+          </div>
+          <div>
+            <label>Name (romaji)</label>
+            <input type="text" data-field="name" placeholder="Yamada Taro">
+          </div>
+          <div class="span2">
+            <label>Date on document (top-left; blank = today)</label>
+            <input type="date" data-field="docDate">
+            <div class="ph-hint">
+              Convention is the date you finalized the document.
+              Leave blank to use today's date automatically.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Career summary -->
+    <section class="form-section">
+      <div class="head">
+        <h2><span class="num">2</span> Career summary
+          <span style="color:var(--muted); font-weight:normal; font-size:13px;">
+            (職務要約)
+          </span>
+        </h2>
+        <button type="button" class="help-toggle" data-toggle="help-summary">? Tips</button>
+      </div>
+      <details class="help-panel" id="help-summary"><summary></summary>
+        <div class="help-body">
+          A 3–5 sentence overview of your career so far. Recruiters skim this
+          first to decide whether to keep reading. Cover: how many years of
+          experience, your specialty/industry, your most recent role, and the
+          impact you've had. Keep it factual and concrete (years, scale, results).
+          <button type="button" class="template-paste" id="pasteSummaryTpl">Paste a Japanese template</button>
+        </div>
+      </details>
+      <div class="body">
+        <div class="field-grid single">
+          <textarea data-field="summary" rows="5"
+            placeholder="○○大学卒業後、××業界で△年間、システム開発に従事してまいりました。直近の○○株式会社では、◇◇のリードエンジニアとして…"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Career history (companies) -->
+    <section class="form-section">
+      <div class="head">
+        <h2><span class="num">3</span> Career history
+          <span style="color:var(--muted); font-weight:normal; font-size:13px;">
+            (職務経歴)
+          </span>
+        </h2>
+        <button type="button" class="help-toggle" data-toggle="help-companies">? Tips</button>
+      </div>
+      <details class="help-panel" id="help-companies"><summary></summary>
+        <div class="help-body">
+          The heart of the document. List companies in reverse-chronological
+          order (newest first). For each: company name, the period you worked
+          there, your role, the duties you handled, and the results/projects
+          you delivered. Use <strong>one bullet per line</strong> in the
+          Duties and Achievements fields, newlines render as bullet points
+          (•) in the output. Quantify wherever you can: "led a team of 5",
+          "cut response time from 800ms to 120ms", "drove revenue growth of
+          ¥40M YoY". For your current job, check the <code>在職中</code> box
+          instead of typing an end date.
+        </div>
+      </details>
+      <div class="body">
+        <div id="companies"></div>
+        <button type="button" class="add-company" id="addCompany">+ Add another company</button>
+      </div>
+    </section>
+
+    <!-- 4. Skills -->
+    <section class="form-section">
+      <div class="head">
+        <h2><span class="num">4</span> Skills
+          <span style="color:var(--muted); font-weight:normal; font-size:13px;">
+            (活かせる経験・知識・技術)
+          </span>
+        </h2>
+        <button type="button" class="help-toggle" data-toggle="help-skills">? Tips</button>
+      </div>
+      <details class="help-panel" id="help-skills"><summary></summary>
+        <div class="help-body">
+          List transferable skills the company would value: technical stack,
+          languages (programming + spoken), management/leadership scope,
+          methodologies (Agile, OKRs, etc.). One bullet per line. Be specific, "Python (8 years)", "AWS (EC2 / RDS / Lambda)", "English: Native /
+          Japanese: N2 Business" beats vague labels.
+        </div>
+      </details>
+      <div class="body">
+        <div class="row-list" id="skillsRows"></div>
+        <button type="button" class="add-row" data-add="skill">+ Add skill</button>
+      </div>
+    </section>
+
+    <!-- 5. Qualifications -->
+    <section class="form-section">
+      <div class="head">
+        <h2><span class="num">5</span> Qualifications &amp; certifications
+          <span style="color:var(--muted); font-weight:normal; font-size:13px;">
+            (資格・免許)
+          </span>
+        </h2>
+        <button type="button" class="help-toggle" data-toggle="help-quals">? Tips</button>
+      </div>
+      <details class="help-panel" id="help-quals"><summary></summary>
+        <div class="help-body">
+          Same content as your 履歴書, list JLPT, Japanese driver's license,
+          and any professional certifications with the date acquired.
+        </div>
+      </details>
+      <div class="body">
+        <div class="row-list" id="qualsRows"></div>
+        <button type="button" class="add-row" data-add="qual">+ Add qualification</button>
+      </div>
+    </section>
+
+    <!-- 6. Self-PR -->
+    <section class="form-section">
+      <div class="head">
+        <h2><span class="num">6</span> Self-PR
+          <span style="color:var(--muted); font-weight:normal; font-size:13px;">
+            (自己PR)
+          </span>
+        </h2>
+        <button type="button" class="help-toggle" data-toggle="help-pr">? Tips</button>
+      </div>
+      <details class="help-panel" id="help-pr"><summary></summary>
+        <div class="help-body">
+          Longer than the rirekisho self-PR, typically 1–3 paragraphs. Open
+          with a single sentence about your strongest attribute, then back it
+          up with a concrete example from your career history, then end with
+          how you'd apply it at the new company. The format Japanese recruiters
+          expect: <em>claim → evidence → contribution</em>.
+          <button type="button" class="template-paste" id="pastePrTpl">Paste a Japanese template</button>
+        </div>
+      </details>
+      <div class="body">
+        <div class="field-grid single">
+          <textarea data-field="selfPr" rows="7"
+            placeholder="私の強みは○○です。前職では△△の場面で◇◇を実践し、××という成果を上げました。貴社では、この経験を活かして…"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <div class="actions">
+      <button type="button" class="print-btn" id="printBtn">Print / Save as PDF</button>
+      <button type="button" class="save-btn" id="saveBtn">Save to browser</button>
+      <button type="button" class="reset-btn" id="resetBtn">Reset all</button>
+    </div>
+    <div style="padding: 10px 22px 14px; background: #f9fafb; border-top: 1px solid var(--line);
+                font-size: 12px; color: var(--muted); line-height: 1.5;">
+      <strong>Tip for a clean PDF:</strong> in the print dialog, expand
+      <em>More settings</em> and uncheck <em>Headers and footers</em> so the
+      URL, page number, and timestamp don't appear on the exported PDF.
+    </div>
+  </div>
+
+  <!-- ============================== PREVIEW =============================== -->
+  <div class="preview-pane">
+    <div class="scale-wrap">
+      <div class="shokumu" id="shPreview">
+        <h1 class="sh-title">職務経歴書</h1>
+        <div class="sh-meta-row">
+          <span id="shDate">, 年, 月, 日 現在</span>
+          <span class="name">氏名: <span id="shName">–</span></span>
+        </div>
+
+        <div class="sh-section-h">職務要約</div>
+        <div class="sh-block empty" id="shSummary">–</div>
+
+        <div class="sh-section-h">職務経歴</div>
+        <div id="shCompanies"><div class="sh-empty">Add a company in the form to populate.</div></div>
+
+        <div class="sh-section-h">活かせる経験・知識・技術</div>
+        <ul class="sh-bullets" id="shSkills">
+          <li class="sh-empty">Add skills in the form.</li>
+        </ul>
+
+        <div class="sh-section-h">資格・免許</div>
+        <table class="sh-licenses" id="shQuals">
+          <tr><td class="sh-empty" colspan="2">No qualifications added.</td></tr>
+        </table>
+
+        <div class="sh-section-h">自己PR</div>
+        <div class="sh-block empty" id="shSelfPr">–</div>
+
+        <div class="sh-footer">以上</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var STORAGE_KEY = "gaijin-hunter-shokumu-v1";
+
+  /* =========================== utilities =========================== */
+  function $(sel, root) { return (root || document).querySelector(sel); }
+  function $$(sel, root) {
+    return Array.prototype.slice.call((root || document).querySelectorAll(sel));
+  }
+  function escapeHtml(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+  function bullets(text) {
+    if (!text) return [];
+    return text.split(/\r?\n/)
+      .map(function (l) { return l.replace(/^\s*[-•・]\s*/, "").trim(); })
+      .filter(Boolean);
+  }
+  function fmtDocDate(iso) {
+    var d;
+    if (iso) {
+      d = new Date(iso + "T00:00:00");
+      if (isNaN(d)) d = new Date();
+    } else {
+      d = new Date();
+    }
+    return d.getFullYear() + " 年 " + (d.getMonth()+1) + " 月 " + d.getDate() + " 日 現在";
+  }
+  function fmtYearMonth(y, m) {
+    if (!y && !m) return "";
+    return (y || "—") + "/" + (m ? String(m).padStart(2, "0") : "—");
+  }
+
+  /* =========================== company cards =========================== */
+  function makeCompanyCard(data) {
+    data = data || {};
+    var card = document.createElement("div");
+    card.className = "company-card";
+
+    var head = document.createElement("div");
+    head.className = "card-head";
+    var title = document.createElement("h3");
+    title.textContent = "Company";
+    head.appendChild(title);
+    var del = document.createElement("button");
+    del.type = "button"; del.className = "del-card"; del.textContent = "✕ Remove";
+    del.addEventListener("click", function () { card.remove(); render(); save(); });
+    head.appendChild(del);
+    card.appendChild(head);
+
+    function input(key, placeholder, type) {
+      var el = document.createElement("input");
+      el.type = type || "text";
+      el.placeholder = placeholder;
+      el.dataset.key = key;
+      el.value = data[key] || "";
+      el.addEventListener("input", function () { render(); save(); });
+      return el;
+    }
+    function labeledField(key, label, placeholder, type) {
+      var wrap = document.createElement("div");
+      var lbl = document.createElement("label");
+      lbl.textContent = label;
+      wrap.appendChild(lbl);
+      var inp = input(key, placeholder, type);
+      wrap.appendChild(inp);
+      return wrap;
+    }
+
+    // Company name + industry
+    var grid1 = document.createElement("div");
+    grid1.style.display = "grid";
+    grid1.style.gridTemplateColumns = "1fr 1fr";
+    grid1.style.gap = "8px";
+    grid1.style.marginBottom = "8px";
+    grid1.appendChild(labeledField("name", "Company name (会社名)", "株式会社○○"));
+    grid1.appendChild(labeledField("industry", "Industry (業界 — optional)", "IT / 製造 / 金融 …"));
+    card.appendChild(grid1);
+
+    // Period row: start (year, month) | end (year, month) | current toggle
+    var periodRow = document.createElement("div");
+    periodRow.className = "period-row";
+
+    var startWrap = document.createElement("div");
+    var startLbl = document.createElement("label");
+    startLbl.textContent = "From";
+    startWrap.appendChild(startLbl);
+    var startInner = document.createElement("div");
+    startInner.style.display = "grid";
+    startInner.style.gridTemplateColumns = "1fr 1fr";
+    startInner.style.gap = "4px";
+    startInner.appendChild(input("startYear", "Year", "number"));
+    startInner.appendChild(input("startMonth", "Mo", "number"));
+    startWrap.appendChild(startInner);
+    periodRow.appendChild(startWrap);
+
+    var endWrap = document.createElement("div");
+    var endLbl = document.createElement("label");
+    endLbl.textContent = "To";
+    endWrap.appendChild(endLbl);
+    var endInner = document.createElement("div");
+    endInner.style.display = "grid";
+    endInner.style.gridTemplateColumns = "1fr 1fr";
+    endInner.style.gap = "4px";
+    var endY = input("endYear", "Year", "number");
+    var endM = input("endMonth", "Mo", "number");
+    endInner.appendChild(endY);
+    endInner.appendChild(endM);
+    endWrap.appendChild(endInner);
+    periodRow.appendChild(endWrap);
+
+    // 在職中 toggle
+    var current = document.createElement("button");
+    current.type = "button"; current.className = "current-toggle";
+    current.dataset.key = "current";
+    current.textContent = "在職中";
+    if (data.current) { current.classList.add("on"); endY.disabled = endM.disabled = true; }
+    current.addEventListener("click", function () {
+      var isOn = current.classList.toggle("on");
+      endY.disabled = endM.disabled = isOn;
+      if (isOn) { endY.value = ""; endM.value = ""; }
+      render(); save();
+    });
+    periodRow.appendChild(current);
+    card.appendChild(periodRow);
+
+    // Position
+    card.appendChild((function () {
+      var w = labeledField("position", "Position / Role (役職)", "ソフトウェアエンジニア / Engineering Manager");
+      w.style.marginBottom = "8px";
+      return w;
+    })());
+
+    // Duties textarea
+    var dutiesWrap = document.createElement("div");
+    dutiesWrap.style.marginBottom = "8px";
+    var dutiesLbl = document.createElement("label");
+    dutiesLbl.textContent = "Duties (業務内容) — one bullet per line";
+    dutiesLbl.style.fontSize = "11px"; dutiesLbl.style.color = "var(--muted)";
+    dutiesLbl.style.display = "block"; dutiesLbl.style.marginBottom = "3px";
+    dutiesWrap.appendChild(dutiesLbl);
+    var dutiesTa = document.createElement("textarea");
+    dutiesTa.dataset.key = "duties";
+    dutiesTa.rows = 4;
+    dutiesTa.placeholder = "○○システムの開発・保守\n△△プロジェクトのリード\n…";
+    dutiesTa.value = data.duties || "";
+    dutiesTa.style.width = "100%"; dutiesTa.style.padding = "7px 9px";
+    dutiesTa.style.border = "1px solid var(--line)"; dutiesTa.style.borderRadius = "6px";
+    dutiesTa.style.fontSize = "13px"; dutiesTa.style.fontFamily = "inherit";
+    dutiesTa.addEventListener("input", function () { render(); save(); });
+    dutiesWrap.appendChild(dutiesTa);
+    card.appendChild(dutiesWrap);
+
+    // Achievements textarea
+    var achWrap = document.createElement("div");
+    var achLbl = document.createElement("label");
+    achLbl.textContent = "Achievements / projects (実績) — one bullet per line";
+    achLbl.style.fontSize = "11px"; achLbl.style.color = "var(--muted)";
+    achLbl.style.display = "block"; achLbl.style.marginBottom = "3px";
+    achWrap.appendChild(achLbl);
+    var achTa = document.createElement("textarea");
+    achTa.dataset.key = "achievements";
+    achTa.rows = 4;
+    achTa.placeholder = "応答時間を800msから120msに改善\nチームを5名から12名に拡大し、年間¥40Mの売上を達成\n…";
+    achTa.value = data.achievements || "";
+    achTa.style.width = "100%"; achTa.style.padding = "7px 9px";
+    achTa.style.border = "1px solid var(--line)"; achTa.style.borderRadius = "6px";
+    achTa.style.fontSize = "13px"; achTa.style.fontFamily = "inherit";
+    achTa.addEventListener("input", function () { render(); save(); });
+    achWrap.appendChild(achTa);
+    card.appendChild(achWrap);
+
+    return card;
+  }
+
+  function readCompany(card) {
+    var obj = {};
+    $$("input, textarea", card).forEach(function (el) {
+      if (!el.dataset.key) return;
+      obj[el.dataset.key] = el.value.trim();
+    });
+    var btn = $(".current-toggle", card);
+    obj.current = btn ? btn.classList.contains("on") : false;
+    return obj;
+  }
+
+  /* =========================== row list (skills / quals) =========================== */
+  function makeSkillRow(data) {
+    data = data || {};
+    var row = document.createElement("div");
+    row.className = "row skill";
+    var inp = document.createElement("input");
+    inp.type = "text";
+    inp.placeholder = "Python (8 years), AWS (EC2/RDS/Lambda), 英語: Native, 日本語: N2 …";
+    inp.dataset.key = "text"; inp.value = data.text || "";
+    inp.addEventListener("input", function () { render(); save(); });
+    var del = document.createElement("button");
+    del.type = "button"; del.className = "del"; del.textContent = "✕";
+    del.addEventListener("click", function () { row.remove(); render(); save(); });
+    row.appendChild(inp); row.appendChild(del);
+    return row;
+  }
+
+  function makeQualRow(data) {
+    data = data || {};
+    var row = document.createElement("div");
+    row.className = "row";
+    var y = document.createElement("input");
+    y.type = "number"; y.placeholder = "Year"; y.min = 1950; y.max = 2100;
+    y.dataset.key = "year"; y.value = data.year || "";
+    y.addEventListener("input", function () { render(); save(); });
+    var m = document.createElement("input");
+    m.type = "number"; m.placeholder = "Mo"; m.min = 1; m.max = 12;
+    m.dataset.key = "month"; m.value = data.month || "";
+    m.addEventListener("input", function () { render(); save(); });
+    var t = document.createElement("input");
+    t.type = "text"; t.placeholder = "JLPT N2 合格 / 普通自動車免許 取得 / AWS Solutions Architect …";
+    t.dataset.key = "text"; t.value = data.text || "";
+    t.addEventListener("input", function () { render(); save(); });
+    var del = document.createElement("button");
+    del.type = "button"; del.className = "del"; del.textContent = "✕";
+    del.addEventListener("click", function () { row.remove(); render(); save(); });
+    row.appendChild(y); row.appendChild(m); row.appendChild(t); row.appendChild(del);
+    return row;
+  }
+
+  /* =========================== state =========================== */
+  function getState() {
+    var fields = ["name", "nameJp", "docDate", "summary", "selfPr"];
+    var st = {};
+    fields.forEach(function (f) {
+      var el = $("[data-field='" + f + "']");
+      st[f] = el ? el.value.trim() : "";
+    });
+    st.companies = $$(".company-card").map(readCompany)
+      .filter(function (c) {
+        // Drop fully-empty cards
+        return Object.values(c).some(function (v) { return v && v !== false; });
+      });
+    st.skills = $$("#skillsRows .row").map(function (r) {
+      var input = $("input", r);
+      return { text: input ? input.value.trim() : "" };
+    }).filter(function (s) { return s.text; });
+    st.quals = $$("#qualsRows .row").map(function (r) {
+      var o = {};
+      $$("input", r).forEach(function (i) { o[i.dataset.key] = i.value.trim(); });
+      return o;
+    }).filter(function (q) { return q.year || q.month || q.text; });
+    return st;
+  }
+
+  function setState(st) {
+    if (!st) return;
+    ["name", "nameJp", "docDate", "summary", "selfPr"].forEach(function (f) {
+      var el = $("[data-field='" + f + "']");
+      if (el) el.value = st[f] || "";
+    });
+    var ccs = $("#companies");
+    (st.companies || []).forEach(function (c) { ccs.appendChild(makeCompanyCard(c)); });
+    var skills = $("#skillsRows");
+    (st.skills || []).forEach(function (s) { skills.appendChild(makeSkillRow(s)); });
+    var quals = $("#qualsRows");
+    (st.quals || []).forEach(function (q) { quals.appendChild(makeQualRow(q)); });
+  }
+
+  /* =========================== preview rendering =========================== */
+  function renderSummary(st) {
+    var el = $("#shSummary");
+    if (st.summary) { el.textContent = st.summary; el.classList.remove("empty"); }
+    else { el.textContent = "—"; el.classList.add("empty"); }
+  }
+
+  function renderCompanies(st) {
+    var root = $("#shCompanies");
+    if (!st.companies.length) {
+      root.innerHTML = '<div class="sh-empty">— Add a company in the form to populate. —</div>';
+      return;
+    }
+    root.innerHTML = st.companies.map(function (c) {
+      var name = escapeHtml(c.name || "—");
+      var period;
+      var start = fmtYearMonth(c.startYear, c.startMonth);
+      if (c.current) {
+        period = (start || "—") + " – 在職中";
+      } else {
+        var end = fmtYearMonth(c.endYear, c.endMonth);
+        period = (start || "—") + " – " + (end || "—");
+      }
+      var industry = c.industry ? '<div class="sh-company-row"><span class="lbl">業界</span><span>' +
+                                  escapeHtml(c.industry) + "</span></div>" : "";
+      var role = c.position ? '<div class="sh-company-row"><span class="lbl">役職</span><span>' +
+                              escapeHtml(c.position) + "</span></div>" : "";
+      var dutiesItems = bullets(c.duties);
+      var dutiesHtml = dutiesItems.length ?
+        '<div class="sh-company-subtitle">業務内容</div><ul class="sh-bullets">' +
+        dutiesItems.map(function (b) { return "<li>" + escapeHtml(b) + "</li>"; }).join("") +
+        "</ul>" : "";
+      var achItems = bullets(c.achievements);
+      var achHtml = achItems.length ?
+        '<div class="sh-company-subtitle">実績</div><ul class="sh-bullets">' +
+        achItems.map(function (b) { return "<li>" + escapeHtml(b) + "</li>"; }).join("") +
+        "</ul>" : "";
+      return '<div class="sh-company">' +
+        '<div class="sh-company-head">' +
+          '<div class="sh-company-name">' + name + "</div>" +
+          '<div class="sh-company-period" style="text-align:right;">' + escapeHtml(period) + "</div>" +
+        "</div>" +
+        industry + role + dutiesHtml + achHtml +
+      "</div>";
+    }).join("");
+  }
+
+  function renderSkills(st) {
+    var ul = $("#shSkills");
+    if (!st.skills.length) {
+      ul.innerHTML = '<li class="sh-empty">— Add skills in the form. —</li>';
+      return;
+    }
+    ul.innerHTML = st.skills.map(function (s) {
+      return "<li>" + escapeHtml(s.text) + "</li>";
+    }).join("");
+  }
+
+  function renderQuals(st) {
+    var tbl = $("#shQuals");
+    if (!st.quals.length) {
+      tbl.innerHTML = '<tr><td class="sh-empty" colspan="2">— No qualifications added. —</td></tr>';
+      return;
+    }
+    tbl.innerHTML = st.quals.map(function (q) {
+      var when = (q.year || "—") + " 年 " + (q.month ? String(q.month).padStart(2, "0") : "—") + " 月";
+      return "<tr><td class=\"date\">" + escapeHtml(when) + "</td><td>" + escapeHtml(q.text) + "</td></tr>";
+    }).join("");
+  }
+
+  function renderSelfPr(st) {
+    var el = $("#shSelfPr");
+    if (st.selfPr) { el.textContent = st.selfPr; el.classList.remove("empty"); }
+    else { el.textContent = "—"; el.classList.add("empty"); }
+  }
+
+  function renderHeader(st) {
+    $("#shDate").textContent = fmtDocDate(st.docDate);
+    $("#shName").textContent = st.nameJp || st.name || "—";
+  }
+
+  function render() {
+    var st = getState();
+    renderHeader(st);
+    renderSummary(st);
+    renderCompanies(st);
+    renderSkills(st);
+    renderQuals(st);
+    renderSelfPr(st);
+  }
+
+  /* =========================== save/load =========================== */
+  function save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(getState())); } catch (e) {}
+  }
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) setState(JSON.parse(raw));
+    } catch (e) {}
+  }
+
+  /* =========================== wire-up =========================== */
+  document.addEventListener("DOMContentLoaded", function () {
+    load();
+
+    // Ensure at least one company card visible
+    if (!$("#companies").children.length) {
+      $("#companies").appendChild(makeCompanyCard());
+    }
+
+    // Live re-render for top-level fields
+    $$("[data-field]").forEach(function (el) {
+      el.addEventListener("input", function () { render(); save(); });
+    });
+
+    // Help toggles
+    $$(".help-toggle").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var id = btn.getAttribute("data-toggle");
+        var panel = document.getElementById(id);
+        if (panel) panel.open = !panel.open;
+      });
+    });
+
+    // Add buttons
+    $("#addCompany").addEventListener("click", function () {
+      $("#companies").appendChild(makeCompanyCard());
+      render();
+    });
+    $$("button[data-add]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var kind = btn.getAttribute("data-add");
+        if (kind === "skill") {
+          $("#skillsRows").appendChild(makeSkillRow());
+        } else if (kind === "qual") {
+          $("#qualsRows").appendChild(makeQualRow());
+        }
+      });
+    });
+
+    // Template paste buttons
+    var sumTpl = $("#pasteSummaryTpl");
+    if (sumTpl) sumTpl.addEventListener("click", function () {
+      $("[data-field='summary']").value =
+        "○○大学卒業後、××業界で△年間の経験を積んでまいりました。\n" +
+        "直近の○○株式会社では、◇◇のリードとして××プロジェクトを推進し、" +
+        "△△の成果を上げました。\n" +
+        "これまでの経験と知識を活かし、貴社の事業に貢献したいと考えております。";
+      render(); save();
+    });
+    var prTpl = $("#pastePrTpl");
+    if (prTpl) prTpl.addEventListener("click", function () {
+      $("[data-field='selfPr']").value =
+        "私の強みは、○○○○です。\n\n" +
+        "前職の××株式会社では、◇◇のチームを率いて△△のプロジェクトを推進し、" +
+        "○○の課題に対して××の解決策を提案・実行いたしました。" +
+        "結果として、△△を○%改善し、◇◇の成果を上げることができました。\n\n" +
+        "貴社では、これまで培ってきた○○の経験を活かし、" +
+        "◇◇の領域で貢献したいと考えております。";
+      render(); save();
+    });
+
+    // Action buttons
+    $("#printBtn").addEventListener("click", function () {
+      render(); save(); window.print();
+    });
+    $("#saveBtn").addEventListener("click", function () {
+      save();
+      var b = this; var orig = b.textContent;
+      b.textContent = "✓ Saved";
+      setTimeout(function () { b.textContent = orig; }, 1500);
+    });
+    $("#resetBtn").addEventListener("click", function () {
+      if (!confirm("Clear ALL form fields and saved data?")) return;
+      try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+      window.location.reload();
+    });
+
+    render();
+  });
+})();
+</script>
+{% endblock %}

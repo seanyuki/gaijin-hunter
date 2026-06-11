@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Career roadmaps for foreigners in Japan, Gaijin Hunter{% endblock %}
+{% block content %}
+<style>
+  .hero { text-align: center; padding: 28px 20px 18px; }
+  .hero h1 { margin: 0 0 8px; font-size: 32px; letter-spacing: -0.02em; }
+  .hero p  { color: var(--muted); margin: 0 auto; max-width: 640px; font-size: 15px; line-height: 1.55; }
+
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+          max-width: 1100px; margin: 20px auto 0; padding: 0 20px; }
+  @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+  .card { display: flex; gap: 14px; background: var(--card); border: 1px solid var(--line);
+          border-radius: 12px; padding: 22px 24px; text-decoration: none; color: inherit;
+          transition: all 0.2s; }
+  .card:hover { border-color: var(--accent); transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
+  .card .icon { font-size: 36px; line-height: 1; flex-shrink: 0; }
+  .card h3 { margin: 0 0 4px; font-size: 17px; }
+  .card p  { margin: 0 0 8px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+  .card .meta { font-size: 12px; color: var(--accent); font-weight: 600; }
+</style>
+
+<div class="hero">
+  <h1>Career roadmaps</h1>
+  <p>Step-by-step progression for each major track in Japan, from junior to staff/principal.
+     Skills, salary bands, promotion criteria, and Japan-specific notes at every level.</p>
+</div>
+
+<div class="grid">
+  {% for r in roadmaps %}
+    <a class="card" href="/roadmaps/{{ r.slug }}">
+      <div class="icon">{{ icon(r.icon, size=20) }}</div>
+      <div>
+        <h3>{{ r.title }}</h3>
+        <p>{{ r.summary }}</p>
+        <div class="meta">{{ r.stages | length }} stages · Read →</div>
+      </div>
+    </a>
+  {% endfor %}
+</div>
+{% endblock %}

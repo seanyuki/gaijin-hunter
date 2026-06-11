@@ -1,0 +1,11 @@
+<svg viewBox="0 0 220 50" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="5" width="40" height="40" rx="9" fill="#1c1a17"/>
+  <g fill="#dd4a3f">
+    <path d="M6.5 17 Q20 15 33.5 17 L33.5 19.7 Q20 17.7 6.5 19.7 Z"/>
+    <rect x="10.5" y="22.3" width="19" height="2.7" rx="0.6"/>
+    <path d="M13.7 19.7 L16.3 19.7 L17 35.6 L13 35.6 Z"/>
+    <path d="M23.7 19.7 L26.3 19.7 L27 35.6 L23 35.6 Z"/>
+  </g>
+  <text x="52" y="29" font-family="Fraunces, Georgia, serif" font-weight="600" font-size="19" fill="#1c1a17" letter-spacing="-0.4">Gaijin Hunter</text>
+  <text x="53" y="42" font-family="Geist, Inter, sans-serif" font-weight="600" font-size="9" fill="#6b6258" letter-spacing="1.6">CAREERS · JAPAN</text>
+</svg>

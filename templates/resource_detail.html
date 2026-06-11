@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% from "_article_extras.html" import key_takeaways, faq_section, faq_schema, article_extras_css %}
+{% block title %}{{ item.title }}, Gaijin Hunter{% endblock %}
+{% block meta_description %}{{ item.summary }}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block jsonld %}
+{{ faq_schema(item) }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": {{ item.title|tojson }},
+  "description": {{ item.summary|tojson }},
+  "url": "{{ base_url }}/resources/{{ item.slug }}",
+  "datePublished": "2024-01-01",
+  "dateModified": "{{ item.updated|default('2026-05-01') }}",
+  "author": {"@type": "Organization", "name": "Gaijin Hunter"},
+  "publisher": {
+    "@type": "Organization",
+    "name": "Gaijin Hunter",
+    "logo": {"@type": "ImageObject", "url": "{{ base_url }}/static/logo.svg"}
+  },
+  "mainEntityOfPage": {"@type": "WebPage", "@id": "{{ base_url }}/resources/{{ item.slug }}"},
+  "about": {"@type": "Thing", "name": {{ item.title|tojson }}},
+  "audience": {"@type": "Audience", "audienceType": "Foreigners working in Japan"},
+  "inLanguage": "en"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ base_url }}/"},
+    {"@type": "ListItem", "position": 2, "name": "Resources", "item": "{{ base_url }}/resources"},
+    {"@type": "ListItem", "position": 3, "name": {{ item.title|tojson }}, "item": "{{ base_url }}/resources/{{ item.slug }}"}
+  ]
+}
+</script>
+{% endblock %}
+{% block content %}
+{{ article_extras_css() }}
+<style>
+  .article-h { padding: 18px 0 22px; max-width: 880px; }
+  .article-h .crumb { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+  .article-h .crumb a { color: var(--muted); text-decoration: none; }
+  .article-h .crumb a:hover { color: var(--accent); }
+  .article-h .icon-wrap {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--accent-soft); color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-bottom: 12px;
+  }
+  .article-h h1 { margin: 0 0 8px; font-size: 32px; line-height: 1.15; letter-spacing: -0.02em; }
+  .article-h .summary { color: var(--muted); font-size: 16px; line-height: 1.55; margin: 0; }
+  .article-h .updated { font-size: 12px; color: var(--muted); margin-top: 12px;
+                         display: inline-flex; align-items: center; gap: 6px; }
+
+  .article-layout { display: grid; grid-template-columns: 220px minmax(0, 1fr) 220px; gap: 28px;
+                    align-items: start; }
+  @media (max-width: 1100px) { .article-layout { grid-template-columns: 200px minmax(0, 1fr); } }
+  @media (max-width: 900px)  { .article-layout { grid-template-columns: 1fr; } }
+
+  nav.toc { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+             padding: 16px 18px; position: sticky; top: 90px; max-height: calc(100vh - 110px);
+             overflow-y: auto; }
+  nav.toc h4 { margin: 0 0 10px; font-size: 11px; color: var(--muted);
+                text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+  nav.toc a { display: block; padding: 6px 0; font-size: 13px; color: var(--fg);
+               text-decoration: none; border-bottom: 1px solid var(--line-soft); line-height: 1.45; }
+  nav.toc a:last-child { border-bottom: none; }
+  nav.toc a:hover { color: var(--accent); }
+  @media (max-width: 900px) { nav.toc { position: static; max-height: none; margin-bottom: 12px; } }
+
+  article.res {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 32px 40px;
+  }
+  article.res h2 { margin: 30px 0 12px; font-size: 22px; scroll-margin-top: 80px;
+                    letter-spacing: -0.01em; }
+  article.res h2:first-child { margin-top: 0; }
+  article.res h3 { margin: 20px 0 8px; font-size: 16px; color: var(--fg-soft); }
+  article.res p, article.res li { font-size: 15.5px; line-height: 1.75; color: var(--fg-soft); }
+  article.res ul, article.res ol { padding-left: 22px; }
+  article.res li { margin-bottom: 6px; }
+  article.res table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px; }
+  article.res table th, article.res table td {
+    border: 1px solid var(--line); padding: 9px 12px; text-align: left; vertical-align: top;
+  }
+  article.res table th { background: var(--line-soft); font-weight: 600; color: var(--fg); }
+  article.res .callout { background: var(--accent-soft); border: 1px solid #eccfca;
+                          padding: 13px 16px; margin: 16px 0; border-radius: 10px;
+                          font-size: 14px; color: var(--accent-dark); line-height: 1.65; }
+  article.res .callout strong, article.res .callout b { color: var(--accent-dark); }
+  article.res .warn { background: var(--warn-tint); border: 1px solid #f0d9a8;
+                       padding: 13px 16px; margin: 16px 0; border-radius: 10px;
+                       font-size: 14px; color: #78350f; line-height: 1.65; }
+  article.res .danger { background: #fbeae7; border: 1px solid #e9b8b3;
+                        padding: 13px 16px; margin: 16px 0; border-radius: 10px;
+                        font-size: 14px; color: #7f1d1d; line-height: 1.65; }
+  article.res code { background: var(--line-soft); padding: 2px 6px; border-radius: 3px;
+                      font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13.5px;
+                      color: var(--fg); }
+  article.res a { color: var(--accent); font-weight: 500; }
+  article.res .meta-row { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px;
+                          margin: 8px 0 16px; padding: 10px 14px; background: var(--line-soft);
+                          border-radius: 6px; color: var(--muted); }
+  article.res .meta-row strong { color: var(--fg); }
+
+  aside.related { background: var(--card); border: 1px solid var(--line);
+                   border-radius: 10px; padding: 16px 18px; position: sticky; top: 90px; }
+  aside.related h4 { margin: 0 0 10px; font-size: 11px; color: var(--muted);
+                      text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+  aside.related a { display: flex; gap: 8px; align-items: flex-start; padding: 8px 0;
+                     font-size: 13px; color: var(--fg-soft); text-decoration: none;
+                     border-bottom: 1px solid var(--line-soft); }
+  aside.related a:last-child { border-bottom: none; }
+  aside.related a:hover { color: var(--accent); }
+  aside.related a .icn { color: var(--muted); flex-shrink: 0; padding-top: 2px; }
+  aside.related a:hover .icn { color: var(--accent); }
+  aside.related a.current { color: var(--accent); font-weight: 600; }
+  @media (max-width: 1100px) { aside.related { display: none; } }
+</style>
+
+<div class="article-h">
+  <div class="crumb"><a href="/resources">← Career resources</a></div>
+  <div class="icon-wrap">{{ icon(item.icon, size=22) }}</div>
+  <h1>{{ item.title }}</h1>
+  <p class="summary">{{ item.summary }}</p>
+  {% if item.updated %}
+    <div class="updated">{{ icon('calendar', size=12) }} Updated {{ item.updated }}{% if item.read_time %} · {{ item.read_time }} read{% endif %}</div>
+  {% endif %}
+</div>
+
+<div class="article-layout">
+  {% if item.toc %}
+    <nav class="toc">
+      <h4>In this guide</h4>
+      {% for slug, label in item.toc %}
+        <a href="#{{ slug }}">{{ label }}</a>
+      {% endfor %}
+    </nav>
+  {% else %}
+    <div></div>
+  {% endif %}
+
+  <article class="res">
+    {{ key_takeaways(item) }}
+    {{ item.body | safe }}
+    {{ faq_section(item) }}
+  </article>
+
+  <aside class="related">
+    <h4>Other resources</h4>
+    {% for r in all_resources %}
+      <a href="/resources/{{ r.slug }}" {% if r.slug == item.slug %}class="current"{% endif %}>
+        <span class="icn">{{ icon(r.icon, size=14) }}</span>
+        <span>{{ r.title }}</span>
+      </a>
+    {% endfor %}
+  </aside>
+</div>
+
+<!-- Recommended next steps -->
+<section class="hub-sec hub-pad" style="padding-top:8px;">
+  <div class="sec-head"><span class="eyebrow-rule">Keep going</span><h2>Recommended next steps</h2></div>
+  <div class="nextsteps">
+    <div class="nscard"><h3>Put it into practice</h3><p>Search roles that fit what you just read.</p>
+      <div class="nslinks"><a href="/jobs">Browse jobs</a><a href="/jobs?japanese_level=Not+Required">No Japanese</a></div></div>
+    <div class="nscard"><h3>Prepare your application</h3><p>Build the documents Japanese employers expect.</p>
+      <div class="nslinks"><a href="/resume">Resume builder</a><a href="/interview-prep">Interview prep</a></div></div>
+    <div class="nscard"><h3>Related reading</h3><p>More guides on the move and life in Japan.</p>
+      <div class="nslinks"><a href="/resources">All resources</a><a href="/living">Living in Japan</a></div></div>
+  </div>
+</section>
+
+<style>nav.toc a.active { color: var(--accent); font-weight: 600; }</style>
+{% if item.toc %}
+<script>
+(function () {
+  var links = Array.prototype.slice.call(document.querySelectorAll('nav.toc a[href^="#"]'));
+  links.forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      var el = document.getElementById(a.getAttribute('href').slice(1));
+      if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    });
+  });
+  // Scroll-spy: highlight the section currently in view.
+  var targets = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); }).filter(Boolean);
+  if ('IntersectionObserver' in window && targets.length) {
+    var byId = {}; links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) {
+          links.forEach(function (l) { l.classList.remove('active'); });
+          var a = byId[en.target.id]; if (a) a.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    targets.forEach(function (t) { io.observe(t); });
+  }
+})();
+</script>
+{% endif %}
+{% endblock %}

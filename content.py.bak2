@@ -1,0 +1,3171 @@
+"""
+Static content registries for Phase 4 — resource pages, city/role guides.
+
+Each entry is a dict the templates render directly. The hub pages iterate
+over the registry; the detail pages look up by slug and render a single entry.
+
+Keeping these in Python (not templates) means we can: enumerate them for
+the hub, link to them by slug, and ensure the slug → title mapping is
+unambiguous. Content stays plain markdown-ish HTML.
+"""
+
+# ---------------------------------------------------------------------------
+# Career-resource pages: split from the old monolithic /resources page.
+# Each entry's `body` is raw HTML — the resources_detail template wraps it
+# in a styled article container.
+# ---------------------------------------------------------------------------
+
+RESOURCES: list[dict] = [
+
+    # ------------------------------------------------------------------ visa
+    {
+        "slug": "visa-types",
+        "icon": "badge",
+        "title": "Work visas in Japan — every category for foreign professionals",
+        "summary": "Engineer/Specialist, HSP, J-Skip, J-Find, Business Manager, Instructor, Spouse, Working Holiday — what each is for, who qualifies, and what changed in 2024–25.",
+        "updated": "May 2026",
+        "read_time": "11 min",
+        "toc": [
+            ("overview", "Overview: 8 work visa categories"),
+            ("engineer", "Engineer / Specialist in Humanities"),
+            ("hsp", "Highly Skilled Professional (HSP)"),
+            ("j-skip", "J-Skip — Special Highly Skilled (2023+)"),
+            ("j-find", "J-Find — recent graduates (2023+)"),
+            ("business-manager", "Business Manager (October 2025 reform)"),
+            ("instructor", "Instructor"),
+            ("ssw", "Specified Skilled Worker (SSW)"),
+            ("spouse", "Spouse of Japanese / PR"),
+            ("working-holiday", "Working Holiday"),
+            ("pr", "Path to permanent residence"),
+            ("pitfalls", "Common pitfalls"),
+        ],
+        "body": """
+<h2 id="overview">Overview: 8 work visa categories</h2>
+<p>Japan has 27 statuses of residence, but the ones that matter for foreign professionals
+break down into eight categories. Picking the right one upfront is the single biggest
+decision in your move — it sets your minimum salary floor, dictates which jobs you can
+take, and decides when you become eligible for permanent residence.</p>
+<table>
+  <thead>
+    <tr><th>Visa</th><th>Salary floor</th><th>PR eligibility</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Engineer / Specialist in Humanities</td>
+        <td>≈ ¥250K/mo (¥3M/yr min, must match Japanese-national pay)</td>
+        <td>10 yrs continuous residence</td></tr>
+    <tr><td>Highly Skilled Professional (HSP) — points-based</td>
+        <td>¥3M/yr absolute minimum</td>
+        <td>3 yrs (70+ pts) or 1 yr (80+ pts)</td></tr>
+    <tr><td>J-Skip — Special HSP</td>
+        <td>¥20M/yr (researchers / specialists) or ¥40M/yr (managers)</td>
+        <td>1 yr</td></tr>
+    <tr><td>J-Find — job-hunting status</td>
+        <td>Personal savings of ¥200K to enter</td>
+        <td>Convert to work visa first</td></tr>
+    <tr><td>Business Manager (reformed Oct 2025)</td>
+        <td>¥30M capital + 1 FT employee + JLPT N2</td>
+        <td>10 yrs (or HSP path)</td></tr>
+    <tr><td>Instructor (K-12 only)</td>
+        <td>≈ ¥250K/mo</td>
+        <td>10 yrs</td></tr>
+    <tr><td>Specified Skilled Worker (SSW)</td>
+        <td>Industry-specific — sets ~equivalent to Japanese workers</td>
+        <td>SSW(ii): 10 yrs (PR eligible). SSW(i): not eligible.</td></tr>
+    <tr><td>Spouse / dependant of Japanese / PR</td>
+        <td>No floor — unrestricted work rights</td>
+        <td>3 yrs (married 3+ yrs, resident 1+ yr) or 5 yrs</td></tr>
+  </tbody>
+</table>
+<div class="callout">
+  Not sure which you qualify for? Run the <a href="/tools/visa-eligibility">eligibility
+  checker</a> in under two minutes. If HSP looks possible, score your points exactly with
+  the <a href="/tools/hsp-points">HSP points calculator</a>.
+</div>
+
+<h2 id="engineer">Engineer / Specialist in Humanities / International Services</h2>
+<p>The most common work visa for foreign professionals — covers software engineering,
+finance, marketing, design, translation, and language teaching at eikaiwa or corporate
+training providers. About 60% of new working-visa approvals fall here.</p>
+<h3>Eligibility</h3>
+<ul>
+  <li><strong>Bachelor's degree</strong> (or higher) in a field relevant to the role, <em>or</em></li>
+  <li><strong>10+ years of relevant practical experience</strong> (harder to prove; you need
+      employment certificates and tax records).</li>
+  <li>For language-teaching specifically: bachelor's in <em>any</em> subject + proven proficiency.</li>
+  <li>A Japanese employer sponsors the application — you can't apply speculatively.</li>
+</ul>
+<h3>Salary floor</h3>
+<p>No fixed monthly minimum in the immigration law itself, but Immigration uses the
+"equivalent to Japanese national" rule: roughly ¥250,000/month base for entry-level, scaling
+with role. <strong>Immigration began tightening salary checks in 2025</strong> to prevent
+underpayment of foreign workers — offers under ¥3M/year for full-time professional roles are
+now reliably rejected.</p>
+<h3>Duration and renewal</h3>
+<p>Granted in 1, 3, or 5-year increments. Renewable indefinitely as long as you remain
+employed in a qualifying role. Your residence card carries the period of stay; renew at
+your regional Immigration Services Agency office 3 months before expiry.</p>
+
+<h2 id="hsp">Highly Skilled Professional (HSP) — Type 1(b)</h2>
+<p>Points-based "fast lane" visa for technical specialists, business managers, and
+researchers. Score 70+ points and you get the 5-year visa plus accelerated PR; score 80+
+and PR drops to a single year of residence.</p>
+<h3>How the points work</h3>
+<p>You collect points across education (10–30), experience (5–20), age (5–15),
+salary (5–40), and bonus categories (JLPT, Japan-issued degree, top-uni grad, research
+output, etc.). The breakeven for most foreign engineers in their late 20s and early 30s
+is around ¥7–8M annual salary with a bachelor's degree.</p>
+<h3>Benefits worth knowing</h3>
+<ul>
+  <li><strong>Spouse can work full-time</strong> without a separate work visa.</li>
+  <li>You can <strong>employ a foreign domestic worker</strong> (a perk most foreign
+      workers can't access).</li>
+  <li>Your parents can join you in Japan if your annual income exceeds ¥8M.</li>
+  <li>Preferential immigration processing — applications typically clear in 5–10 days
+      rather than 4–10 weeks.</li>
+</ul>
+<div class="callout">
+  Run the <a href="/tools/hsp-points">HSP points calculator</a> with your specific numbers.
+  The page covers every bonus category — including the ones most online guides miss.
+</div>
+
+<h2 id="j-skip">J-Skip — Special Highly Skilled Professionals (introduced April 2023)</h2>
+<p>The newest fast-track visa, aimed at very senior specialists and executives. Skips the
+points system entirely if you meet either an education-plus-income threshold or an
+experience-plus-income threshold.</p>
+<h3>Type 1(a)/(b) — Researchers and technical specialists</h3>
+<ul>
+  <li>Master's degree or higher <strong>AND</strong> annual income ≥ ¥20M, <em>or</em></li>
+  <li>10+ years of relevant work experience <strong>AND</strong> annual income ≥ ¥20M.</li>
+</ul>
+<h3>Type 1(c) — Business managers</h3>
+<ul>
+  <li>5+ years of business management experience <strong>AND</strong> annual income ≥ ¥40M.</li>
+</ul>
+<h3>What you get</h3>
+<p>Five-year period of stay from the start, eligible to apply for permanent residence
+after just <strong>one year</strong> of continuous residence. Same family-and-spouse perks
+as standard HSP.</p>
+<div class="warn">
+  The ¥20M and ¥40M income thresholds are <em>contracted</em> annual income from your Japan
+  job — not your global compensation. Immigration verifies via your employment contract and
+  tax records.
+</div>
+
+<h2 id="j-find">J-Find — Future Creation Individual Visa (job-hunting status, 2023+)</h2>
+<p>Lets recent graduates of designated top universities enter Japan without a job offer to
+look for work. Designed to compete with Singapore and the EU for international graduate
+talent.</p>
+<h3>Eligibility</h3>
+<ul>
+  <li>Bachelor's, master's, or doctoral degree from one of the <strong>94 designated
+      universities</strong> (as of January 2025) — the list includes most QS Top 100 and
+      THE Top 200 universities globally.</li>
+  <li>Graduated within the last <strong>5 years</strong>.</li>
+  <li>Personal savings of <strong>≥ ¥200,000</strong> at entry.</li>
+  <li>An activity plan describing your job search.</li>
+</ul>
+<h3>What you get</h3>
+<p>Six-month initial period, renewable up to a total of two years. You may take part-time
+work to support yourself during the search and convert to a full work visa once you land
+an offer.</p>
+
+<h2 id="business-manager">Business Manager (significantly tightened October 2025)</h2>
+<p>For founders and executives of a Japan-registered company. The October 2025 reform was
+a major tightening — the old ¥5M capital threshold is now ¥30M, you must hire at least
+one full-time non-foreign employee, and you must demonstrate JLPT N2-level Japanese
+(roughly CEFR B2).</p>
+<h3>Updated requirements (post-October 2025)</h3>
+<ul>
+  <li><strong>¥30M minimum capital</strong> deposited and verifiable.</li>
+  <li>A <strong>real commercial office</strong> — virtual offices and home addresses are
+      rejected. Immigration may physically visit.</li>
+  <li><strong>≥ 1 full-time employee</strong> who is a Japanese citizen, PR holder, or
+      long-term resident.</li>
+  <li><strong>JLPT N2 or equivalent Japanese ability.</strong> This is the new bar.</li>
+  <li>A credible 1–3 year business plan with financial projections.</li>
+</ul>
+<div class="danger">
+  <strong>If you started planning under the old rules:</strong> applications submitted
+  before the reform date were grandfathered. Anything filed after October 2025 falls under
+  the tightened requirements. Talk to a registered immigration lawyer (<em>gyōseishoshi</em>)
+  before committing capital.
+</div>
+
+<h2 id="instructor">Instructor</h2>
+<p>Specifically for K–12 teaching at recognised Japanese schools — elementary, junior
+high, high school, and certain vocational schools.</p>
+<h3>What it does NOT cover</h3>
+<ul>
+  <li>Eikaiwa conversation schools (NOVA, ECC, AEON) — those use Engineer/Specialist.</li>
+  <li>ALT positions via private dispatch companies (Interac, Heart, Borderlink) — also
+      Engineer/Specialist.</li>
+  <li>Corporate language training — Engineer/Specialist.</li>
+  <li>Tutoring or freelance teaching without a sponsoring school.</li>
+</ul>
+<p>If you're confused about which visa your teaching offer falls under, ask the employer
+directly which status of residence they'll sponsor.</p>
+
+<h2 id="ssw">Specified Skilled Worker (SSW) — sectoral visas</h2>
+<p>Introduced in 2019 to address acute labour shortages in 14 specified sectors including
+nursing care, construction, food service, hospitality, agriculture, and manufacturing.
+Hiring under SSW has expanded rapidly post-2023 and the government is on track to admit
+820,000 SSW workers between 2024 and 2029.</p>
+<h3>Two tiers</h3>
+<ul>
+  <li><strong>SSW(i):</strong> Up to 5 years total. Cannot bring family members. Pass a
+      sector-specific skills test plus the JFT-Basic or JLPT N4 Japanese test.</li>
+  <li><strong>SSW(ii):</strong> Renewable indefinitely, family members may join, eligible
+      for PR after 10 years. Available in a growing list of sectors (construction,
+      shipbuilding, hospitality, others).</li>
+</ul>
+<p>SSW is rarely the right visa for white-collar foreign professionals — it's designed
+for sectoral labour-shortage hiring. But if you're already in Japan on a Technical Intern
+Trainee visa, transitioning to SSW is the standard upgrade path.</p>
+
+<h2 id="spouse">Spouse / dependant of Japanese national or PR holder</h2>
+<p>If you marry a Japanese citizen or someone with permanent residence, you can hold the
+Spouse or Long-Term Resident status. <strong>Unrestricted work rights</strong> — you can
+take any job, change employers without notifying Immigration, run a business, and so on.</p>
+<h3>PR fast-track</h3>
+<ul>
+  <li>Married 3+ years <strong>and</strong> resident in Japan 1+ years → PR eligible.</li>
+  <li>Married less than 3 years → PR eligible after 3 years of residence.</li>
+</ul>
+
+<h2 id="working-holiday">Working Holiday</h2>
+<p>Bilateral agreement, age 18–30 (18–25 for a few countries), up to 6–12 months in Japan
+with permission to work part-time across most industries. Best treated as a long
+"try-Japan-out" trip rather than a career launch — but the standard conversion path is
+Working Holiday → Engineer/Specialist once you've found a sponsor.</p>
+<h3>Partner countries (as of 2026)</h3>
+<p>Australia, Argentina, Austria, Canada, Chile, Czech Republic, Denmark, Estonia, France,
+Germany, Hong Kong, Hungary, Iceland, Ireland, Italy, Korea, Lithuania, Netherlands,
+New Zealand, Norway, Poland, Portugal, Slovakia, Spain, Sweden, Taiwan, UK, Uruguay — and
+expanding. Check the embassy of your country for current details.</p>
+
+<h2 id="pr">Path to permanent residence — what's actually required</h2>
+<table>
+  <thead>
+    <tr><th>Your route</th><th>Continuous residence required</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Standard work visa</td><td>10 years (5+ on a work visa)</td></tr>
+    <tr><td>HSP 70+ points</td><td>3 years</td></tr>
+    <tr><td>HSP 80+ points</td><td>1 year</td></tr>
+    <tr><td>J-Skip (Special HSP)</td><td>1 year</td></tr>
+    <tr><td>Spouse of Japanese / PR (married 3+ yrs)</td><td>1 year</td></tr>
+    <tr><td>Spouse of Japanese / PR (married &lt; 3 yrs)</td><td>3 years</td></tr>
+  </tbody>
+</table>
+<h3>The 2024–25 rule change you must know about</h3>
+<p>From <strong>2024</strong> onwards, you must hold the maximum period of stay permitted
+under your visa category at the time you file your PR application. For most professional
+visas that means a <strong>5-year</strong> status of residence. A transitional grace
+period applies until <strong>March 31, 2027</strong>, during which 3-year-visa holders are
+still assessed under the old rules — but plan for the new standard once that window closes.</p>
+<p>Other PR requirements you can't skip: clean tax and pension record (pay
+<em>everything</em> on time for the last 24 months), no criminal record, demonstrated
+ability to support yourself, and a Japanese national or PR-holder guarantor.</p>
+<div class="callout">
+  Build the full visa timeline for your category with the
+  <a href="/tools/visa-timeline">visa timeline tool</a> — document checklists, realistic
+  durations, and the order things actually happen in.
+</div>
+
+<h2 id="pitfalls">Common pitfalls — what gets foreign applicants refused</h2>
+<ul>
+  <li><strong>Degree-job mismatch.</strong> A computer-science grad applying for a
+      marketing-only role gets refused under Engineer/Specialist. You'd need 10+ years of
+      marketing experience to compensate.</li>
+  <li><strong>Underpayment.</strong> Offers below the Japanese-national equivalent for the
+      role are now actively rejected. Immigration cross-references your contract against
+      ward-office wage data.</li>
+  <li><strong>Working before the COE arrives.</strong> Illegal. Wait until you have the
+      physical document.</li>
+  <li><strong>Quitting your sponsoring employer.</strong> You have <strong>3 months</strong>
+      to find a new sponsor before your visa is at risk. Apply for the
+      "Designated Activities" job-search status if you need more time.</li>
+  <li><strong>Status-of-residence mismatch.</strong> Doing a job your visa doesn't permit
+      (e.g. tutoring English on an Engineer visa) can trigger refusal of future renewals.</li>
+  <li><strong>Unpaid pension contributions.</strong> The single biggest reason PR
+      applications get refused — Immigration pulls your 24-month pension payment record.</li>
+</ul>
+""",
+    },
+
+    # ------------------------------------------------------------------ JLPT
+    {
+        "slug": "jlpt-levels",
+        "icon": "translate",
+        "title": "JLPT levels — what each really means for hiring",
+        "summary": "What employers actually expect at N5 through N1, how to self-assess honestly, when to apply below your listed level, and the alternative tests (BJT, JFT-Basic) you may not know about.",
+        "updated": "May 2026",
+        "read_time": "8 min",
+        "toc": [
+            ("overview", "What JLPT is and isn't"),
+            ("levels", "Levels and what employers expect"),
+            ("by-role", "Japanese requirements by role family"),
+            ("by-company", "What specific companies actually require"),
+            ("alt-tests", "JFT-Basic, BJT — the other tests"),
+            ("apply-below", "When to apply at a level above your JLPT"),
+            ("study-pace", "Realistic study timelines"),
+        ],
+        "body": """
+<h2 id="overview">What JLPT is and isn't</h2>
+<p>The Japanese-Language Proficiency Test (日本語能力試験) is the standard certification
+for non-native Japanese speakers — read-and-listen, multiple choice, no speaking or writing
+component. Five levels from N5 (most basic) to N1 (near-native reading). Held twice a year
+in Japan and most major cities worldwide (early July and early December).</p>
+<p>It's the certification that <em>employers</em> care about. Real workplace Japanese
+involves a lot of speaking and writing — the test doesn't measure either directly — but
+having an N-level on your CV is the single most common hiring proxy.</p>
+
+<h2 id="levels">The five levels — what employers actually expect</h2>
+<table>
+  <thead>
+    <tr><th>Level</th><th>What you can do</th><th>Hours of study (typical)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>N5</strong></td>
+        <td>Recognise basic kanji (~100), read hiragana/katakana fluently, follow simple
+            conversations about everyday topics.</td>
+        <td>250–400</td></tr>
+    <tr><td><strong>N4</strong></td>
+        <td>Read short passages on familiar topics, handle basic daily interactions in
+            Japanese.</td>
+        <td>550–700</td></tr>
+    <tr><td><strong>N3</strong></td>
+        <td>Read newspapers with effort, follow workplace small-talk, write basic emails.
+            The "minimum viable" level for most domestic Japanese employers.</td>
+        <td>900–1,000</td></tr>
+    <tr><td><strong>N2</strong></td>
+        <td>Hold business meetings, read business documents, write formal emails. The
+            de facto floor for most "bilingual" job postings.</td>
+        <td>1,400–2,000</td></tr>
+    <tr><td><strong>N1</strong></td>
+        <td>Comfortable with formal documents, idioms, business keigo, complex written
+            Japanese. Required for senior client-facing roles at Japanese corporations.</td>
+        <td>2,500–4,500</td></tr>
+  </tbody>
+</table>
+<p>Hour estimates assume zero prior Asian-language background. Native speakers of Chinese
+typically reach N2 in roughly 60–70% of the time because they already read most kanji.</p>
+
+<h2 id="by-role">Japanese requirements by role family</h2>
+<ul>
+  <li><strong>Software engineering, design, data science (at international companies):</strong>
+      None required at most postings. Mercari, SmartNews, Indeed Tokyo, Stripe Tokyo,
+      Sakura AI, Cybozu all hire engineers without Japanese. Conversational Japanese (N3)
+      becomes valuable around year 2 as you start interacting with non-engineering teams.</li>
+  <li><strong>Software engineering at domestic Japanese companies (Rakuten partial
+      exception):</strong> N2 typical. Rakuten officially operates in English as a company
+      language since 2010, but local-team workflows still skew Japanese.</li>
+  <li><strong>Product management, business development, sales:</strong> N2 minimum,
+      N1 preferred. The conversation matters more than the certificate.</li>
+  <li><strong>Marketing, communications, PR:</strong> Native or N1 — you're writing
+      Japanese for Japanese consumers.</li>
+  <li><strong>Finance and accounting:</strong> N2 minimum for non-bilingual roles; the
+      Big Four accounting firms and major banks have English-speaking teams but expect
+      N2 within 1–2 years.</li>
+  <li><strong>Legal:</strong> N1 + bengoshi-qualified is the gold standard. Bilingual
+      English-Japanese legal counsel with the bengoshi qualification routinely receives
+      multiple competing offers.</li>
+  <li><strong>Teaching English (eikaiwa, ALT):</strong> None required. Job descriptions
+      sometimes prefer "basic Japanese for daily life" but it's almost never a hard filter.</li>
+</ul>
+
+<h2 id="by-company">What specific companies actually require</h2>
+<table>
+  <thead>
+    <tr><th>Company</th><th>Engineering</th><th>Non-engineering</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Mercari</td><td>None — actively bilingual workplace</td><td>N2+</td></tr>
+    <tr><td>SmartNews</td><td>None</td><td>N2+</td></tr>
+    <tr><td>Indeed Tokyo</td><td>None (~80% non-Japanese eng team)</td><td>N1 typical</td></tr>
+    <tr><td>LINE Yahoo Japan</td><td>N3 preferred</td><td>N2+</td></tr>
+    <tr><td>PayPay</td><td>None</td><td>N2+</td></tr>
+    <tr><td>Rakuten</td><td>None (English-as-corporate-language)</td><td>None</td></tr>
+    <tr><td>Cybozu</td><td>None for most teams</td><td>N3+</td></tr>
+    <tr><td>Google / Amazon / Microsoft / Meta Tokyo</td><td>None</td><td>N2 preferred</td></tr>
+    <tr><td>Goldman Sachs / Morgan Stanley Tokyo</td><td>—</td><td>N1 preferred for client-facing</td></tr>
+    <tr><td>Toyota / Honda / Sony / Panasonic / Mitsubishi (traditional zaibatsu)</td>
+        <td>N2 minimum, N1 strongly preferred</td>
+        <td>N1 expected</td></tr>
+  </tbody>
+</table>
+
+<h2 id="alt-tests">JFT-Basic and BJT — the other tests employers may accept</h2>
+<h3>JFT-Basic (Japan Foundation Test for Basic Japanese)</h3>
+<p>Computer-based, offered year-round, results in 3–5 weeks. Roughly equivalent to JLPT N4.
+The mandatory language test for the Specified Skilled Worker (SSW) visa in most sectors —
+you'll only encounter it if you're applying via the SSW path.</p>
+<h3>BJT (Business Japanese Proficiency Test)</h3>
+<p>Scored 0–800. Used by larger Japanese corporations (banks, trading houses) as a hiring
+proxy when JLPT N1 is "too general":</p>
+<ul>
+  <li>BJT 480+ counts as 15 HSP points (same as JLPT N1).</li>
+  <li>BJT 400–479 counts as 10 HSP points (same as N2).</li>
+</ul>
+<p>If you're applying for HSP and have N2, sitting BJT can sometimes give you the same
+10 points without retaking JLPT.</p>
+
+<h2 id="apply-below">When to apply for jobs that list a level above yours</h2>
+<p>Postings often over-state the Japanese level required — Japanese HR departments tend
+to default to "業務レベル" (business level / N2) for any client-touching role even when the
+actual day-to-day work needs less. Three situations where applying one level below is
+worth the email:</p>
+<ul>
+  <li><strong>You're a meaningfully better fit on technical skills.</strong> The hiring
+      manager will lobby HR if you're the right candidate.</li>
+  <li><strong>You're at most one level below.</strong> N2 listed, you have N3 → reasonable.
+      N1 listed, you have N4 → don't waste the recruiter's time.</li>
+  <li><strong>You have an active study plan with a clear next-test target.</strong>
+      "Currently N3; sitting N2 in December" is much stronger than "I'm studying".</li>
+</ul>
+<div class="warn">
+  <strong>Don't inflate your level on the rirekisho.</strong> Japanese interviewers will
+  switch to Japanese mid-conversation to test you. Getting caught means an immediate
+  rejection, not a polite "let's try in English".
+</div>
+
+<h2 id="study-pace">Realistic study timelines</h2>
+<p>For someone working full-time, expect these pacings to N2 (the most useful level for
+employment in Japan):</p>
+<table>
+  <thead>
+    <tr><th>Starting point</th><th>Hours/week</th><th>Time to N2</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Zero background</td><td>10 hrs/week</td><td>3–4 years</td></tr>
+    <tr><td>Zero background</td><td>20 hrs/week (intensive)</td><td>2 years</td></tr>
+    <tr><td>Already N4</td><td>10 hrs/week</td><td>18–24 months</td></tr>
+    <tr><td>Already N3</td><td>8 hrs/week</td><td>12–14 months</td></tr>
+    <tr><td>Already N2, going to N1</td><td>10 hrs/week</td><td>12–18 months</td></tr>
+  </tbody>
+</table>
+<p>Most foreigners working in Japan plateau between N3 and N2 unless they actively force
+themselves into Japanese-only environments — paid tutoring 2x/week, work-language switching,
+or a Japanese partner who insists on Japanese at home all dramatically accelerate.</p>
+""",
+    },
+
+    # ------------------------------------------------------------------ resume
+    {
+        "slug": "japanese-resume-formats",
+        "icon": "document",
+        "title": "Japanese resume formats — rirekisho and shokumu keirekisho explained",
+        "summary": "Japan uses two distinct resume documents. Get the format, date conventions, photo specs, and the specific mistakes that get foreign applicants screened out.",
+        "updated": "May 2026",
+        "read_time": "9 min",
+        "toc": [
+            ("two-doc-system", "Why Japan uses two documents"),
+            ("rirekisho", "Rirekisho (履歴書) — the standardised form"),
+            ("shokumu", "Shokumu keirekisho (職務経歴書) — the career CV"),
+            ("photo", "The photo — spec, sourcing, common errors"),
+            ("dates", "Dates and the Western / imperial calendar"),
+            ("mistakes", "Specific mistakes that get applications screened"),
+            ("submission", "Submission format and etiquette"),
+        ],
+        "body": """
+<h2 id="two-doc-system">Why Japan uses two documents</h2>
+<p>Japanese job applications routinely require two resumes, not one. The split is
+deliberate: the <strong>rirekisho</strong> is a standardised personal-history form
+modelled after government identity documents and gives HR a fast, structured view of
+"who you are." The <strong>shokumu keirekisho</strong> is the flexible career-narrative
+document where you actually pitch yourself.</p>
+<p>Most Japanese employers expect both. Submitting only one signals you don't understand
+the local hiring process — a meaningful demerit at traditional companies. International
+companies and most startups will accept just a Western CV in English; check the listing
+before assuming.</p>
+<div class="callout">
+  Build both from the same data using the <a href="/resume">free rirekisho builder</a> and
+  <a href="/resume/shokumu">shokumu keirekisho builder</a>. Fill in English on the left,
+  export Japanese A4 PDFs.
+</div>
+
+<h2 id="rirekisho">Rirekisho (履歴書) — the standardised form</h2>
+<p>The format is largely fixed and follows the template published by the
+<strong>Ministry of Health, Labour and Welfare (MHLW)</strong>. The MHLW version became
+the de facto national standard in 2021. Each section has its expected ordering:</p>
+<ol>
+  <li><strong>Header bar:</strong> the date you wrote the document (西暦 or 令和), name
+      in kanji (or katakana for foreigners), furigana reading in hiragana, date of birth,
+      age, gender (optional since 2021), photo.</li>
+  <li><strong>Address block:</strong> current address with postal code (郵便番号), phone,
+      email. Optionally a separate contact address if different.</li>
+  <li><strong>Education and work history (学歴・職歴):</strong> chronological from oldest
+      to newest. Education first (start with high school entry — yes really), then jobs.
+      Each entry on its own row with year, month, and event.</li>
+  <li><strong>Licenses and certifications (免許・資格):</strong> JLPT, driver's license,
+      professional licenses. Chronological by date acquired.</li>
+  <li><strong>Motivation, special skills, self-PR (志望の動機・特技・自己PR):</strong> a
+      free-text block — this is where you actually pitch.</li>
+  <li><strong>Personal wishes (本人希望記入欄):</strong> commute time tolerance, start
+      date constraints, etc. For most professionals just write 貴社規定に従います ("I will
+      follow your company's standards").</li>
+</ol>
+<h3>Length</h3>
+<p>One A3 sheet folded in half, or two A4 sheets stapled together. Always fits on two
+A4 pages.</p>
+
+<h2 id="shokumu">Shokumu keirekisho (職務経歴書) — the career CV</h2>
+<p>The flexible document. No mandated template — but a strong convention exists, and
+deviating from it (without obvious reason) signals you haven't done your homework.</p>
+<h3>Standard structure</h3>
+<ol>
+  <li><strong>Title bar:</strong> document type, your name, date.</li>
+  <li><strong>Career summary (職務要約):</strong> 3–5 lines summarising your trajectory.
+      This is the only section a busy hiring manager will read in full.</li>
+  <li><strong>Work history (職務経歴):</strong> reverse chronological, one section per
+      employer. Each section: company name, dates, headcount and capital (yes, including
+      capital — 資本金 — Japanese employers want to know company size), your role,
+      responsibilities, and concrete achievements with numbers.</li>
+  <li><strong>Skills (活かせるスキル):</strong> bulleted list. Tech stacks for engineers,
+      tools and methodologies for non-engineers.</li>
+  <li><strong>Self-PR (自己PR):</strong> 2–4 short paragraphs. This is more substantive
+      than the rirekisho self-PR — explain how your experience maps to the target role.</li>
+</ol>
+<h3>Length</h3>
+<p>Two A4 pages is standard for 5–10 years of experience. Three for 10–20 years.
+Four pages is the absolute ceiling and usually means too much detail.</p>
+
+<h2 id="photo">The photo (証明写真) — spec, sourcing, common errors</h2>
+<table>
+  <thead>
+    <tr><th>Spec</th><th>Required value</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Dimensions</td><td>3 cm × 4 cm (vertical)</td></tr>
+    <tr><td>Background</td><td>Plain blue, light grey, or white</td></tr>
+    <tr><td>Age</td><td>Taken within the last <strong>3 months</strong></td></tr>
+    <tr><td>Attire</td><td>Business attire — suit jacket and white shirt for men,
+                          conservative blouse or jacket for women</td></tr>
+    <tr><td>Hair</td><td>Out of your face; visible ears and forehead recommended</td></tr>
+    <tr><td>Expression</td><td>Neutral or very slight smile; no teeth showing</td></tr>
+    <tr><td>Glasses</td><td>OK; remove reflections</td></tr>
+  </tbody>
+</table>
+<h3>Where to get one in Japan</h3>
+<ul>
+  <li><strong>ID photo booths (証明写真機):</strong> ¥800–¥1,500. Available at most major
+      JR stations, convenience stores, and shopping centres. The standard option.</li>
+  <li><strong>Photo studios:</strong> ¥3,000–¥8,000 with retouching. Worth it for senior
+      roles where presentation matters.</li>
+  <li><strong>Apps:</strong> <em>shomeishashin app</em> on iOS/Android lets you self-shoot,
+      then print at convenience-store kiosks. Acceptable but quality varies.</li>
+</ul>
+
+<h2 id="dates">Dates and the calendar — Western vs. imperial</h2>
+<p>Japan uses two parallel calendars on official documents:</p>
+<ul>
+  <li><strong>Western (西暦):</strong> 2026.</li>
+  <li><strong>Japanese imperial (和暦):</strong> Reiwa 8 (令和8年). The current era is
+      Reiwa, which began on 1 May 2019 when Emperor Naruhito ascended.</li>
+</ul>
+<p>Either is acceptable on a rirekisho — but you <strong>must be consistent</strong>
+throughout the entire document. Mixing Western years for some events and imperial years
+for others is one of the most common mistakes and is read as careless. Pick one and use
+it everywhere.</p>
+<div class="callout">
+  <strong>Recommendation for foreign applicants:</strong> use Western years (西暦)
+  throughout. Imperial-era conversion is error-prone and Japanese HR staff are entirely
+  fluent in Western dates.
+</div>
+
+<h2 id="mistakes">Specific mistakes that get applications screened</h2>
+<ul>
+  <li><strong>Inconsistent dates between rirekisho and shokumu keirekisho.</strong>
+      The two documents must agree exactly on every employer, every role, every date.
+      HR specifically cross-checks.</li>
+  <li><strong>Generic self-PR.</strong> "I am hardworking and detail-oriented" is the
+      strongest signal that you didn't research the company. Reference something specific —
+      a product, a recent announcement, a value from their hiring page.</li>
+  <li><strong>Tasks listed instead of results.</strong> Japanese hiring is less
+      number-driven than US hiring, but specific outcomes (revenue, scale, percentages,
+      team size, deadlines hit) move the needle hard.</li>
+  <li><strong>Missing the company-size fields in shokumu keirekisho.</strong> Japanese
+      hiring managers want to know whether you came from a 30-person startup or a
+      3,000-person corporate. Always include 従業員数 (employee count) and 資本金 (capital)
+      per employer.</li>
+  <li><strong>Skipping high school in education history.</strong> The rirekisho convention
+      is to start from junior high or high school entry (中学校卒業 / 高校入学). Starting
+      from university looks like you're hiding something.</li>
+  <li><strong>Wrong photo aspect ratio.</strong> A square LinkedIn-style headshot looks
+      out of place — use the 3×4 cm vertical proportion or your application looks lazy.</li>
+  <li><strong>English in the rirekisho.</strong> Unless the listing explicitly says
+      English documents are acceptable, write in Japanese. The shokumu keirekisho can be
+      bilingual for international companies.</li>
+</ul>
+
+<h2 id="submission">Submission format and etiquette</h2>
+<ul>
+  <li><strong>PDF</strong> unless the company specifies otherwise. Filename in romaji:
+      <code>RIREKISHO_LastName_FirstName.pdf</code> and
+      <code>SHOKUMU_LastName_FirstName.pdf</code>.</li>
+  <li><strong>Email body</strong> in plain Japanese (or English if applying via an English
+      pipeline). Keep it short — three or four sentences identifying yourself, naming the
+      position, listing attached files, and signing off with name + contact.</li>
+  <li><strong>Hardcopy submissions</strong> (rarer now, but still happens for senior roles)
+      go in an unsealed A4 envelope, with 履歴書在中 written in red on the front.</li>
+</ul>
+""",
+    },
+
+    # ------------------------------------------------------------------ interview etiquette
+    {
+        "slug": "interview-etiquette",
+        "icon": "users",
+        "title": "Japanese interview etiquette — the rules that aren't on the job listing",
+        "summary": "Arrive 5–10 minutes early, knock three times, bow on entry, present meishi with both hands. What actually matters at gaishikei vs. traditional Japanese employers.",
+        "updated": "May 2026",
+        "read_time": "7 min",
+        "toc": [
+            ("before", "Before you arrive"),
+            ("arrival", "Arrival and entering the room"),
+            ("greetings", "Greetings, bowing, and meishi"),
+            ("during", "During the interview — what to do and avoid"),
+            ("questions", "Questions you must be ready to answer"),
+            ("ask-back", "Questions you should ask"),
+            ("gaishikei", "Gaishikei vs. domestic — what changes"),
+            ("after", "After the interview — thank-you etiquette"),
+        ],
+        "body": """
+<h2 id="before">Before you arrive</h2>
+<ul>
+  <li><strong>Confirm the format.</strong> Reply to the invitation email with your
+      preferred slot. Address the recruiter as ご担当者様 or by surname + 様 ("Tanaka-sama").</li>
+  <li><strong>Plan a 15-minute buffer.</strong> Arriving exactly on time is treated as
+      "late" at Japanese companies — but arriving more than 10 minutes early forces the
+      interviewer to receive you before they're ready.</li>
+  <li><strong>Dress like you mean it.</strong> Dark suit (black, navy, or charcoal), white
+      shirt, plain tie for men or a conservative neutral-colour blouse for women. Even at
+      "casual" startups, first interviews skew formal. You can dress down at later rounds
+      once you've confirmed the culture.</li>
+  <li><strong>Bring multiple printed copies</strong> of your rirekisho and shokumu
+      keirekisho in an A4 clear folder — typically 3 copies (some interviewers won't have
+      had a chance to print). Plus a notebook and pen.</li>
+  <li><strong>Re-read the company's careers page</strong> and at least one recent press
+      release. Japanese interviewers <em>always</em> ask "why our company specifically?"
+      and reject vague answers.</li>
+</ul>
+
+<h2 id="arrival">Arrival and entering the room</h2>
+<ol>
+  <li>Arrive at reception 5–10 minutes early. Give your name, the time of your interview,
+      and the name of the person meeting you.</li>
+  <li>Wait standing or seated where directed. <strong>Don't pull out your phone</strong> —
+      reception staff routinely report behaviour to the hiring team.</li>
+  <li>When you reach the interview room: <strong>knock exactly three times.</strong>
+      Two knocks is the toilet-check signal in Japan and will land badly. Wait for a
+      "どうぞ" or "Please come in" before opening.</li>
+  <li>Open the door, step in, close it gently while facing it, then turn to face the
+      interviewers and bow at roughly 30°.</li>
+  <li>Don't sit until the interviewer says どうぞお掛けください or similar. When seated,
+      your bag goes on the floor beside the chair, not on the table.</li>
+</ol>
+
+<h2 id="greetings">Greetings, bowing, and meishi (business cards)</h2>
+<h3>The opening greeting</h3>
+<p>Standard opener: <strong>本日はよろしくお願いいたします</strong>
+(<em>honjitsu wa yoroshiku onegai itashimasu</em>) — "thank you for having me today."
+Bow at ~30° on the お願い part.</p>
+<h3>Meishi (business cards)</h3>
+<p>If you have business cards, present them at the start. Hold the card with both hands,
+your name facing the recipient. Bow slightly as you offer it. Receive their card the same
+way — with both hands — and study it briefly before placing it on the table in front of
+you (never directly into a pocket).</p>
+<p>Most foreign applicants don't have business cards before their first interview, which
+is completely fine. The Japanese person typically presents theirs first; receive politely.</p>
+<h3>Bow angles in practice</h3>
+<ul>
+  <li><strong>15°</strong> casual greeting / passing a colleague</li>
+  <li><strong>30°</strong> standard for entering an interview, greetings to hiring managers</li>
+  <li><strong>45°</strong> formal apology or addressing executives</li>
+</ul>
+
+<h2 id="during">During the interview — what to do and what to avoid</h2>
+<ul>
+  <li><strong>Frame achievements as team efforts.</strong> Japanese interviewers find pure
+      "I, I, I" framing off-putting. "Our team shipped X, my contribution was Y" lands
+      stronger than "I built X."</li>
+  <li><strong>Don't interrupt.</strong> Wait until the interviewer finishes their question
+      before responding. Even pauses are part of the conversation.</li>
+  <li><strong>Keep answers concise.</strong> 30–60 seconds is the target for most
+      questions. Going long signals poor judgment.</li>
+  <li><strong>Use respectful Japanese where you can.</strong> Even minimal keigo —
+      ございます endings, 御社 (onsha) for "your company" — signals cultural awareness.</li>
+  <li><strong>Acknowledge weaknesses honestly.</strong> "My Japanese isn't yet at business
+      level, but I'm studying X hours per week and targeting JLPT N2 in December" lands
+      far better than minimising or deflecting.</li>
+</ul>
+
+<h2 id="questions">Questions you must be ready to answer</h2>
+<ol>
+  <li><strong>Why our company specifically?</strong> Name a product, a value, a recent
+      news event, or a person whose work you've read. Generic "I admire your culture"
+      lands as research-failure.</li>
+  <li><strong>Why Japan?</strong> Genuine, specific reasons. "I want to live in a country
+      with X cultural feature, and your industry has Y opportunities I can't access where I
+      am" works. "I love anime and want to try Japan" doesn't.</li>
+  <li><strong>Why are you leaving your current role?</strong> Forward-looking framing.
+      Never bash your current employer.</li>
+  <li><strong>Walk me through your career so far.</strong> 3–5 minutes max. Prepare a
+      narrative that lands the "why this role" pitch at the end.</li>
+  <li><strong>Tell me about a failure.</strong> Real, recent, with a concrete lesson.
+      Avoid "I work too hard" framing.</li>
+  <li><strong>Where do you see yourself in five years?</strong> Japanese companies value
+      long tenures. "Still growing in this kind of role" works; "I'll have started my own
+      company by then" usually doesn't.</li>
+  <li><strong>What's your current and expected compensation?</strong> Give a range, not
+      a single number. The recruiter will negotiate down regardless.</li>
+</ol>
+<div class="callout">
+  See <a href="/interview-prep">interview prep</a> for role-specific question banks with
+  what interviewers are actually looking for in each answer.
+</div>
+
+<h2 id="ask-back">Questions you should ask</h2>
+<p>Always prepare 3–5 questions. The depth of your questions signals seriousness more than
+the cleverness of your answers does.</p>
+<ul>
+  <li>What does success in this role look like at 3, 6, 12 months?</li>
+  <li>What's the team structure and who would I report to?</li>
+  <li>How does the team handle [specific challenge from the JD or recent news]?</li>
+  <li>What's the typical career path from this position over 3–5 years?</li>
+  <li>How does feedback work day-to-day? How do you handle mistakes?</li>
+  <li>(For senior roles) What does the next planning cycle look like for this team?</li>
+</ul>
+<p>Skip the salary, vacation, and overtime questions in the first round. Those come up
+after the offer, not before. Asking too early flags you as fixated on benefits over fit.</p>
+
+<h2 id="gaishikei">Gaishikei (foreign-affiliated) vs. domestic Japanese — what changes</h2>
+<table>
+  <thead>
+    <tr><th>Aspect</th><th>Gaishikei</th><th>Domestic Japanese</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Self-promotion</td>
+        <td>Direct, individual achievements OK</td>
+        <td>Team-framed; modesty valued</td></tr>
+    <tr><td>Salary discussion</td>
+        <td>Often raised by recruiter early</td>
+        <td>Avoided until offer stage</td></tr>
+    <tr><td>Language</td>
+        <td>English-first usually; Japanese optional</td>
+        <td>Japanese-default; English at higher-level roles</td></tr>
+    <tr><td>Process speed</td>
+        <td>2–4 weeks, 3–4 rounds</td>
+        <td>4–8 weeks, 4–6 rounds</td></tr>
+    <tr><td>Dress code (first round)</td>
+        <td>Business or business-casual</td>
+        <td>Suit and tie still standard</td></tr>
+    <tr><td>Decision driver</td>
+        <td>Individual capability, output</td>
+        <td>Team fit, long-term commitment</td></tr>
+  </tbody>
+</table>
+<p>Most foreign hires at Mercari, SmartNews, PayPay, and similar fall into a hybrid: more
+direct than legacy zaibatsu but more team-framed than US tech companies.</p>
+
+<h2 id="after">After the interview — thank-you etiquette</h2>
+<ul>
+  <li><strong>Send a thank-you email within 24 hours.</strong> Address it to your
+      interviewer(s) by name with surname + 様. Reference one specific topic discussed —
+      this signals you were actually listening.</li>
+  <li>One email per interviewer for multi-round panels. Personalised, not copy-pasted.</li>
+  <li>Keep it short — 4–6 sentences in Japanese (or English if your interview was in
+      English). The <a href="/templates">bilingual email templates</a> include
+      ready-made versions.</li>
+  <li>If you decide to withdraw, do it promptly and politely. Use the
+      <a href="/templates#decline">decline / withdraw template</a>. Don't ghost — Japan's
+      hiring community is small and recruiters talk.</li>
+</ul>
+""",
+    },
+
+    # ------------------------------------------------------------------ salary
+    {
+        "slug": "salary",
+        "icon": "currency-yen",
+        "title": "Salary expectations in Japan — real 2026 numbers by role",
+        "summary": "Real salary bands by role family for foreign hires in 2026 — junior to executive, plus how Japanese comp structures (base + 2× bonus + RSU) actually work.",
+        "updated": "May 2026",
+        "read_time": "9 min",
+        "toc": [
+            ("comp-structure", "How Japanese comp packages work"),
+            ("bands", "Salary bands by role (2026, Tokyo)"),
+            ("by-employer", "By employer type — gaishikei vs. domestic"),
+            ("inflation", "Real wage growth in 2024–26"),
+            ("take-home", "What ¥X actually pays you after tax"),
+            ("negotiation", "Negotiation — what works in Japan"),
+        ],
+        "body": """
+<h2 id="comp-structure">How Japanese comp packages actually work</h2>
+<p>Most Japan job listings show 年収 (<em>nenshu</em>) — annual income — but the
+underlying structure differs from the typical US package:</p>
+<ul>
+  <li><strong>Base salary (基本給):</strong> the monthly fixed pay, ×12.</li>
+  <li><strong>Bonus (賞与):</strong> paid twice a year in summer (July) and winter
+      (December). Total bonus typically ranges from <strong>2–6 months of base</strong>
+      at established companies. Some startups pay annual or no bonus.</li>
+  <li><strong>Allowances (手当):</strong> commuting reimbursement (almost universal,
+      typically ¥10–20K/mo), family allowance for dependants (at older Japanese firms),
+      housing allowance (mostly at gaishikei and senior roles).</li>
+  <li><strong>RSUs / equity:</strong> common at FAANG Tokyo, pre-IPO startups, and major
+      gaishikei. Almost never at traditional Japanese companies. Vest schedules vary —
+      Google Japan uses standard 4-year with 1-year cliff; Mercari has its own scheme.</li>
+</ul>
+<div class="warn">
+  <strong>The "annual income" number can include or exclude bonus depending on context.</strong>
+  Always ask: "Is the figure base × 12 only, or does it include expected bonus at target
+  performance?" Job listings most commonly state base × 12 + target bonus.
+</div>
+
+<h2 id="bands">Salary bands by role (2026, Tokyo, foreigner-friendly employers)</h2>
+<p>Based on 2025 placement data and the TokyoDev 2025 developer survey (median
+software engineer compensation was ¥9.5M, up ¥1M from 2024).</p>
+<h3>Software engineering</h3>
+<table>
+  <thead><tr><th>Level</th><th>Years</th><th>Total comp (¥M/yr)</th></tr></thead>
+  <tbody>
+    <tr><td>Junior</td><td>0–2</td><td>4–7</td></tr>
+    <tr><td>Mid</td><td>2–5</td><td>7–11</td></tr>
+    <tr><td>Senior</td><td>5–9</td><td>10–16</td></tr>
+    <tr><td>Staff / Tech Lead</td><td>9+</td><td>14–22</td></tr>
+    <tr><td>Principal / Distinguished</td><td>12+</td><td>18–35+ (FAANG: ¥35M+ with RSUs)</td></tr>
+  </tbody>
+</table>
+<h3>Data / AI / ML</h3>
+<table>
+  <thead><tr><th>Level</th><th>Total comp (¥M/yr)</th></tr></thead>
+  <tbody>
+    <tr><td>Junior analyst / engineer</td><td>4.5–7</td></tr>
+    <tr><td>Mid scientist / engineer</td><td>7–12</td></tr>
+    <tr><td>Senior / staff ML</td><td>12–20</td></tr>
+    <tr><td>Research scientist (PhD)</td><td>15–30+ at PFN, Sakana AI, FAANG</td></tr>
+  </tbody>
+</table>
+<h3>Product / business / marketing</h3>
+<table>
+  <thead><tr><th>Level</th><th>Total comp (¥M/yr)</th></tr></thead>
+  <tbody>
+    <tr><td>Associate PM</td><td>5–8</td></tr>
+    <tr><td>Mid PM</td><td>8–13</td></tr>
+    <tr><td>Senior / Group PM</td><td>13–20</td></tr>
+    <tr><td>Director of Product</td><td>18–30</td></tr>
+    <tr><td>Bilingual marketing manager</td><td>8–14</td></tr>
+    <tr><td>Marketing director</td><td>15–25</td></tr>
+  </tbody>
+</table>
+<h3>Teaching</h3>
+<table>
+  <thead><tr><th>Role</th><th>Total comp (¥M/yr)</th></tr></thead>
+  <tbody>
+    <tr><td>JET Programme ALT (year 1)</td><td>3.36 (~3.96 by year 4)</td></tr>
+    <tr><td>JET Programme ALT (from April 2025 in higher-cost areas)</td><td>4.02–4.32</td></tr>
+    <tr><td>Eikaiwa instructor (NOVA, AEON, ECC)</td><td>2.8–3.84</td></tr>
+    <tr><td>Dispatch ALT (Interac, Heart)</td><td>2.3–3.5</td></tr>
+    <tr><td>International-school teacher (with credential)</td><td>5–9</td></tr>
+  </tbody>
+</table>
+
+<h2 id="by-employer">By employer type — what gaishikei pays vs. domestic</h2>
+<p>The same role pays very differently depending on who you work for. The TokyoDev 2025
+survey makes this stark for engineers:</p>
+<table>
+  <thead><tr><th>Employer type</th><th>Median engineer comp</th></tr></thead>
+  <tbody>
+    <tr><td>Foreign company without a Japan entity (remote)</td><td>¥13.5M</td></tr>
+    <tr><td>Foreign company with a Japan entity (FAANG Tokyo, etc.)</td><td>¥13.5M</td></tr>
+    <tr><td>Japanese-headquartered company</td><td>¥8.5M</td></tr>
+  </tbody>
+</table>
+<p>The roughly ¥5M premium for gaishikei reflects three things: RSU/equity, more
+aggressive market benchmarking, and faster promotion velocity. The premium is largest at
+junior and mid levels; at senior and staff levels the bands converge.</p>
+
+<h2 id="inflation">Real wage growth in 2024–26</h2>
+<ul>
+  <li>The 2025 spring wage negotiations (春闘 / <em>shunto</em>) settled at an average
+      <strong>5.4% headline raise</strong> — the third consecutive year of 5%+ headline
+      growth and the strongest sustained nominal wage rises in over 30 years.</li>
+  <li>However, headline CPI has run at 2–3% over the same period, so real wage growth
+      has been modest. 55% of companies plan further raises in 2026.</li>
+  <li>Job-changer raises are running 7–15% on average, up to 20–30% for in-demand
+      bilinguals in fintech, cloud security, AI, and senior PM roles.</li>
+</ul>
+
+<h2 id="take-home">What ¥X actually pays you after tax</h2>
+<p>Japan's effective tax + social-insurance burden is roughly 25–30% for typical earners.
+Quick reference (single, no dependants, year 2 in Japan):</p>
+<table>
+  <thead><tr><th>Gross annual</th><th>Net annual</th><th>Effective rate</th></tr></thead>
+  <tbody>
+    <tr><td>¥6M</td><td>¥4.6M</td><td>23% deducted</td></tr>
+    <tr><td>¥8M</td><td>¥6.1M</td><td>24%</td></tr>
+    <tr><td>¥10M</td><td>¥7.3M</td><td>27%</td></tr>
+    <tr><td>¥15M</td><td>¥10.2M</td><td>32%</td></tr>
+    <tr><td>¥20M</td><td>¥13.0M</td><td>35%</td></tr>
+  </tbody>
+</table>
+<div class="callout">
+  Run your specific offer through the <a href="/tools/take-home-pay">take-home pay
+  calculator</a> — Japan's tax stack (social insurance + national income tax +
+  reconstruction surtax + residence tax) needs all the pieces to be accurate.
+</div>
+
+<h2 id="negotiation">Negotiation — what works in Japan</h2>
+<ul>
+  <li><strong>Wait for the offer.</strong> Never propose a number in the first interview.
+      "I'd like to learn more about the role before discussing compensation" is the
+      standard answer.</li>
+  <li><strong>Ask for 10–15% above the offer.</strong> Beyond 20% requires hard
+      justification (competing written offer, market comparable, current comp).</li>
+  <li><strong>Anchor with specifics.</strong> "Based on my competing offer at COMPETITOR
+      of ¥XM, I was hoping for ¥YM" lands. "I think I'm worth more" doesn't.</li>
+  <li><strong>Non-cash is often easier than base.</strong> Signing bonus, RSU refresh,
+      remote-work days, relocation package, training budget, vesting acceleration — these
+      are typically negotiable even when base is fixed.</li>
+  <li><strong>Don't bluff.</strong> Japanese recruiters check claimed competing offers
+      more often than you'd expect. Getting caught burns the offer and your reputation.</li>
+</ul>
+<div class="callout">
+  The <a href="/pillars/negotiation-playbook">salary negotiation playbook</a> includes
+  Japan-specific scripts and the
+  <a href="/templates#offer">bilingual email templates</a> have ready-made counter-offer
+  drafts.
+</div>
+""",
+    },
+
+    # ------------------------------------------------------------------ cost of living
+    {
+        "slug": "cost-of-living",
+        "icon": "building",
+        "title": "Cost of living in Japan — real 2025–26 numbers, ward by ward",
+        "summary": "Real Tokyo rent prices by ward, utilities, groceries, transport, healthcare. Including the deposit, key money, and guarantor fees that catch foreigners off guard.",
+        "updated": "May 2026",
+        "read_time": "8 min",
+        "toc": [
+            ("monthly", "Monthly cost breakdown"),
+            ("rent-by-ward", "Tokyo rent by ward — actual 2025 numbers"),
+            ("moving-in", "Moving-in costs — the foreigner sticker shock"),
+            ("utilities", "Utilities and bills"),
+            ("groceries", "Groceries, food, eating out"),
+            ("transport", "Transport"),
+            ("outside-tokyo", "Outside Tokyo — Osaka, Fukuoka, smaller cities"),
+            ("hidden", "Hidden costs no one tells you about"),
+        ],
+        "body": """
+<h2 id="monthly">Monthly cost breakdown — single professional, Tokyo, 2025–26</h2>
+<table>
+  <thead><tr><th>Category</th><th>Modest</th><th>Comfortable</th><th>Upscale</th></tr></thead>
+  <tbody>
+    <tr><td>Rent (1K / 1LDK)</td><td>¥85K</td><td>¥150K</td><td>¥280K</td></tr>
+    <tr><td>Utilities (gas / electric / water)</td><td>¥10K</td><td>¥18K</td><td>¥25K</td></tr>
+    <tr><td>Internet (home fibre)</td><td>¥5K</td><td>¥5.5K</td><td>¥6K</td></tr>
+    <tr><td>Mobile (MVNO)</td><td>¥2K</td><td>¥3K</td><td>¥6K (major carrier)</td></tr>
+    <tr><td>Groceries (home cooking)</td><td>¥30K</td><td>¥45K</td><td>¥70K</td></tr>
+    <tr><td>Eating out / coffee</td><td>¥15K</td><td>¥35K</td><td>¥80K+</td></tr>
+    <tr><td>Transport (commuter pass usually reimbursed)</td><td>¥10K leisure</td><td>¥15K</td><td>¥25K</td></tr>
+    <tr><td>National Health Insurance (employed)</td><td>~5% of salary, deducted</td><td>—</td><td>—</td></tr>
+    <tr><td>Misc (entertainment, clothing)</td><td>¥20K</td><td>¥40K</td><td>¥100K</td></tr>
+    <tr><td><strong>Total (excluding NHI)</strong></td><td><strong>¥177K</strong></td><td><strong>¥311K</strong></td><td><strong>¥592K+</strong></td></tr>
+  </tbody>
+</table>
+<p>The "comfortable" column maps to roughly ¥6M gross annual income for a single person
+with no dependants. "Upscale" maps to ¥12M+.</p>
+
+<h2 id="rent-by-ward">Tokyo rent by ward — actual 2025 numbers</h2>
+<p>Studio (1R / 1K) average rent in central Tokyo wards was around ¥95,000/mo in mid-2025;
+in Minato, Chiyoda, or Shibuya it rises to ¥135–150K. Larger units (1LDK) show much wider
+spread — Shibuya 1LDK runs ¥230–300K while Setagaya runs ¥180–230K for similar size.</p>
+<table>
+  <thead><tr><th>Ward</th><th>1K / 1R</th><th>1LDK</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>Minato (Roppongi, Azabu)</td><td>¥140–180K</td><td>¥270–400K</td><td>Embassies, foreign HQs</td></tr>
+    <tr><td>Chiyoda (Marunouchi, Kanda)</td><td>¥130–170K</td><td>¥250–350K</td><td>Big-corp HQ belt</td></tr>
+    <tr><td>Shibuya</td><td>¥130–160K</td><td>¥230–300K</td><td>Tech, startups; foreigner-friendly</td></tr>
+    <tr><td>Shinjuku</td><td>¥110–140K</td><td>¥190–260K</td><td>Mixed; nightlife</td></tr>
+    <tr><td>Meguro / Nakameguro</td><td>¥110–135K</td><td>¥200–270K</td><td>Trendy, walkable</td></tr>
+    <tr><td>Setagaya (Sangenjaya, Shimokita)</td><td>¥85–110K</td><td>¥180–230K</td><td>Family-friendly; 3 min to Shibuya from Sangenjaya</td></tr>
+    <tr><td>Shinagawa</td><td>¥100–130K</td><td>¥190–250K</td><td>Excellent shinkansen access</td></tr>
+    <tr><td>Toshima (Ikebukuro)</td><td>¥90–120K</td><td>¥160–220K</td><td>Busy, slightly cheaper</td></tr>
+    <tr><td>Nakano</td><td>¥75–100K</td><td>¥140–190K</td><td>Quiet, 5 min to Shinjuku</td></tr>
+    <tr><td>Suginami (Koenji, Asagaya)</td><td>¥75–100K</td><td>¥140–190K</td><td>Quiet residential, JR Chuo</td></tr>
+    <tr><td>Nerima / Itabashi</td><td>¥65–85K</td><td>¥120–170K</td><td>Suburban, 30 min to Shinjuku</td></tr>
+    <tr><td>Yokohama (across the prefecture line)</td><td>¥60–85K</td><td>¥110–170K</td><td>30–50 min to central Tokyo</td></tr>
+  </tbody>
+</table>
+<div class="callout">
+  <strong>The Setagaya trick:</strong> Sangenjaya station is 3 minutes from Shibuya on
+  the Den-en-toshi line, but rents drop 30–40% the moment you cross the ward boundary.
+  Setagaya, Suginami, and Nakano are the "stealth" wards most foreigners eventually move
+  to after their first year.
+</div>
+
+<h2 id="moving-in">Moving-in costs — the foreigner sticker shock</h2>
+<p>Initial costs on a Japanese rental routinely total <strong>3–5 months of rent</strong>
+upfront. For a ¥150K/mo apartment, budget ¥450–750K cash on signing.</p>
+<table>
+  <thead><tr><th>Item</th><th>Typical amount</th></tr></thead>
+  <tbody>
+    <tr><td>First month's rent (前家賃)</td><td>1 month</td></tr>
+    <tr><td>Deposit (敷金 / shikikin)</td><td>1–2 months (refundable, mostly)</td></tr>
+    <tr><td>Key money (礼金 / reikin)</td><td>0–2 months (non-refundable gift to landlord)</td></tr>
+    <tr><td>Agent fee (仲介手数料)</td><td>1 month + 10% tax</td></tr>
+    <tr><td>Guarantor company fee (保証会社)</td><td>30–100% of one month's rent</td></tr>
+    <tr><td>Fire insurance (火災保険)</td><td>¥15–25K for 2 years</td></tr>
+    <tr><td>Lock change (鍵交換)</td><td>¥15–30K</td></tr>
+  </tbody>
+</table>
+<p>Foreigner-friendly agencies (GaijinPot Housing, Apartment Japan, Ken Real Estate,
+E-Housing) skip key money on most properties, which can save you 1–2 months upfront.
+Sakura House and similar share-house operators offer short-term stays with no key money
+and no guarantor required — useful for your first 3–6 months.</p>
+<div class="warn">
+  <strong>The guarantor problem.</strong> Most Japanese landlords require a Japanese
+  citizen or PR-holder as your personal guarantor. If you don't have one, you'll go
+  through a guarantor company — fee 30–100% of one month's rent, plus an annual fee of
+  ~10% of one month thereafter. Always built into the price quotes from foreigner-friendly
+  agencies.
+</div>
+
+<h2 id="utilities">Utilities and bills — single person in Tokyo</h2>
+<table>
+  <thead><tr><th>Bill</th><th>Monthly cost</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>Electricity</td><td>¥4–10K (winter peaks)</td><td>TEPCO is default; new entrants slightly cheaper</td></tr>
+    <tr><td>Gas</td><td>¥3–6K</td><td>Toho Gas; turns on heating + hot water</td></tr>
+    <tr><td>Water</td><td>¥2–4K (billed every 2 months)</td><td>Tokyo Water Works</td></tr>
+    <tr><td>Internet (home fibre)</td><td>¥4–6K</td><td>NURO, eo, Hikari — install 2–4 weeks</td></tr>
+    <tr><td>Mobile (MVNO)</td><td>¥1.5–4K</td><td>IIJmio, povo, mineo, Sakura Mobile</td></tr>
+    <tr><td>NHK fee (mandatory if you have a TV)</td><td>¥1,225/mo</td><td>Legal obligation if you own a TV; collected by NHK agents door-to-door</td></tr>
+  </tbody>
+</table>
+
+<h2 id="groceries">Groceries, food, eating out</h2>
+<ul>
+  <li><strong>Supermarkets:</strong> Seiyu, OK Store, Maruetsu (mid-range); Life, Inageya
+      (slightly pricier); Aeon (suburban superstore); Gyomu Super (bulk + frozen, foreign
+      ingredients).</li>
+  <li><strong>Eating out (single meal):</strong> ¥600–1,200 for a casual lunch set, ¥800–
+      1,500 for ramen or curry, ¥2,000–4,000 for dinner at an izakaya.</li>
+  <li><strong>Convenience stores</strong> (7-Eleven, FamilyMart, Lawson) are heavily used —
+      bentou ¥500–700, decent coffee ¥150, snacks ¥150–300.</li>
+  <li><strong>Foreign ingredients:</strong> National Azabu, Nissin World Delicatessen,
+      Kaldi, and select Aeon stores carry imported groceries at 1.5–3× the price of
+      Japanese equivalents.</li>
+</ul>
+
+<h2 id="transport">Transport</h2>
+<ul>
+  <li><strong>Commuter pass (通勤定期):</strong> universally reimbursed by employers.
+      Typically ¥10–25K/mo depending on commute distance.</li>
+  <li><strong>Leisure transport:</strong> Suica or PASMO IC card. Typical fares ¥150–300
+      within central Tokyo, ¥300–500 cross-ward.</li>
+  <li><strong>Taxis:</strong> ¥500 base + ¥120 per ~250m. Tokyo taxis are clean but pricier
+      than ride-share. Uber covers Tokyo, mostly via taxi partnerships.</li>
+  <li><strong>JR Pass:</strong> No longer worth it for residents (eligibility check is
+      strict). Use IC card for daily transit; book shinkansen tickets separately as needed.</li>
+</ul>
+
+<h2 id="outside-tokyo">Outside Tokyo — Osaka, Fukuoka, smaller cities</h2>
+<table>
+  <thead><tr><th>City</th><th>1LDK rent</th><th>COL vs. Tokyo</th></tr></thead>
+  <tbody>
+    <tr><td>Osaka</td><td>¥75–120K</td><td>~75%</td></tr>
+    <tr><td>Yokohama</td><td>¥100–180K</td><td>~85%</td></tr>
+    <tr><td>Nagoya</td><td>¥65–110K</td><td>~70%</td></tr>
+    <tr><td>Fukuoka</td><td>¥55–90K</td><td>~65%</td></tr>
+    <tr><td>Sapporo</td><td>¥45–80K</td><td>~60% (high winter utility bills)</td></tr>
+    <tr><td>Sendai / Kyoto</td><td>¥55–90K</td><td>~70%</td></tr>
+  </tbody>
+</table>
+<div class="callout">
+  Run an actual side-by-side comparison on the
+  <a href="/tools/col-comparator">cost-of-living comparator</a> — accounts for tax rates,
+  effective purchasing power, and FX.
+</div>
+
+<h2 id="hidden">Hidden costs no one tells you about</h2>
+<ul>
+  <li><strong>Hanko (印鑑):</strong> ¥3–10K for a personal seal. You'll need one
+      eventually for banking, lease signing, or any government paperwork.</li>
+  <li><strong>Lease renewal (更新料):</strong> typically 1 month of rent every 2 years.
+      Standard at most apartments; some landlords waive it.</li>
+  <li><strong>Aircon cleaning:</strong> required if you stay 3+ years. ¥10–20K per unit
+      every 2–3 years for professional cleaning.</li>
+  <li><strong>NHK enforcer:</strong> the public broadcaster sends collectors door-to-door
+      to enforce TV fees. Legal obligation if you own a TV; many foreigners skip a TV
+      entirely to avoid this.</li>
+  <li><strong>Health insurance ramp-up.</strong> You'll pay ~5% of salary into 健康保険
+      from your first paycheck, even though you've used nothing yet. It's pre-tax and
+      automatic for employed workers.</li>
+  <li><strong>Residence tax (住民税) in year 2.</strong> You pay zero residence tax in
+      year 1 because Japan bills the previous year's income. From May/June of year 2
+      onwards, expect ~10% of last year's income deducted monthly.</li>
+</ul>
+""",
+    },
+
+    # ------------------------------------------------------------------ interview phrases
+    {
+        "slug": "interview-phrases",
+        "icon": "message",
+        "title": "Useful Japanese for interviews — phrases by interview stage",
+        "summary": "30+ phrases organised by interview stage — entering the room, self-introduction, answering common questions, asking questions back, and closing politely. With romaji and English glosses.",
+        "updated": "May 2026",
+        "read_time": "6 min",
+        "toc": [
+            ("entering", "Entering the room and greetings"),
+            ("intro", "Self-introduction"),
+            ("answering", "Answering common questions"),
+            ("asking", "Asking questions back"),
+            ("closing", "Closing and thank-you"),
+            ("uncertain", "When you don't understand"),
+        ],
+        "body": """
+<p>You don't need to be fluent to use a handful of Japanese phrases in your interview —
+even a few well-deployed lines signal cultural awareness and respect. Use these alongside
+your normal English (or Japanese) answers.</p>
+
+<h2 id="entering">Entering the room and greetings</h2>
+<table>
+  <thead><tr><th>Japanese</th><th>Romaji</th><th>When to use</th></tr></thead>
+  <tbody>
+    <tr><td>失礼いたします。</td><td>Shitsurei itashimasu.</td><td>Entering or leaving the room (literally "excuse me")</td></tr>
+    <tr><td>本日はよろしくお願いいたします。</td><td>Honjitsu wa yoroshiku onegai itashimasu.</td><td>Opening greeting after sitting down</td></tr>
+    <tr><td>お忙しいところお時間をいただき、ありがとうございます。</td><td>O-isogashii tokoro o-jikan o itadaki, arigatō gozaimasu.</td><td>"Thank you for taking time despite being busy" — graceful opener</td></tr>
+    <tr><td>失礼いたします。</td><td>Shitsurei itashimasu.</td><td>Before sitting down (after you're invited)</td></tr>
+    <tr><td>頂戴いたします。</td><td>Chōdai itashimasu.</td><td>When receiving a business card</td></tr>
+  </tbody>
+</table>
+
+<h2 id="intro">Self-introduction (自己紹介 / jiko-shōkai)</h2>
+<table>
+  <thead><tr><th>Japanese</th><th>Romaji</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td>自己紹介させていただきます。</td><td>Jiko-shōkai sasete itadakimasu.</td><td>"Please allow me to introduce myself"</td></tr>
+    <tr><td>〜と申します。</td><td>~ to mōshimasu.</td><td>"My name is ~" (formal)</td></tr>
+    <tr><td>〜の出身です。</td><td>~ no shusshin desu.</td><td>"I'm from ~"</td></tr>
+    <tr><td>前職では〜として働いておりました。</td><td>Zenshoku de wa ~ toshite hataraite orimashita.</td><td>"At my previous role, I worked as ~"</td></tr>
+    <tr><td>〜の経験があります。</td><td>~ no keiken ga arimasu.</td><td>"I have experience in ~"</td></tr>
+    <tr><td>〜に取り組んでまいりました。</td><td>~ ni torikunde mairimashita.</td><td>"I have been working on ~" (humble form)</td></tr>
+    <tr><td>本日はどうぞよろしくお願いいたします。</td><td>Honjitsu wa dōzo yoroshiku onegai itashimasu.</td><td>Closing the self-introduction</td></tr>
+  </tbody>
+</table>
+
+<h2 id="answering">Answering common questions</h2>
+<table>
+  <thead><tr><th>Japanese</th><th>Romaji</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td>御社で働きたい理由は〜です。</td><td>Onsha de hatarakitai riyū wa ~ desu.</td><td>"My reason for wanting to work at your company is ~"</td></tr>
+    <tr><td>御社の〜という製品に強く共感しております。</td><td>Onsha no ~ to iu seihin ni tsuyoku kyōkan shite orimasu.</td><td>"I strongly identify with your company's ~ product" (for "why this company?")</td></tr>
+    <tr><td>これまでの経験を活かして、〜に貢献したいと考えております。</td><td>Kore made no keiken o ikashite, ~ ni kōken shitai to kangaete orimasu.</td><td>"Using my past experience, I'd like to contribute to ~"</td></tr>
+    <tr><td>長期的にキャリアを築きたいと考えております。</td><td>Chōkiteki ni kyaria o kizukitai to kangaete orimasu.</td><td>"I want to build a long-term career" (good answer to "where in 5 years?")</td></tr>
+    <tr><td>強みは〜です。</td><td>Tsuyomi wa ~ desu.</td><td>"My strength is ~"</td></tr>
+    <tr><td>課題は〜と考えており、現在〜に取り組んでおります。</td><td>Kadai wa ~ to kangaete ori, genzai ~ ni torikunde orimasu.</td><td>"I see ~ as a challenge and am currently working on ~" (weaknesses)</td></tr>
+  </tbody>
+</table>
+
+<h2 id="asking">Asking questions back</h2>
+<table>
+  <thead><tr><th>Japanese</th><th>Romaji</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td>一点伺ってもよろしいでしょうか。</td><td>Itten ukagatte mo yoroshii deshō ka.</td><td>"May I ask one question?"</td></tr>
+    <tr><td>このポジションで成功している方の共通点を教えていただけますか。</td><td>Kono pojishon de seikō shite iru kata no kyōtsūten o oshiete itadakemasu ka.</td><td>"What do successful people in this role have in common?"</td></tr>
+    <tr><td>入社後の最初の3ヶ月で期待される成果は何でしょうか。</td><td>Nyūsha-go no saisho no san-ka-getsu de kitai sareru seika wa nan deshō ka.</td><td>"What outcomes are expected in the first 3 months after joining?"</td></tr>
+    <tr><td>チームの構成について教えていただけますでしょうか。</td><td>Chīmu no kōsei ni tsuite oshiete itadakemasu deshō ka.</td><td>"Could you tell me about the team's structure?"</td></tr>
+    <tr><td>評価制度について伺ってもよろしいでしょうか。</td><td>Hyōka seido ni tsuite ukagatte mo yoroshii deshō ka.</td><td>"May I ask about the evaluation system?"</td></tr>
+  </tbody>
+</table>
+
+<h2 id="closing">Closing and thank-you</h2>
+<table>
+  <thead><tr><th>Japanese</th><th>Romaji</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td>本日は貴重なお時間をいただき、ありがとうございました。</td><td>Honjitsu wa kichō na o-jikan o itadaki, arigatō gozaimashita.</td><td>"Thank you for your valuable time today"</td></tr>
+    <tr><td>引き続き、よろしくお願いいたします。</td><td>Hikitsuzuki, yoroshiku onegai itashimasu.</td><td>"I look forward to continuing the process"</td></tr>
+    <tr><td>失礼いたします。</td><td>Shitsurei itashimasu.</td><td>Final phrase as you leave the room</td></tr>
+  </tbody>
+</table>
+
+<h2 id="uncertain">When you don't understand</h2>
+<table>
+  <thead><tr><th>Japanese</th><th>Romaji</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td>恐れ入りますが、もう一度お願いできますでしょうか。</td><td>Osoreirimasu ga, mō ichido onegai dekimasu deshō ka.</td><td>"I'm sorry, could you say that again?" (formal)</td></tr>
+    <tr><td>もう少しゆっくりお願いできますでしょうか。</td><td>Mō sukoshi yukkuri onegai dekimasu deshō ka.</td><td>"Could you speak a little more slowly, please?"</td></tr>
+    <tr><td>申し訳ございませんが、英語でお答えしてもよろしいでしょうか。</td><td>Mōshiwake gozaimasen ga, eigo de o-kotae shite mo yoroshii deshō ka.</td><td>"My apologies, may I answer in English?"</td></tr>
+    <tr><td>少し考える時間をいただいてもよろしいでしょうか。</td><td>Sukoshi kangaeru jikan o itadaite mo yoroshii deshō ka.</td><td>"May I have a moment to think?"</td></tr>
+  </tbody>
+</table>
+""",
+    },
+
+    # ------------------------------------------------------------------ red flags
+    {
+        "slug": "red-flags",
+        "icon": "flag",
+        "title": "Red flags — how to spot a black company before you sign",
+        "summary": "Black companies (ブラック企業) are real and disproportionately affect foreign workers. The specific warning signs in job listings, interview questions to flush them out, and the labour-law violations to know about.",
+        "updated": "May 2026",
+        "read_time": "9 min",
+        "toc": [
+            ("what", "What a black company actually is"),
+            ("listing-flags", "Red flags in the job listing"),
+            ("interview-flags", "Red flags during the interview"),
+            ("legal", "What Japanese labour law actually requires"),
+            ("post-offer", "Pre-signing checks — contract clauses to watch"),
+            ("if-stuck", "If you're already there"),
+            ("foreign-specific", "Risks specific to foreign workers"),
+        ],
+        "body": """
+<h2 id="what">What a "black company" (ブラック企業 / burakku kigyō) actually is</h2>
+<p>The term emerged in the early 2000s to describe employers that systematically violate
+Japanese labour law — especially around working hours and unpaid overtime — and treat
+employees as expendable. The phenomenon is widespread enough that the Ministry of Health,
+Labour and Welfare maintains a public database of repeat-offender employers, and the
+2018 Work Style Reform Law capped overtime at 100 hours/month and 720 hours/year in part
+to address it.</p>
+<p>Common-sector concentrations: IT services (especially SI / system-integration), food
+service, construction, retail, low-end eikaiwa, and the "blackest" of all — certain
+healthcare staffing firms. Tech product companies, foreign-affiliated firms, and the
+major Japanese employers run by lifetime-employment culture are generally not in this
+bucket.</p>
+
+<h2 id="listing-flags">Red flags in the job listing itself</h2>
+<ul>
+  <li><strong>"Family-like atmosphere" (アットホームな職場) / "We're a family":</strong>
+      almost universally signals that boundaries don't exist. The team will expect after-
+      hours drinking, weekend events, and personal-life intrusion.</li>
+  <li><strong>"Hard-workers welcome" (ガッツのある方) / "passionate people":</strong>
+      Japanese HR code for "we don't pay enough but we want long hours anyway."</li>
+  <li><strong>"Energetic young workplace":</strong> read as either "we discriminate against
+      older candidates" or "we burn through people quickly."</li>
+  <li><strong>Vague salary ("経験により" / "based on experience" / "negotiable"):</strong>
+      sometimes legitimate at senior roles, but a foreign-friendly employer will give you
+      a written range before scheduling an interview. Always ask.</li>
+  <li><strong>"Comprehensive overtime included" (固定残業代込み / 月20時間分の残業手当):</strong>
+      A fixed overtime amount baked into the salary. If you exceed that hidden hour cap
+      you should be paid for the excess — many black companies "forget" to do this. Always
+      ask in writing how the fixed hours are calculated and what happens beyond them.</li>
+  <li><strong>"Probation period" of 6+ months:</strong> legal max is typically 3–6 months;
+      anything longer is a warning sign that they intend to fire freely.</li>
+  <li><strong>Listings that have been posted for 6+ months continuously:</strong> the role
+      is a revolving door. Cross-check with the company's hiring page archive.</li>
+</ul>
+
+<h2 id="interview-flags">Red flags during the interview</h2>
+<ul>
+  <li><strong>They can't articulate the team structure or your direct manager.</strong>
+      Disorganised reporting lines often track with disorganised everything else.</li>
+  <li><strong>They dodge questions about overtime.</strong> Standard answer at a healthy
+      company: "We have a soft 40-hour week. Crunch happens occasionally and we pay for
+      it." Black-company answer: "Our employees are passionate; everyone pitches in."</li>
+  <li><strong>The interviewer arrives late, cancels last-minute, or no-shows.</strong>
+      One time can be a fluke. Twice is a pattern.</li>
+  <li><strong>They pressure you to decide same-day or next-day.</strong> Reasonable
+      employers give you a week. Compressed timelines are how black companies prevent you
+      from comparing offers or talking to people who'd warn you.</li>
+  <li><strong>You meet only the founder and no team members.</strong> Especially at small
+      companies — the team being shielded from candidates is a strong signal.</li>
+  <li><strong>They ask intrusive personal questions.</strong> Marital status, fertility
+      plans, family wealth, blood type — all illegal under the Equal Employment Opportunity
+      Act but still happens at older Japanese firms. Walk.</li>
+  <li><strong>Salary suddenly drops between verbal offer and written contract.</strong>
+      Aggressive pattern — they bait with a high verbal number then trim 10–20% on paper.
+      Never sign immediately; ask for 48 hours to review.</li>
+</ul>
+
+<h2 id="legal">What Japanese labour law actually requires (your protections)</h2>
+<ul>
+  <li><strong>Working hours:</strong> standard week is 40 hours, 8 hours/day. Anything
+      beyond is overtime and must be paid at <strong>+25%</strong> for the first
+      60 hours/month, <strong>+50%</strong> beyond that (since the 2023 amendment applied
+      this to SMEs as well).</li>
+  <li><strong>Overtime cap:</strong> 45 hours/month normal, with an absolute ceiling of
+      100 hours/month or 720 hours/year under special agreement (the "36 agreement /
+      36協定"). Exceeding these limits is criminal, not just civil.</li>
+  <li><strong>Paid leave (有給休暇):</strong> minimum 10 days after 6 months of employment,
+      rising with tenure. Since 2019, employers must <em>force</em> employees to take at
+      least 5 days/year — refusing your paid leave is illegal.</li>
+  <li><strong>Resignation notice:</strong> 14 days by law if you're on an indefinite
+      contract. Any contract clause demanding more than 14 days' notice is
+      <em>unenforceable</em>. You can leave; they can sue but won't win.</li>
+  <li><strong>Wage payment:</strong> must be in cash (bank transfer counts) on time every
+      month. Delayed or partial wages are immediate violations.</li>
+  <li><strong>Service overtime (サービス残業 / sābisu zangyō):</strong> unpaid overtime is
+      <em>illegal</em>. Records of hours worked are legally required and you can demand
+      copies.</li>
+</ul>
+<div class="callout">
+  If you're being denied your legal rights, the
+  <a href="https://www.mhlw.go.jp/" target="_blank" rel="noopener">Labour Standards
+  Inspection Office (労働基準監督署)</a> takes complaints from foreign workers in English
+  and Japanese. Filing is free. Major cities also have multilingual labour consultation
+  hotlines.
+</div>
+
+<h2 id="post-offer">Pre-signing checks — contract clauses to watch</h2>
+<ul>
+  <li><strong>Fixed overtime amount</strong> (固定残業代 / みなし残業) — confirm in writing
+      how many hours it covers and the per-hour rate beyond.</li>
+  <li><strong>Salary breakdown:</strong> base + allowances should be itemised. A flat
+      "monthly salary ¥X" with no breakdown often hides included overtime.</li>
+  <li><strong>Probationary period (試用期間):</strong> 3–6 months is standard. Confirm
+      the salary during probation matches the post-probation salary.</li>
+  <li><strong>Non-compete clauses (競業避止義務):</strong> Japan's courts uphold these
+      only if narrow in scope, time, and geography, and only if you're compensated. Broad
+      "you can't work in this industry for 2 years anywhere in Japan" is unenforceable.</li>
+  <li><strong>Mandatory transfer clause (転勤命令権):</strong> Older Japanese contracts
+      include the right to move you to any office in the country. Foreign-friendly
+      employers and modern startups usually drop this; check it's not buried in a clause
+      labelled 勤務地 (work location).</li>
+  <li><strong>"Resignation cooperation" clauses:</strong> any wording suggesting you must
+      "obtain company consent" to resign is unenforceable but signals an employer that
+      will try to make leaving difficult.</li>
+</ul>
+
+<h2 id="if-stuck">If you're already at a black company</h2>
+<ol>
+  <li><strong>Document everything.</strong> Keep a daily log of arrival and departure
+      times. Screenshot Slack/Teams messages outside hours. These are evidence.</li>
+  <li><strong>Pay into a separate savings account every month</strong> — having 6 months
+      of runway means you can resign without immediate financial pressure.</li>
+  <li><strong>Get medical attention if you're seeing physical symptoms.</strong> Stress-
+      induced illness is a documented basis for emergency resignation and is sometimes
+      treated as workplace injury.</li>
+  <li><strong>Resign by registered mail (内容証明郵便).</strong> Sent to the company's
+      official address with delivery confirmation. They cannot refuse it. The 14-day
+      clock starts the day they receive it.</li>
+  <li><strong>Talk to a labour lawyer if the company won't release your final paycheck,
+      pension records, or 離職票 (resignation certificate).</strong> Initial consultation
+      is often free.</li>
+</ol>
+
+<h2 id="foreign-specific">Risks specific to foreign workers</h2>
+<ul>
+  <li><strong>Visa pressure.</strong> Some black-company employers tell foreign workers
+      "if you quit, you lose your visa." False — you have <strong>3 months</strong> to
+      find a new sponsor after a job change before your visa is at risk, and you can apply
+      for a "Designated Activities" job-search status to extend that. Quitting does not
+      automatically cancel your visa.</li>
+  <li><strong>"We hold your passport."</strong> This is a serious crime under Japanese
+      law (involuntary servitude). If an employer suggests this — even informally —
+      immediately contact your embassy.</li>
+  <li><strong>Tied housing.</strong> Some employers offer company-provided housing tied
+      to employment. Eviction with 1 week's notice is common when you resign. Plan an
+      independent rental before you give notice.</li>
+  <li><strong>"Cooperation pay" deductions.</strong> A few unethical employers deduct
+      "training cost recovery" from your final paycheck if you quit before some date.
+      This is illegal under Article 16 of the Labour Standards Act, which prohibits
+      contracts that fix penalties for quitting.</li>
+</ul>
+""",
+    },
+
+    # ------------------------------------------------------------------ this remained near previous (keep slot)
+]
+
+
+# ---------------------------------------------------------------------------
+# City + role guides — focused destination pages.
+# ---------------------------------------------------------------------------
+
+GUIDES: list[dict] = [
+
+    # ------------------------------------------------------------------ Tokyo
+    {
+        "slug": "tokyo",
+        "category": "City",
+        "icon": "building",
+        "title": "Tokyo — the foreign professional's guide",
+        "summary": "Where the foreigner-friendly jobs are, which wards to live in, real 2025 rent numbers, transit network, and the practical stuff (banks, phones, hanko) that you'll deal with in week one.",
+        "updated": "May 2026",
+        "read_time": "10 min",
+        "toc": [
+            ("why-tokyo", "Why Tokyo concentrates foreign roles"),
+            ("job-clusters", "Where the jobs cluster, by ward"),
+            ("neighborhoods", "Where foreigners actually live"),
+            ("salary-vs-rent", "Salary vs. rent — what's affordable"),
+            ("transit", "Transit basics"),
+            ("week-one", "Week-one practical checklist"),
+            ("communities", "Foreign communities in Tokyo"),
+        ],
+        "body": """
+<h2 id="why-tokyo">Why Tokyo concentrates foreign roles</h2>
+<p>Roughly 70% of foreigner-friendly job postings in Japan are in Tokyo's 23 wards. Three
+forces drive this concentration:</p>
+<ul>
+  <li><strong>Headquarters density.</strong> Almost every major Japanese corporation
+      and every foreign company entering Japan opens its HQ in Tokyo. Mercari, SmartNews,
+      LINE Yahoo Japan, PayPay, Rakuten, Cyberagent — all Tokyo. Foreign offices for Google,
+      Amazon, Microsoft, Meta, Stripe, Indeed, Salesforce — all Tokyo.</li>
+  <li><strong>Foreign community.</strong> About 600,000 foreign residents in Tokyo as of
+      2025 — far more than any other Japanese city. Bilingual services (banking, real
+      estate, healthcare) cluster here.</li>
+  <li><strong>Network effects.</strong> Recruiters, accelerators, conference circuits,
+      and meetups concentrate where the talent is. Job-hopping is easier when there are
+      40 alternatives in the same metro than three across the country.</li>
+</ul>
+
+<h2 id="job-clusters">Where the jobs cluster, by ward</h2>
+<table>
+  <thead><tr><th>Ward / area</th><th>Dominant industries</th><th>Anchor employers</th></tr></thead>
+  <tbody>
+    <tr><td>Roppongi / Akasaka (Minato)</td>
+        <td>Finance, consulting, foreign-cap tech</td>
+        <td>Goldman Sachs, McKinsey, Google, Indeed Tokyo (Roppongi Hills)</td></tr>
+    <tr><td>Shibuya</td>
+        <td>Tech, consumer internet, design, startups</td>
+        <td>Mercari, GMO, Cyberagent, DeNA, Stripe Tokyo</td></tr>
+    <tr><td>Ebisu / Daikanyama (Shibuya ward)</td>
+        <td>Design-led tech, media, fashion</td>
+        <td>SmartNews (recently moved), creative agencies</td></tr>
+    <tr><td>Marunouchi / Otemachi (Chiyoda)</td>
+        <td>Banking, insurance, large enterprise</td>
+        <td>Mitsubishi UFJ, Mizuho, Mitsui & Co., Marubeni</td></tr>
+    <tr><td>Shinjuku</td>
+        <td>Mixed — gaming, traditional Japanese giants, some tech</td>
+        <td>Square Enix area, Mitsui Fudosan, Tokyo Tobu</td></tr>
+    <tr><td>Shinagawa / Konan</td>
+        <td>Pharma, manufacturing JP HQs, logistics</td>
+        <td>Microsoft Japan, Sony HQ, Canon</td></tr>
+    <tr><td>Toranomon / Kamiyacho (Minato)</td>
+        <td>Newer corporate HQ towers, hospitality</td>
+        <td>Toranomon Hills tenants, foreign-cap firms</td></tr>
+    <tr><td>Nihonbashi (Chuo)</td>
+        <td>Pharma, established Japanese corporates</td>
+        <td>Pfizer Japan, Bristol-Myers, Nomura</td></tr>
+  </tbody>
+</table>
+
+<h2 id="neighborhoods">Where foreigners actually live</h2>
+<p>The neighbourhoods most foreign professionals pick balance three things: commute time,
+English-friendliness of local services, and rent. The pattern by life stage:</p>
+<h3>Single, mid-career professionals (most common)</h3>
+<ul>
+  <li><strong>Setagaya — Sangenjaya, Shimokitazawa, Yoga, Komazawa-Daigaku:</strong>
+      30–40 minutes from work, 1LDK ¥180–230K, family-friendly, low-key. Sangenjaya is
+      3 minutes from Shibuya on the Den-en-toshi line at 30–40% lower rent than equivalent
+      space in Shibuya itself. Setagaya is the single most popular ward for foreigners.</li>
+  <li><strong>Meguro / Nakameguro / Naka-Meguro:</strong> trendy, walkable cherry-blossom
+      neighbourhoods. Slightly pricier (¥200–270K for 1LDK) but commute is excellent.</li>
+  <li><strong>Suginami — Asagaya, Koenji:</strong> quieter, more Japanese, ¥140–190K
+      1LDK. JR Chuo line takes you to Shinjuku in 10 minutes.</li>
+  <li><strong>Nakano:</strong> 5 minutes from Shinjuku, ¥140–180K 1LDK. Less hip than
+      Setagaya, very functional.</li>
+</ul>
+<h3>Families with kids</h3>
+<ul>
+  <li><strong>Setagaya — Yoga, Sakurashinmachi, Futako-Tamagawa:</strong> family-magnet
+      neighbourhoods. Multiple international schools nearby (American School in Japan
+      Chofu campus, K International, Tokyo International).</li>
+  <li><strong>Minato / Hiroo:</strong> closest to embassies and Tokyo's main international
+      community. International school district. Rents start at ¥350K for 2LDK and rise
+      sharply.</li>
+  <li><strong>Yokohama, especially Minato Mirai and Motomachi:</strong> 30–50 minutes
+      from central Tokyo, much larger apartments, strong international-school options
+      (Yokohama International School), 60–70% of central-Tokyo rent.</li>
+</ul>
+<h3>Embassies, executives, $$$</h3>
+<ul>
+  <li><strong>Hiroo / Azabu-Juban / Azabu-Dai (Minato):</strong> embassy belt. 1LDK starts
+      ¥250K, 2LDK ¥400–600K, 3LDK ¥700K+.</li>
+  <li><strong>Akasaka, Aoyama:</strong> closer to corporate HQ, slightly more accessible
+      pricing than Hiroo.</li>
+</ul>
+
+<h2 id="salary-vs-rent">Salary vs. rent — what's actually affordable</h2>
+<p>The standard rule in Japan is rent should be 25–30% of net (post-tax) income.
+Translated into gross salary, the practical pairings:</p>
+<table>
+  <thead><tr><th>Gross income (¥/yr)</th><th>Net (¥/mo)</th><th>Affordable rent</th><th>Realistic neighbourhoods</th></tr></thead>
+  <tbody>
+    <tr><td>4M</td><td>¥255K</td><td>¥65–80K</td><td>Nerima, Itabashi, Saitama border</td></tr>
+    <tr><td>6M</td><td>¥385K</td><td>¥95–115K</td><td>Setagaya 1K, Suginami, Nakano</td></tr>
+    <tr><td>8M</td><td>¥500K</td><td>¥125–150K</td><td>Setagaya 1LDK, Meguro</td></tr>
+    <tr><td>12M</td><td>¥720K</td><td>¥180–215K</td><td>Shibuya, Naka-Meguro, central Setagaya</td></tr>
+    <tr><td>18M</td><td>¥1.05M</td><td>¥260–315K</td><td>Hiroo, Roppongi, Aoyama</td></tr>
+  </tbody>
+</table>
+<div class="callout">
+  Run your actual gross-to-net with the <a href="/tools/take-home-pay">take-home pay
+  calculator</a> — Japan's tax stack varies by age, dependants, and year of residence.
+</div>
+
+<h2 id="transit">Transit basics</h2>
+<ul>
+  <li><strong>JR Yamanote line</strong> is the central loop — 29 stations, runs every 2–4
+      minutes. Memorise it; it's the spine of central Tokyo.</li>
+  <li><strong>Tokyo Metro and Toei Subway</strong> together cover everywhere the Yamanote
+      doesn't. Top transit apps: Yahoo! Norikae, Google Maps (very good), Navitime.</li>
+  <li><strong>Commuter pass (定期券):</strong> your employer reimburses the cost between
+      home and work. Apply for it within your first 1–2 weeks.</li>
+  <li><strong>IC card</strong> (Suica or PASMO) for everything else. Now natively supported
+      on iPhone (Apple Pay) and most Android phones.</li>
+  <li><strong>Don't bother with a car.</strong> Parking is ¥30–60K/mo on top of car costs;
+      transit gets you everywhere faster.</li>
+</ul>
+
+<h2 id="week-one">Week-one practical checklist</h2>
+<ol>
+  <li><strong>Pick up your residence card</strong> at the airport on arrival (Narita,
+      Haneda, Kansai, and some others issue it on the spot; smaller airports mail it).</li>
+  <li><strong>Buy a Suica/PASMO IC card</strong> at the airport before you leave —
+      transit is on-demand from day one.</li>
+  <li><strong>Set up an MVNO phone plan</strong> (povo, IIJmio, mineo, or Sakura Mobile
+      for English-speaking onboarding). You need a Japanese phone number for the rest of
+      the steps.</li>
+  <li><strong>Register your address at the ward office within 14 days.</strong> Legally
+      required. Brings address to your residence card and triggers National Health
+      Insurance if you're not yet employed.</li>
+  <li><strong>Open a bank account.</strong> Foreigner-friendly: Shinsei (English UI),
+      Sony Bank, JP Post Bank (universally accepted), SBI Sumishin (online).</li>
+  <li><strong>Order a hanko (印鑑)</strong> if not already done. ¥3–10K online; you'll
+      need it for the apartment lease and any government paperwork.</li>
+</ol>
+<div class="callout">
+  Full step-by-step in the <a href="/pillars/first-90-days">First 90 Days in Japan</a>
+  pillar guide — every form, every line, in order.
+</div>
+
+<h2 id="communities">Foreign communities in Tokyo</h2>
+<ul>
+  <li><strong>Tokyo Dev Slack</strong> — 5,000+ English-speaking software engineers.
+      Highest-signal tech community in Tokyo.</li>
+  <li><strong>JapanDev community</strong> — newer, engineering-focused, salary
+      transparency culture.</li>
+  <li><strong>Tokyo Tech Mafia</strong> — invite-only senior engineers and leaders.</li>
+  <li><strong>r/Tokyo, r/japanlife</strong> — broad foreigner-in-Japan general questions,
+      apartment hunting, paperwork.</li>
+  <li><strong>InterNations Tokyo</strong> — professional events, expat-heavy.</li>
+  <li><strong>Tokyo American Club, Foreign Correspondents' Club of Japan</strong> —
+      higher-end professional networks; paid membership.</li>
+  <li><strong>Embassy-based clubs</strong> (Tokyo British Club, Tokyo French Lyceum
+      alumni, etc.) — community by national origin.</li>
+</ul>
+""",
+    },
+
+    # ------------------------------------------------------------------ Osaka
+    {
+        "slug": "osaka",
+        "category": "City",
+        "icon": "building",
+        "title": "Osaka — Japan's second city for foreign professionals",
+        "summary": "Osaka pays roughly 85% of Tokyo for the same role but costs 60–70% as much. Where the jobs are, which wards to live in, and what the post-Expo 2025 hiring market looks like.",
+        "updated": "May 2026",
+        "read_time": "8 min",
+        "toc": [
+            ("why-osaka", "Why Osaka — the trade-offs vs. Tokyo"),
+            ("industries", "Industries and employers in Kansai"),
+            ("neighborhoods", "Where to live"),
+            ("salary", "Salary realities"),
+            ("post-expo", "Post-Expo 2025 hiring market"),
+            ("culture", "Cultural differences vs. Tokyo"),
+        ],
+        "body": """
+<h2 id="why-osaka">Why Osaka — the trade-offs vs. Tokyo</h2>
+<p>Osaka is Japan's third-largest city (after Tokyo and Yokohama), the commercial heart
+of the Kansai region, and home to roughly 270,000 foreign residents as of 2024. For
+foreign professionals weighing it against Tokyo, three things matter:</p>
+<ul>
+  <li><strong>Cost of living is ~60–70% of Tokyo.</strong> A 1LDK that runs ¥230K in
+      central Shibuya is ¥85–120K in central Osaka. A typical professional lifestyle
+      costs roughly ¥250K/mo modest, ¥400K/mo comfortable — about 25–35% less than Tokyo
+      equivalents.</li>
+  <li><strong>Salaries are roughly 85% of Tokyo</strong> for the same role at the same
+      seniority. A Tokyo engineer at ¥10M would typically be offered ¥8–9M for the same
+      job in Osaka. The cost-of-living math still favours Osaka net.</li>
+  <li><strong>Fewer English-language roles, more Japanese-required roles.</strong> The
+      Kansai economy is more manufacturing- and traditional-business-heavy, with smaller
+      tech and gaishikei concentrations. English-only postings are 20–30% of what they
+      are in Tokyo.</li>
+</ul>
+
+<h2 id="industries">Industries and employers in Kansai</h2>
+<p>Manufacturing dominates the Kansai economy. Automotive, pharmaceutical, chemical,
+heavy machinery, and food production are all concentrated here, with hospitality and
+retail forming the next layer.</p>
+<table>
+  <thead><tr><th>Industry</th><th>Major employers</th></tr></thead>
+  <tbody>
+    <tr><td>Pharma / life sciences</td>
+        <td>Takeda (HQ Osaka), Sumitomo Pharma, Otsuka Pharmaceutical, Shionogi</td></tr>
+    <tr><td>Electronics / manufacturing</td>
+        <td>Panasonic (HQ Osaka), Sharp, Daikin, Kyocera (Kyoto), Murata (Kyoto), Omron (Kyoto)</td></tr>
+    <tr><td>Automotive / mobility</td>
+        <td>Suzuki (Hamamatsu, adjacent), Hino, Yamaha (Hamamatsu)</td></tr>
+    <tr><td>Trading / banking</td>
+        <td>Sumitomo Corporation, Itochu, Sumitomo Mitsui Banking (SMBC)</td></tr>
+    <tr><td>Retail / consumer goods</td>
+        <td>Asics, Mizuno, Nidec, Glico, House Foods</td></tr>
+    <tr><td>Tech / digital (smaller cluster)</td>
+        <td>Capcom (Osaka), Hatena, Cybozu Osaka office, some Rakuten Osaka presence</td></tr>
+  </tbody>
+</table>
+
+<h2 id="neighborhoods">Where to live</h2>
+<table>
+  <thead><tr><th>Area</th><th>1LDK rent</th><th>Foreigner appeal</th></tr></thead>
+  <tbody>
+    <tr><td>Umeda / Kita-ku (central business district)</td>
+        <td>¥130–200K</td>
+        <td>Walking to Umeda offices; trade-off is small apartments</td></tr>
+    <tr><td>Honmachi (corporate centre)</td>
+        <td>¥120–180K</td>
+        <td>Mid-size Japanese corporate proximity</td></tr>
+    <tr><td>Tennoji / Abeno</td>
+        <td>¥80–130K</td>
+        <td>Family-friendly, 15 min to Umeda; many international families</td></tr>
+    <tr><td>Esaka / Senri-chuo (Suita / Toyonaka)</td>
+        <td>¥75–110K</td>
+        <td>Foreigner heart of Kansai — Osaka International School in Senri</td></tr>
+    <tr><td>Namba / Minami</td>
+        <td>¥85–130K</td>
+        <td>Nightlife and retail; younger crowd</td></tr>
+    <tr><td>Toyonaka / Ikeda</td>
+        <td>¥70–100K</td>
+        <td>Quiet residential; near Osaka International Airport (domestic)</td></tr>
+    <tr><td>Kobe (across prefecture line, 30 min)</td>
+        <td>¥90–150K</td>
+        <td>Sea views, port-city character; historic foreign settlement</td></tr>
+  </tbody>
+</table>
+
+<h2 id="salary">Salary realities</h2>
+<p>For the same role and seniority, expect roughly 85% of Tokyo bands. Some practical
+examples for 2026:</p>
+<ul>
+  <li>Mid software engineer at a Japanese manufacturer: ¥6–9M (vs. ¥7–10M in Tokyo).</li>
+  <li>Senior engineer at a tech company with Kansai presence: ¥9–13M (vs. ¥10–16M in Tokyo).</li>
+  <li>Mid PM at a Japanese manufacturer: ¥7–10M.</li>
+  <li>Senior data scientist (pharma): ¥9–13M.</li>
+  <li>Marketing director at a Kansai consumer brand: ¥12–18M.</li>
+</ul>
+<p>Compare any specific offer with the <a href="/insights/salary">salary insights
+dashboard</a> — Robert Walters Japan 2026 data has separate East/West Japan splits for
+most role families.</p>
+
+<h2 id="post-expo">Post-Expo 2025 hiring market</h2>
+<p>The Osaka-Kansai Expo, which ran April–October 2025, drove a hiring spike in
+hospitality, tourism, retail, and event-related services. Approximately 20,000 temporary
+workers entered the market when the Expo wrapped, which has softened hiring across those
+categories through early 2026.</p>
+<p>However, certain segments saw lasting structural demand from the Expo's infrastructure
+build:</p>
+<ul>
+  <li><strong>Data centre engineering</strong> — Osaka and the wider Kansai region became
+      a secondary data-centre cluster on the back of Expo-related cloud build-outs.
+      Demand for facility, mechanical, and network engineers stays strong into 2027.</li>
+  <li><strong>English-speaking hospitality leadership</strong> — luxury hotel chains
+      (Four Seasons, Conrad, Waldorf-Astoria) entered Osaka around the Expo and are
+      hiring bilingual managers at premium rates.</li>
+  <li><strong>Construction project management</strong> — the post-Expo redevelopment of
+      Yumeshima island and the IR (integrated resort) planned to open 2030 are pulling
+      bilingual PM talent.</li>
+</ul>
+
+<h2 id="culture">Cultural differences vs. Tokyo</h2>
+<ul>
+  <li><strong>Osaka is famously friendlier to outsiders.</strong> The local language
+      (Kansai-ben) is warmer, social distance is shorter, small-talk is normal. Many
+      foreigners report finding it easier to integrate socially.</li>
+  <li><strong>Working hours are slightly shorter on average.</strong> Manufacturing-heavy
+      economy means fixed shifts, less of the Tokyo white-collar overtime culture.</li>
+  <li><strong>Less English in daily life.</strong> Restaurant menus, ward office staff,
+      and even bank branches have noticeably less English support than Tokyo. Plan to
+      learn basic Japanese faster than you would in Tokyo.</li>
+  <li><strong>U-turn candidates (returning Kansai natives) are a growing trend.</strong>
+      Many companies are widening their geographic reach to attract Tokyo-trained
+      professionals who want to return to Kansai for family or lifestyle reasons.</li>
+</ul>
+""",
+    },
+
+    # ------------------------------------------------------------------ Software engineering
+    {
+        "slug": "software-engineering",
+        "category": "Role",
+        "icon": "cpu",
+        "title": "Software engineering in Japan — the deep dive",
+        "summary": "The highest-paying foreigner-friendly track in Japan. Who's hiring, what stacks pay best, real 2026 comp bands from the TokyoDev survey, and the practical realities of the engineering scene.",
+        "updated": "May 2026",
+        "read_time": "11 min",
+        "toc": [
+            ("market", "The 2026 market"),
+            ("companies", "Companies actively hiring foreigners"),
+            ("comp", "Compensation — real 2026 numbers"),
+            ("stacks", "Stacks that actually pay"),
+            ("levels", "Levels and progression"),
+            ("interview", "Interview process"),
+            ("remote", "Remote / hybrid reality"),
+            ("getting-in", "Getting in from overseas"),
+        ],
+        "body": """
+<h2 id="market">The 2026 market</h2>
+<p>Software engineering is the most foreigner-friendly career track in Japan, by a wide
+margin. The 2025 TokyoDev developer survey of 989 international engineers found:</p>
+<ul>
+  <li>Median engineer compensation: <strong>¥9.5M</strong>, up ¥1M from 2024.</li>
+  <li>57% of respondents had a compensation increase in the last year; only 6% had a decrease.</li>
+  <li>60% of respondents hold an engineer-track or HSP-track residence status — meaning
+      their work permit is tied directly to a tech job.</li>
+  <li>Hybrid work overtook fully-flexible remote work: 43% hybrid (up from 37%), 32%
+      free-choice remote (down from 38%).</li>
+</ul>
+<p>The market is in a strong year — bilingual engineers are getting 15–25% raises on job
+changes, and the FAANG Tokyo offices have aggressively scaled hiring through 2025–26.</p>
+
+<h2 id="companies">Companies actively hiring foreigners</h2>
+<h3>Tier 1 — actively hire abroad, sponsor visas, no Japanese required</h3>
+<table>
+  <thead><tr><th>Company</th><th>Engineering size</th><th>Notable</th></tr></thead>
+  <tbody>
+    <tr><td>Mercari</td><td>~1,200</td>
+        <td>Bilingual engineering org; English documentation by default; signing bonuses ¥1–3M for senior hires</td></tr>
+    <tr><td>SmartNews</td><td>~250</td>
+        <td>Mostly English engineering; news distribution + LLM applications</td></tr>
+    <tr><td>PayPay</td><td>~700</td>
+        <td>Payments at scale; English-first eng documentation; 50%+ non-Japanese engineering</td></tr>
+    <tr><td>LINE Yahoo Japan</td><td>~5,000</td>
+        <td>Many English-speaking teams; pay tiers vary by team</td></tr>
+    <tr><td>Indeed Tokyo</td><td>~700</td>
+        <td>Roughly 80%+ non-Japanese engineering; sister office to Indeed US</td></tr>
+    <tr><td>Rakuten</td><td>~6,000</td>
+        <td>Officially English-as-corporate-language since 2010; mixed in practice</td></tr>
+    <tr><td>Cybozu</td><td>~700</td>
+        <td>Bilingual; B2B SaaS; lower base pay but excellent work-life balance reputation</td></tr>
+    <tr><td>Studist</td><td>~80</td>
+        <td>Bilingual mid-stage startup; B2B procedure-management product</td></tr>
+    <tr><td>Autify</td><td>~80</td>
+        <td>Bilingual founder team; test automation</td></tr>
+  </tbody>
+</table>
+<h3>Tier 1.5 — FAANG and big-tech Tokyo offices</h3>
+<ul>
+  <li>Google Japan (Roppongi Hills) — ¥18–35M+ total comp at senior levels with RSUs.</li>
+  <li>Amazon Japan (Meguro) — slightly lower base than Google but aggressive sign-ons.</li>
+  <li>Microsoft Japan (Shinagawa) — Azure focus; very international team.</li>
+  <li>Meta Japan, Stripe Tokyo, Apple Japan — smaller Tokyo engineering teams but
+      premium comp.</li>
+</ul>
+<h3>Tier 2 — Japanese companies with English-friendly engineering teams</h3>
+<ul>
+  <li>Cyberagent (large game and advertising tech) — N3+ preferred.</li>
+  <li>DeNA (gaming + healthcare tech) — bilingual teams in specific divisions.</li>
+  <li>GMO Group (commerce infrastructure) — historic gaijin-friendly culture.</li>
+  <li>Sakura Internet (hosting + AI infrastructure) — Osaka-based.</li>
+  <li>Sakana AI (Tokyo-based AI lab founded 2023) — high-end research engineering, English OK.</li>
+  <li>Preferred Networks (PFN, deep learning) — research labs are very international.</li>
+</ul>
+
+<h2 id="comp">Compensation — real 2026 numbers</h2>
+<table>
+  <thead>
+    <tr><th>Level</th><th>Years</th><th>Median TC (¥M/yr)</th><th>Top of band (¥M/yr)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Junior</td><td>0–2</td><td>5.5</td><td>8 (FAANG)</td></tr>
+    <tr><td>Mid</td><td>2–5</td><td>8.5</td><td>13 (FAANG)</td></tr>
+    <tr><td>Senior</td><td>5–9</td><td>12</td><td>20 (FAANG)</td></tr>
+    <tr><td>Staff / Tech Lead</td><td>9+</td><td>17</td><td>30 (FAANG)</td></tr>
+    <tr><td>Principal / Distinguished</td><td>12+</td><td>22</td><td>35–50 (FAANG)</td></tr>
+  </tbody>
+</table>
+<p>The TokyoDev 2025 survey found respondents at companies <em>without</em> a Japan entity
+(i.e. fully remote international employer) and those at foreign companies <em>with</em>
+a Japan entity (FAANG Tokyo) both clustered at ¥13.5M median — meaningfully above the
+¥8.5M median at Japanese-headquartered employers.</p>
+
+<h2 id="stacks">Stacks that actually pay</h2>
+<p>The premium-paying stacks at foreigner-friendly Japanese companies in 2026:</p>
+<ul>
+  <li><strong>Go</strong> — Mercari, SmartNews, PayPay all run on Go for core services.</li>
+  <li><strong>TypeScript + Next.js</strong> — universal frontend stack at most modern
+      Japanese tech companies.</li>
+  <li><strong>Kotlin / Java</strong> — banking, fintech, established Japanese corporates.</li>
+  <li><strong>Python (Django / FastAPI)</strong> — data, ML, internal tooling.</li>
+  <li><strong>Swift / Kotlin</strong> for mobile — high demand at consumer-internet
+      players.</li>
+</ul>
+<p>Niche but high-paying:</p>
+<ul>
+  <li><strong>Rust</strong> — small but growing pool; some payments and infrastructure
+      teams use it.</li>
+  <li><strong>Cloud security + DevOps</strong> — bilingual SREs see 15–30% job-change
+      raises in 2026.</li>
+  <li><strong>AI/ML productionisation</strong> — taking off the back of LLM adoption;
+      premium tier at Sakana AI, PFN, FAANG.</li>
+</ul>
+<p>Almost universally, AWS is the cloud of choice (with GCP a distinct second). Azure is
+rare outside enterprise/banking. Knowing AWS deeply is a meaningful comp lever.</p>
+
+<h2 id="levels">Levels and progression</h2>
+<p>Most foreigner-friendly companies use a US-style levelling system rather than the
+traditional Japanese seniority-based promotion ladder. Roughly:</p>
+<ul>
+  <li><strong>L3 / Junior / Associate Engineer (0–2 yrs):</strong> ship small features
+      with mentorship.</li>
+  <li><strong>L4 / Mid Engineer (2–5 yrs):</strong> own features end-to-end; some
+      cross-team coordination.</li>
+  <li><strong>L5 / Senior Engineer (5–9 yrs):</strong> drive multi-engineer projects;
+      design subsystems; mentor.</li>
+  <li><strong>L6 / Staff / Tech Lead (9+):</strong> set technical direction across teams;
+      partner with product/design at director level.</li>
+  <li><strong>L7+ / Principal:</strong> rare; typically named technical-authority on a
+      domain across the org.</li>
+</ul>
+<p>Promotion velocity at gaishikei is fast (2–3 years per level on average). At Japanese
+companies, even the modern ones, expect 3–4 years.</p>
+
+<h2 id="interview">Interview process</h2>
+<p>At foreigner-friendly Japanese tech companies (Mercari, SmartNews, PayPay), the typical
+loop:</p>
+<ol>
+  <li><strong>Recruiter screen</strong> (30 min) — English or Japanese, depending on team.
+      Confirms basic fit, salary expectations, visa status.</li>
+  <li><strong>Technical screen</strong> (60–90 min) — live coding or take-home. Often
+      using HackerRank, Coderpad, or a custom problem. English OK.</li>
+  <li><strong>System design</strong> (45–60 min) — for L5+. Whiteboard or virtual
+      whiteboard. English.</li>
+  <li><strong>Team / behavioural</strong> (45–60 min × 2–3 rounds) — meet your prospective
+      manager and 1–2 teammates. Some Japanese small-talk; technical conversation in
+      English.</li>
+  <li><strong>Bar-raiser / final</strong> (30–60 min) — senior engineer outside the team.
+      Often the last hire/no-hire vote.</li>
+</ol>
+<p>Total elapsed time: 2–4 weeks at gaishikei, 4–8 weeks at Japanese employers. Mercari
+publishes the time-to-offer median around 3 weeks.</p>
+
+<h2 id="remote">Remote / hybrid reality</h2>
+<p>The pandemic-era full-remote era is largely over. From the TokyoDev 2025 survey:</p>
+<ul>
+  <li>43% of engineers now work hybrid (up from 37%).</li>
+  <li>32% have free-choice remote (down from 38%).</li>
+  <li>25% are fully on-site (up modestly).</li>
+</ul>
+<p>Typical hybrid policies require 2–3 days/week in office. Gaishikei tend to be more
+flexible than domestic Japanese companies, with notable exceptions: Rakuten requires
+return-to-office; Mercari is hybrid with strong autonomy; most FAANG Tokyo are 3
+days/week.</p>
+
+<h2 id="getting-in">Getting in from overseas</h2>
+<ul>
+  <li><strong>Apply directly</strong> to companies you've actually used as a consumer.
+      Mercari, SmartNews, PayPay all have English-language careers pages and accept
+      overseas applications.</li>
+  <li><strong>Skip the agencies</strong> for the first round — most Japanese tech
+      recruiters bias toward Japanese-speaking candidates and skip the foreigner-friendly
+      tier in their outreach.</li>
+  <li><strong>Have an English-language portfolio.</strong> A clean GitHub, a personal site
+      with 2–3 written project case studies, and an English LinkedIn. Japan's tech
+      recruiters look at all three.</li>
+  <li><strong>Visa is rarely the blocker.</strong> At companies on the Tier 1 list above,
+      visa sponsorship is the default. The "ability to work from abroad" filter is more
+      useful than the "visa sponsorship" filter — abroad-accepting companies have already
+      streamlined their visa pipeline.</li>
+  <li><strong>Join Tokyo Dev Slack</strong> before applying. The community-driven referral
+      flow is meaningful — many roles in the #referrals channel never get posted publicly.</li>
+</ul>
+<div class="callout">
+  Build your career roadmap with the <a href="/roadmaps/software-engineering">Software
+  Engineering roadmap</a> — five stages from junior to principal, with promotion criteria
+  and Japan-specific notes at each level.
+</div>
+""",
+    },
+
+    # ------------------------------------------------------------------ Teaching English
+    {
+        "slug": "teaching-english",
+        "category": "Role",
+        "icon": "mortar-board",
+        "title": "Teaching English in Japan — the honest breakdown",
+        "summary": "JET vs. eikaiwa vs. dispatch ALT — what each actually pays, what working conditions look like, why most people leave within 3 years, and the paths from teaching into other careers.",
+        "updated": "May 2026",
+        "read_time": "10 min",
+        "toc": [
+            ("market", "The teaching market in 2026"),
+            ("jet", "JET Programme"),
+            ("eikaiwa", "Eikaiwa (conversation schools)"),
+            ("dispatch-alt", "Dispatch ALT companies"),
+            ("intl-schools", "International schools"),
+            ("comparison", "Side-by-side comparison"),
+            ("reality", "The honest realities"),
+            ("exit-paths", "Exit paths into other careers"),
+        ],
+        "body": """
+<h2 id="market">The teaching market in 2026</h2>
+<p>Teaching English in Japan remains the most accessible career path for native English
+speakers without specialised degrees or Japanese ability. The market splits into four
+distinct tracks with very different conditions, salaries, and trajectories.</p>
+<ul>
+  <li><strong>JET Programme</strong> (government-run): ~5,900 participants from 54
+      countries as of July 2025.</li>
+  <li><strong>Eikaiwa</strong> (private conversation schools): largest segment by
+      headcount.</li>
+  <li><strong>Dispatch ALT</strong> (private companies placing teachers in public
+      schools): growing share, often the most precarious.</li>
+  <li><strong>International schools</strong> (English-medium K-12): smallest segment by
+      headcount, highest pay and conditions.</li>
+</ul>
+<p>The 2024–25 trend: dispatch ALT pay has stagnated, JET pay was raised meaningfully
+(April 2025 brought a band to ¥4.02–4.32M for higher-cost placements, up from the
+historical ¥3.36M), and international-school hiring has tightened due to expat-family
+mobility being lower post-pandemic.</p>
+
+<h2 id="jet">JET Programme (Japanese Exchange and Teaching)</h2>
+<p>The government-run programme, established 1987, places foreign graduates in public
+schools and government offices across all 47 prefectures.</p>
+<h3>Roles</h3>
+<ul>
+  <li><strong>ALT (Assistant Language Teacher):</strong> ~85% of JETs. Placed in public
+      elementary, junior high, or high schools.</li>
+  <li><strong>CIR (Coordinator for International Relations):</strong> ~10%. Government
+      offices, translation/interpretation, intercultural exchange work. Requires N2-level
+      Japanese.</li>
+  <li><strong>SEA (Sports Education Advisor):</strong> small number. Sports coaching at
+      public schools.</li>
+</ul>
+<h3>Salary (2025–26)</h3>
+<table>
+  <thead><tr><th>Year</th><th>Salary band</th></tr></thead>
+  <tbody>
+    <tr><td>Year 1</td><td>¥3.36M (standard) or ¥4.02M (higher-cost areas, April 2025+)</td></tr>
+    <tr><td>Year 2</td><td>¥3.60M / ¥4.20M</td></tr>
+    <tr><td>Year 3</td><td>¥3.90M / ¥4.32M</td></tr>
+    <tr><td>Year 4–5</td><td>¥3.96M / ¥4.32M</td></tr>
+  </tbody>
+</table>
+<p>Plus: housing assistance (typically subsidised significantly by the placement
+authority), paid sick leave, ~20 paid vacation days/year, plus the standard Japanese
+national holidays.</p>
+<h3>Application</h3>
+<p>Annual cycle: applications open October, close November/December. Interviews at the
+Japanese consulate/embassy in your home country in February. Acceptance notifications
+April–May. Placement details May–July. Departure late July or early August.
+Acceptance rate roughly 25%.</p>
+<h3>Pros and cons</h3>
+<ul>
+  <li><strong>Pros:</strong> highest pay in entry-level teaching, government backing,
+      housing support, real vacation days, strong cohort community.</li>
+  <li><strong>Cons:</strong> placement is rarely in your top-3 choices (most JETs land
+      rural), single-year contracts, no career progression within the programme, max 5
+      years total tenure.</li>
+</ul>
+
+<h2 id="eikaiwa">Eikaiwa (private conversation schools)</h2>
+<p>Private language schools running after-hours and weekend classes. The "Big 3":
+NOVA, AEON, ECC. Plus dozens of smaller chains and independents.</p>
+<h3>Salary at major chains (2025–26)</h3>
+<table>
+  <thead><tr><th>Company</th><th>Monthly base</th><th>Annual</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>NOVA</td><td>¥280–320K</td><td>¥3.36–3.84M</td><td>Largest chain; high turnover</td></tr>
+    <tr><td>AEON</td><td>¥275K fixed</td><td>¥3.30M</td><td>Base ¥255K + ¥20K fixed overtime allowance</td></tr>
+    <tr><td>ECC</td><td>¥250–270K</td><td>¥3.00–3.24M</td><td>Strong training program, conservative dress code</td></tr>
+    <tr><td>Berlitz</td><td>¥255–290K</td><td>¥3.06–3.48M</td><td>Corporate / business English-focused</td></tr>
+    <tr><td>Smaller / independent eikaiwa</td><td>¥230–280K</td><td>¥2.76–3.36M</td><td>Vary widely</td></tr>
+  </tbody>
+</table>
+<h3>Working conditions</h3>
+<ul>
+  <li><strong>Schedule:</strong> typically Tuesday–Saturday or Wednesday–Sunday, since
+      students attend evenings and weekends. You will work at least one weekend day,
+      often both.</li>
+  <li><strong>Class load:</strong> usually 5–8 classes per day, 40–50 minutes each,
+      back-to-back with short prep breaks.</li>
+  <li><strong>Paid leave:</strong> usually 10 days/year (legal minimum), plus standard
+      Japanese national holidays. Eikaiwa generally honour paid leave.</li>
+  <li><strong>Visa:</strong> sponsored under Engineer/Specialist in Humanities (not
+      Instructor).</li>
+</ul>
+
+<h2 id="dispatch-alt">Dispatch ALT companies</h2>
+<p>Private companies (Interac, Heart Corporation, Borderlink, Joytalk, and many smaller
+operators) that win contracts with municipal boards of education to staff public schools
+with ALTs. Lower pay than JET, more precarious than direct hires.</p>
+<h3>Salary (2025–26)</h3>
+<table>
+  <thead><tr><th>Company</th><th>Monthly</th><th>Annual</th></tr></thead>
+  <tbody>
+    <tr><td>Interac (largest dispatcher)</td><td>¥190–240K</td><td>¥2.28–2.88M</td></tr>
+    <tr><td>Heart Corporation</td><td>¥200–260K</td><td>¥2.40–3.12M</td></tr>
+    <tr><td>Borderlink</td><td>¥190–230K</td><td>¥2.28–2.76M</td></tr>
+  </tbody>
+</table>
+<h3>Why dispatch pays less than JET</h3>
+<p>The municipal board of education pays the dispatch company per teacher placed. The
+company takes its margin off the top. Most dispatch teachers are placed in the same
+public schools as JETs, doing the same work, for substantially less money — sometimes
+working alongside a JET who earns 50% more.</p>
+<h3>Major issues</h3>
+<ul>
+  <li><strong>"You're only paid for hours in school."</strong> Many dispatchers don't pay
+      for prep time or non-class hours within the contracted school day.</li>
+  <li><strong>Summer/winter contract gaps.</strong> Some dispatchers pause pay during
+      school holidays (illegal in many cases — challenge it).</li>
+  <li><strong>Three-year cap.</strong> A dispatch worker cannot stay with the same
+      dispatcher for more than three years unless converted to a direct/permanent
+      contract, which is rare.</li>
+  <li><strong>Limited support.</strong> The dispatcher is often hours away by train; if
+      something goes wrong at school, you're on your own.</li>
+</ul>
+<div class="warn">
+  <strong>If you're choosing between JET and dispatch:</strong> the salary gap is real
+  and the working conditions are noticeably worse at dispatchers. Apply to JET first;
+  fall back to dispatch only if JET is closed or you didn't make it through.
+</div>
+
+<h2 id="intl-schools">International schools</h2>
+<p>Real K-12 schools serving expat families and a growing Japanese-international
+population. Pay 60–150% higher than eikaiwa, real career progression, and significantly
+more autonomy.</p>
+<h3>Requirements</h3>
+<ul>
+  <li><strong>Real teaching credential</strong> — a PGCE (UK), state teaching license
+      (US), or equivalent. International schools rarely hire untrained native speakers.</li>
+  <li><strong>2+ years of classroom experience</strong> in your home country usually
+      required for serious roles.</li>
+  <li><strong>Often a specific subject specialisation</strong> (math, science, English
+      lit, history) rather than generalist "English teaching."</li>
+</ul>
+<h3>Salary</h3>
+<p>¥5–9M for classroom teachers; ¥9–14M for heads of department; ¥12–20M for principals
+and senior administrators. Many international schools include housing allowances and
+flight allowances for international hires.</p>
+<h3>Major employers</h3>
+<p>American School in Japan (ASIJ, Chofu), British School in Tokyo, Tokyo International
+School, K International (Tokyo), Yokohama International School, Saint Maur (Yokohama),
+Osaka International School (Senri), Kobe Canadian Academy.</p>
+
+<h2 id="comparison">Side-by-side comparison</h2>
+<table>
+  <thead><tr><th>Track</th><th>Pay (yr 1)</th><th>Hours</th><th>Visa</th><th>Path</th></tr></thead>
+  <tbody>
+    <tr><td>JET</td><td>¥3.36–4.32M</td><td>Standard school week</td><td>Instructor or Specified Activities</td><td>Max 5 yrs in program</td></tr>
+    <tr><td>Eikaiwa (NOVA / AEON / ECC)</td><td>¥3.00–3.84M</td><td>Evenings + weekends</td><td>Engineer/Specialist</td><td>2–4 yrs typical</td></tr>
+    <tr><td>Dispatch ALT</td><td>¥2.28–3.12M</td><td>School day</td><td>Engineer/Specialist</td><td>Max 3 yrs same dispatcher</td></tr>
+    <tr><td>International school</td><td>¥5–9M</td><td>Standard school week</td><td>Instructor</td><td>Long-term career</td></tr>
+  </tbody>
+</table>
+
+<h2 id="reality">The honest realities</h2>
+<ul>
+  <li><strong>The ceiling is low.</strong> Most teaching jobs cap around ¥4M without
+      moving into management, training design, or international schools. Compared to
+      ¥9.5M median for engineers, the financial gap widens every year.</li>
+  <li><strong>Burnout is real.</strong> 5–8 back-to-back conversation classes, week after
+      week, especially with children, wears people down. Industry-wide turnover at
+      eikaiwa runs 30–50% annually.</li>
+  <li><strong>The visa is portable but the skills aren't easily transferable</strong>
+      back home. Three years of eikaiwa teaching translates to "ESL teacher" on a Western
+      resume — useful for some roles, irrelevant for most.</li>
+  <li><strong>Japanese improves but slowly.</strong> Most eikaiwa and ALT workers reach
+      survival Japanese (N4-N3) by year 2 and plateau. Real fluency requires deliberate
+      study outside work hours that few find time for.</li>
+  <li><strong>Living is comfortable enough.</strong> ¥3M/yr buys a basic but workable
+      life in suburban Tokyo or any of the smaller cities. International school income is
+      genuinely solid.</li>
+</ul>
+
+<h2 id="exit-paths">Exit paths into other careers</h2>
+<p>Most foreign teachers leave Japan or move into a different career within 3 years. The
+common transition paths:</p>
+<ul>
+  <li><strong>Teaching → corporate training / curriculum design.</strong> Same skills
+      applied to a higher-paying B2B context. Companies like Beyond Language Learning,
+      Berlitz Corporate, and various in-house language departments pay ¥5–8M for
+      experienced corporate trainers.</li>
+  <li><strong>Teaching → bilingual sales / customer success.</strong> If your Japanese
+      has reached N2+, your communication skills translate. Many SaaS companies pay
+      ¥6–10M for foreign customer success managers.</li>
+  <li><strong>Teaching → tech via self-study.</strong> A small but real cohort breaks
+      into software engineering after a year or two of focused self-study. JET savings
+      help fund the transition. See the
+      <a href="/stories/marco-eikaiwa-to-engineering">Marco eikaiwa-to-engineering story</a>
+      for a representative path.</li>
+  <li><strong>Teaching → translation / interpretation.</strong> Requires N1 + specialised
+      skills. Pays ¥4–8M for full-time staff roles.</li>
+  <li><strong>Teaching → starting your own school or business.</strong> Requires the
+      Business Manager visa (post-October 2025: ¥30M capital, full-time staff, JLPT N2)
+      so this is a long-term play, not a quick exit.</li>
+</ul>
+<div class="callout">
+  If you came to Japan via teaching and want to keep going long-term, start exit-planning
+  in your first six months. The longer you stay in eikaiwa specifically, the harder the
+  transition tends to get — both because of skill atrophy and because Japanese hiring
+  managers begin reading your CV as "career teacher."
+</div>
+""",
+    },
+]
+
+
+def get_resource(slug: str) -> dict | None:
+    return next((r for r in RESOURCES if r["slug"] == slug), None)
+
+
+def get_guide(slug: str) -> dict | None:
+    return next((g for g in GUIDES if g["slug"] == slug), None)
+
+
+# ---------------------------------------------------------------------------
+# Success stories — composite profiles of foreigners hired in Japan.
+# The names are illustrative; numbers and trajectories are representative
+# of patterns we see in user testimonials and TokyoDev's annual survey.
+# ---------------------------------------------------------------------------
+
+STORIES: list[dict] = [
+    {
+        "slug": "alex-engineer-from-abroad",
+        "avatar": "cpu",
+        "name": "Alex M.",
+        "role": "Senior Backend Engineer @ Mercari",
+        "headline": "Got hired from Berlin, started in Tokyo 3 months later — ¥11M base.",
+        "summary": "How a German backend engineer with no Japanese landed a senior role at a Tokyo product company without ever flying out for interviews.",
+        "tags": ["Software Engineering", "Visa sponsorship", "English-only"],
+        "from_location": "Berlin, Germany",
+        "current_role": "Senior Backend Engineer",
+        "current_company": "Mercari",
+        "japanese_level": "None at time of hire (now N4)",
+        "background": """
+Alex spent 7 years as a backend engineer in Berlin, mostly working on payments
+infrastructure at a fintech scale-up. By 2025 he was tired of the European tech ecosystem
+and wanted a market with bigger problems but lower competitive intensity than the US. Japan
+had been on his shortlist for a while.""",
+        "process": """
+He targeted four companies he'd already used as a consumer (Mercari, SmartNews, PayPay,
+Indeed Tokyo). Applied directly through their careers pages — no recruiters, no agencies.
+Total timeline: first application sent in early January, first offer arrived in early March,
+moved to Tokyo in May.
+
+Interview process: 1 recruiter call → 1 technical screen (live coding, in English) →
+2 on-site interviews (system design + behavioral, done as video calls). All conversations
+happened in English. He never flew out for interviews — Mercari does final rounds remotely
+for overseas candidates.""",
+        "outcome": """
+Final offer: ¥11M base salary + ¥2M signing bonus + RSU package. Mercari sponsored
+both the working visa (Engineer/Specialist) and the relocation logistics: shipping container,
+30 days of corporate housing, 3 weeks of in-person Japanese lessons.""",
+        "lessons": [
+            "Apply directly to companies. Recruiters skew toward Japanese-speaking candidates.",
+            "Have a clear theme to your background. 'Payments at scale' opened more doors than 'general backend'.",
+            "Don't worry about Japanese for the initial application — the companies that hire remotely either don't need it, or will pay for lessons after you arrive.",
+            "Negotiate hard on the signing bonus. Base salaries are sticky at Japanese companies; one-off cash is easier to move.",
+        ],
+    },
+    {
+        "slug": "priya-design-london-to-tokyo",
+        "avatar": "pencil",
+        "name": "Priya R.",
+        "role": "Product Designer @ LINE Yahoo Japan",
+        "headline": "Used JLPT N2 plus a strong portfolio to compete head-on with Japanese designers.",
+        "summary": "Studied Japanese for 18 months, then applied to bilingual design roles in Tokyo.",
+        "tags": ["Design", "JLPT N2", "Bilingual roles"],
+        "from_location": "London, UK",
+        "current_role": "Product Designer",
+        "current_company": "LINE Yahoo Japan",
+        "japanese_level": "JLPT N2",
+        "background": """
+Priya worked at a London consumer-mobile startup for 5 years. Her partner is Japanese, so
+relocating to Tokyo was always the long-term plan, but she didn't want to start over as a
+junior. She gave herself 18 months to get to N2 while keeping her current job.""",
+        "process": """
+By the time she applied, she'd built a portfolio site with English + Japanese case studies,
+sat the JLPT N2 (passed on second attempt), and joined a couple of Tokyo design Slack groups.
+Interview process: 5 companies, all bilingual roles. Two rejected her in the first round.
+LINE Yahoo's interview was conducted ~70% in English with the remainder in Japanese, mostly
+small talk to confirm she could function in mixed-language meetings.""",
+        "outcome": """
+¥8.5M base + bonuses (typically 4 months at LINE Yahoo, so ~¥11M total comp). Spouse visa
+through her partner, so no visa sponsorship needed from the employer.""",
+        "lessons": [
+            "Bilingual design roles pay more than 'English-only' equivalents — the supply of N2 designers is small.",
+            "Translate at least 2 case studies into Japanese for your portfolio. It signals seriousness more than the JLPT certificate alone.",
+            "If you have a Japanese spouse, get the spouse visa first — it gives you unrestricted work rights and you stop being a visa liability for employers.",
+        ],
+    },
+    {
+        "slug": "marco-eikaiwa-to-engineering",
+        "avatar": "mortar-board",
+        "name": "Marco D.",
+        "role": "Software Engineer @ Cybozu",
+        "headline": "From eikaiwa teacher to ¥7M backend engineer in 3 years.",
+        "summary": "Used English teaching as a foothold, then taught himself Go on weekends and switched careers without leaving Japan.",
+        "tags": ["Software Engineering", "Career change", "Teaching → tech"],
+        "from_location": "Madrid, Spain (originally), Osaka → Tokyo",
+        "current_role": "Software Engineer",
+        "current_company": "Cybozu",
+        "japanese_level": "JLPT N3",
+        "background": """
+Marco came to Osaka in 2022 on an eikaiwa contract — ¥260K/month, 5 days a week, no benefits.
+Decent foothold but a dead end financially. He'd studied computer science briefly in Spain
+years earlier but never worked in tech. Started teaching himself Go evenings and weekends in
+his first year in Japan.""",
+        "process": """
+Built one small open-source CLI tool (a JLPT vocabulary spaced-repetition timer) and got it
+to ~150 stars on GitHub. After 18 months at the eikaiwa, started applying to junior engineer
+roles. Got 22 rejections in 4 months. The 23rd application — a small bilingual SaaS company —
+brought him in for a paid take-home (¥30K for a weekend's work) and offered him the role.
+
+Worked there for 14 months at ¥4.5M, then jumped to Cybozu via a referral from a Tokyo Dev
+Slack contact he'd met at a meetup.""",
+        "outcome": """
+Now at Cybozu in Tokyo. ¥7.2M base + bonuses. Sponsored their visa transition from Instructor
+(eikaiwa) to Engineer / Specialist with zero gap in residence status.""",
+        "lessons": [
+            "Eikaiwa is fine as a starting point. It's NOT fine as a destination — plan your exit in your first 6 months.",
+            "Open-source contributions matter more than degrees for foreign engineers in Japan. They de-risk the hire.",
+            "Get to N3 minimum before switching into tech. Even at 'English-friendly' companies, the documentation, Jira tickets, and lunchtime chatter are still in Japanese.",
+        ],
+    },
+    {
+        "slug": "yuki-foreign-pr-to-startup-founder",
+        "avatar": "rocket",
+        "name": "Yuki S.",
+        "role": "Founder / CEO @ stealth-mode B2B SaaS",
+        "headline": "Used Business Manager visa to start a company in Tokyo.",
+        "summary": "Quit her Tokyo enterprise PM role at 32, used HSP points to fast-track PR, then went out on her own.",
+        "tags": ["Business Manager visa", "Founder", "HSP"],
+        "from_location": "Singapore (originally), Tokyo for 6 years",
+        "current_role": "Founder / CEO",
+        "current_company": "(stealth)",
+        "japanese_level": "JLPT N1",
+        "background": """
+Yuki moved to Tokyo from Singapore in 2020 to take a product manager role at a large enterprise.
+N1 fluency, masters from Waseda, ¥10M salary by year 4 — strong HSP point profile (95 by her
+last calculation). Got PR through the 1-year HSP fast-track in 2024.""",
+        "process": """
+Spent 2024 quietly building the prototype for a B2B SaaS tool aimed at Japanese small businesses.
+Quit her PM role in late 2024 with 18 months of runway. Filed for a Business Manager visa
+transition (capital deposited, office secured in Roppongi, hired her first full-time engineer)
+— approved in 11 weeks.""",
+        "outcome": """
+Now in seed-fundraising mode, talking to JAFCO, Coral Capital, and a couple of corporate VCs.
+Day-to-day operating in Japanese with one bilingual engineer.""",
+        "lessons": [
+            "PR before founding is a huge unlock — you stop being beholden to any single visa or employer.",
+            "Business Manager visa requires real substance: ¥5M deposited, real office, a real plan. The Immigration Bureau will visit.",
+            "Japanese VC due diligence is exhaustive — expect months, not weeks.",
+        ],
+    },
+]
+
+
+def get_story(slug: str) -> dict | None:
+    return next((s for s in STORIES if s["slug"] == slug), None)
+
+
+# ---------------------------------------------------------------------------
+# Community groups — curated external links.
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Phase 6: Interview questions by role family + STAR prompts
+# ---------------------------------------------------------------------------
+
+INTERVIEW_QUESTIONS: dict[str, list[dict]] = {
+    "Software Engineering": [
+        {"q": "Walk me through the most complex system you've designed.",
+         "watch_for": "Look for: who the users were, what tradeoffs were made, what failed and how it was fixed.",
+         "jp_tip": "Japanese interviewers love specifics — name the technology stack and quantify the scale."},
+        {"q": "Describe a time you had to debug a production issue under pressure.",
+         "watch_for": "Look for: methodical process, communication, post-mortem follow-through.",
+         "jp_tip": "Lead with what you did to prevent recurrence — Japanese eng culture prizes 改善 (kaizen)."},
+        {"q": "How do you approach learning a new technology?",
+         "watch_for": "Look for: structure (read docs → build small thing → ship → review).",
+         "jp_tip": "Mention if you've taught the technology to others — collaborative learning is valued."},
+        {"q": "Tell me about a code review that taught you something.",
+         "watch_for": "Look for: openness to feedback, willingness to revise.",
+         "jp_tip": "Phrase it humbly — 'I learned that…' rather than 'they were wrong about…'."},
+        {"q": "What's a recent technical decision you'd revisit if you could?",
+         "watch_for": "Look for: self-awareness, ability to articulate trade-offs in retrospect.",
+         "jp_tip": "Don't trash former colleagues. Focus on the decision, not the people."},
+        {"q": "How would you onboard a junior engineer to your current team?",
+         "watch_for": "Look for: empathy, documentation instinct, time investment willingness.",
+         "jp_tip": "Mentorship is hugely valued at Japanese tech companies."},
+        {"q": "Where do you want to be in 3 years?",
+         "watch_for": "Look for: clear direction, alignment with the role they're hiring for.",
+         "jp_tip": "Japanese companies expect longer tenures — don't say 'I'll be looking elsewhere'."},
+    ],
+    "Data / AI": [
+        {"q": "Walk me through an ML project end-to-end — problem framing, data, model, deploy.",
+         "watch_for": "Look for: did they validate the problem before modeling?",
+         "jp_tip": "Quantify the business impact — Japanese hiring managers underweight pure modeling chops."},
+        {"q": "How do you handle a model that performs well offline but poorly in production?",
+         "watch_for": "Look for: data drift awareness, feedback loops, evaluation discipline.",
+         "jp_tip": "Show structured thinking; the recruiter may translate notes for tech panels."},
+        {"q": "Tell me about a time data was missing or low-quality. How did you proceed?",
+         "watch_for": "Look for: pragmatism, communication with stakeholders.",
+         "jp_tip": "Acknowledge limitations honestly — overclaiming hurts trust."},
+        {"q": "What's a recent paper or technique you found compelling?",
+         "watch_for": "Look for: real curiosity beyond the role's narrow tech stack.",
+         "jp_tip": "Tie it to a hypothetical at their company; it shows you researched them."},
+        {"q": "How do you decide between a simple model and a complex one?",
+         "watch_for": "Look for: bias toward simplicity, willingness to ship.",
+         "jp_tip": "Japanese teams often prefer simple, observable systems."},
+    ],
+    "Product Management": [
+        {"q": "Tell me about a feature you killed. Why?",
+         "watch_for": "Look for: data-driven reasoning, customer empathy.",
+         "jp_tip": "Killing features requires courage — Japanese PMs are praised for this."},
+        {"q": "How do you decide what NOT to build?",
+         "watch_for": "Look for: prioritization framework, opportunity cost awareness.",
+         "jp_tip": "Reference any Japan-specific user research you've done."},
+        {"q": "Describe a cross-functional disagreement you resolved.",
+         "watch_for": "Look for: facilitation skills, willingness to compromise.",
+         "jp_tip": "Japanese culture deeply values group consensus (合意 — gōi). Lean into it."},
+        {"q": "How would you measure success for our product in its first year?",
+         "watch_for": "Look for: research into the actual product, clear North-Star thinking.",
+         "jp_tip": "Bring 2-3 specific suggestions, not a generic 'I'd look at engagement'."},
+        {"q": "How do you handle pushback from engineering on scope?",
+         "watch_for": "Look for: trust-building, willingness to descope.",
+         "jp_tip": "Avoid sounding combative — emphasize 'partnering' over 'pushing back'."},
+    ],
+    "Design": [
+        {"q": "Walk me through a project from research to shipped design.",
+         "watch_for": "Look for: structured process, evidence of iteration.",
+         "jp_tip": "Bring a Japanese case study if you have one — it signals you understand the market."},
+        {"q": "Describe a design you defended that turned out to be wrong.",
+         "watch_for": "Look for: humility, learning orientation.",
+         "jp_tip": "Spinning this positively is hard — practice the answer aloud."},
+        {"q": "How do you handle stakeholders who want their preferences over user data?",
+         "watch_for": "Look for: diplomacy, ability to educate, framing.",
+         "jp_tip": "In Japan, defer first, then propose alternatives — direct refusal is rare."},
+    ],
+    "Sales / BD": [
+        {"q": "Tell me about your largest deal. How did you close it?",
+         "watch_for": "Look for: specifics on stakeholder mapping, objection handling.",
+         "jp_tip": "Naming Japanese companies you've worked with builds credibility."},
+        {"q": "How would you build pipeline in Japan with limited language?",
+         "watch_for": "Look for: realism, partnership thinking, comfort with constraints.",
+         "jp_tip": "Acknowledge the limitation up front; propose how to compensate."},
+        {"q": "Describe a deal you lost. What did you learn?",
+         "watch_for": "Look for: ownership rather than blaming.",
+         "jp_tip": "Self-criticism is culturally appreciated — don't be afraid to look 'weak'."},
+    ],
+    # Behavioral questions every interview throws at you
+    "Behavioral (universal)": [
+        {"q": "Why do you want to work at our company specifically?",
+         "watch_for": "Specificity: a product, a value, a recent announcement, not generic praise.",
+         "jp_tip": "Mention something only an insider would know — recent news, a hiring blog post, a CEO talk."},
+        {"q": "Why are you leaving your current role?",
+         "watch_for": "Forward-looking framing, not bitter retrospection.",
+         "jp_tip": "Loyalty matters — don't bash your current employer."},
+        {"q": "Tell me about a conflict at work and how you resolved it.",
+         "watch_for": "Process: listen → understand → find common ground → propose.",
+         "jp_tip": "Indirect resolution is normal in Japan — explicit confrontation is rare."},
+        {"q": "What's your biggest weakness?",
+         "watch_for": "Real but addressable, with concrete steps you're taking.",
+         "jp_tip": "Acknowledging a Japanese-specific weakness (language, culture) with a plan signals self-awareness."},
+        {"q": "Why Japan, and why now?",
+         "watch_for": "Genuine reasons beyond 'I like anime'. Career, life-stage, partner, depth of interest.",
+         "jp_tip": "If your reasons include a Japanese spouse or long-term ties, mention it — signals retention."},
+        {"q": "Do you have any questions for us?",
+         "watch_for": "ALWAYS prepare 3-5. The depth of your questions signals seriousness.",
+         "jp_tip": "Ask about team dynamics, success criteria for the role, mentorship, learning culture."},
+    ],
+}
+
+# STAR template prompts for the answer-builder
+STAR_PROMPTS = {
+    "Situation": "Set the context. When? Where? What was the team / scope?",
+    "Task":      "What was your specific responsibility or goal?",
+    "Action":    "What did YOU (not 'we') actually do? Pick 2-3 specific actions.",
+    "Result":    "What happened? Include numbers, percentages, business impact.",
+}
+
+
+# ---------------------------------------------------------------------------
+# Phase 6: Career roadmaps per role family
+# ---------------------------------------------------------------------------
+
+ROADMAPS: list[dict] = [
+    {
+        "slug": "software-engineering",
+        "icon": "cpu",
+        "title": "Software Engineering — career roadmap in Japan",
+        "summary": "From bootcamp grad to staff/principal at a Tokyo product company. Five stages with skills, salary, and timeline.",
+        "stages": [
+            {
+                "title": "Junior / Associate Engineer",
+                "years": "0-2 yrs",
+                "salary": "¥4M – ¥6M",
+                "skills": [
+                    "One mainstream language (Go, Python, TypeScript, Java) at confident level.",
+                    "Git workflow, code review etiquette, basic CI/CD familiarity.",
+                    "Reading specs / Jira tickets and shipping in 1-week increments.",
+                    "Owning small features end-to-end with senior support.",
+                ],
+                "promotion_to_next": "Ship a project you own from spec to production. Mentor an intern or junior. Pass a basic on-call shift.",
+                "japan_specifics": [
+                    "Most JP entry-level eng salaries are ¥4-5M. Mercari, SmartNews, foreign-cap startups go higher.",
+                    "Most teams will have at least some Japanese — get to N3 by end of year 2.",
+                ],
+            },
+            {
+                "title": "Mid Engineer",
+                "years": "2-5 yrs",
+                "salary": "¥6M – ¥10M",
+                "skills": [
+                    "Strong primary stack + comfort with adjacent areas (e.g. backend + some frontend).",
+                    "Design docs and tradeoff analysis for medium-sized features.",
+                    "Database design (indexing, denormalization, transactions).",
+                    "Production debugging using observability tooling (logs, traces, metrics).",
+                    "Code review giver, not just receiver.",
+                ],
+                "promotion_to_next": "Drive a quarter-long initiative across 2-3 engineers. Be the on-call expert for one subsystem. Interview candidates.",
+                "japan_specifics": [
+                    "This is the sweet spot for switching companies — pay jumps 20-40% per move.",
+                    "Mercari / PayPay / LINE Yahoo offer signing bonuses of ¥1-3M at this level.",
+                ],
+            },
+            {
+                "title": "Senior Engineer",
+                "years": "5-9 yrs",
+                "salary": "¥10M – ¥16M",
+                "skills": [
+                    "System design across multiple services, including async / distributed concerns.",
+                    "Designing migrations from legacy systems with zero downtime.",
+                    "Setting technical direction for a team or sub-team.",
+                    "Mentoring 2-3 mid-level engineers actively.",
+                    "Cross-team comms: explaining tradeoffs to PM, design, leadership.",
+                ],
+                "promotion_to_next": "Lead a 6-12 month project that touches 3+ teams. Author a public-facing engineering blog post. Be in the room when the architecture decisions get made.",
+                "japan_specifics": [
+                    "Many senior engineers plateau here for years — that's fine if comp keeps growing.",
+                    "Equity packages start mattering. Pre-IPO startups offer 0.05-0.2%.",
+                ],
+            },
+            {
+                "title": "Staff / Tech Lead",
+                "years": "9-12 yrs",
+                "salary": "¥14M – ¥22M",
+                "skills": [
+                    "Reason about cross-cutting concerns (security, observability, reliability) across the org.",
+                    "Drive consensus on technical direction across multiple teams.",
+                    "Mentor seniors (not just juniors).",
+                    "Translate business problems into multi-quarter technical roadmaps.",
+                    "Write artifacts that outlast you: design docs, postmortems, training materials.",
+                ],
+                "promotion_to_next": "Become the named technical authority on one major area for the company. Lead a hiring loop. Sponsor at least one engineer's promotion.",
+                "japan_specifics": [
+                    "Rare at small companies; more common at Indeed / Mercari / Rakuten / global FAANGs in Tokyo.",
+                    "RSU packages start being a meaningful share of comp at FAANG.",
+                ],
+            },
+            {
+                "title": "Principal / Distinguished",
+                "years": "12+ yrs",
+                "salary": "¥18M – ¥35M+",
+                "skills": [
+                    "Set technical strategy at the company or division level.",
+                    "Direct technical influence over decisions made by VPs and C-suite.",
+                    "External technical reputation: talks, papers, open source.",
+                    "Train other staff engineers to become principals.",
+                ],
+                "japan_specifics": [
+                    "Maybe 50-100 people in Tokyo at this level across all companies.",
+                    "Most reach it after one big move to a foreign-cap firm (Google / Amazon / Stripe).",
+                ],
+            },
+        ],
+        "common_pivots": [
+            "→ Engineering Manager: people-first, ¥15-22M, less coding.",
+            "→ Founder: high risk, requires PR or Business Manager visa.",
+            "→ Solutions Architect / DevRel: heavy customer interaction, ¥15-25M, sometimes more travel.",
+            "→ Independent contractor: ¥15-25M/yr equivalent but no benefits / visa sponsorship.",
+        ],
+    },
+    {
+        "slug": "data-ai",
+        "icon": "database",
+        "title": "Data / AI — career roadmap in Japan",
+        "summary": "From junior data analyst to ML platform lead. Three sub-tracks (analyst / scientist / engineer) and how they merge at senior.",
+        "stages": [
+            {
+                "title": "Junior Data Analyst / Data Engineer",
+                "years": "0-2 yrs",
+                "salary": "¥4.5M – ¥7M",
+                "skills": [
+                    "SQL fluently. Python / pandas for transformations. Tableau or Looker.",
+                    "Building daily dashboards, answering business stakeholder questions.",
+                    "Basic statistics: p-values, confidence intervals, A/B test reading.",
+                ],
+                "promotion_to_next": "Own a dashboard end-to-end. Catch one data quality issue before stakeholders do. Run one A/B test.",
+                "japan_specifics": [
+                    "Many Japanese companies underinvest in data — opportunity if you can demonstrate impact.",
+                ],
+            },
+            {
+                "title": "Mid Data Scientist / ML Engineer",
+                "years": "2-5 yrs",
+                "salary": "¥7M – ¥12M",
+                "skills": [
+                    "Build and ship one production model end-to-end.",
+                    "Feature engineering, hyperparameter tuning, simple deep learning.",
+                    "Statistical experimentation design — A/B/n, sequential testing.",
+                    "Pair with product to define success metrics.",
+                ],
+                "promotion_to_next": "Ship a model that drives a measurable revenue/cost number. Onboard a junior.",
+                "japan_specifics": [
+                    "LLM teams at Cyberagent, Rakuten, and PFN pay top of band.",
+                ],
+            },
+            {
+                "title": "Senior / Staff ML",
+                "years": "5-9 yrs",
+                "salary": "¥12M – ¥20M",
+                "skills": [
+                    "Architect end-to-end ML systems: training pipelines, online inference, monitoring.",
+                    "Influence product strategy with data-driven recommendations.",
+                    "Mentor a team of 3-5 analysts/scientists.",
+                ],
+                "japan_specifics": [
+                    "Preferred Networks, Sakana AI, and global FAANG Tokyo offices pay ¥18-25M+ at this level.",
+                ],
+            },
+        ],
+        "common_pivots": [
+            "→ Research scientist (PhD-heavy track): less business-facing, ¥15-30M.",
+            "→ Analytics engineering: between data and software eng, currently hot.",
+        ],
+    },
+    {
+        "slug": "product-management",
+        "icon": "clipboard",
+        "title": "Product Management — career roadmap in Japan",
+        "summary": "PM roles for foreigners in Japan are scarcer than eng — but doors open faster once you're in.",
+        "stages": [
+            {
+                "title": "Associate PM",
+                "years": "0-2 yrs",
+                "salary": "¥5M – ¥8M",
+                "skills": [
+                    "Write a clear PRD. Run a sprint review. Hold a retrospective.",
+                    "Light data analysis — basic SQL is the floor.",
+                    "User research basics — interviewing 5 users without leading them.",
+                ],
+                "japan_specifics": [
+                    "Most APM positions go to internal converts (engineer / designer → PM) rather than external hires.",
+                ],
+            },
+            {
+                "title": "Mid PM",
+                "years": "2-5 yrs",
+                "salary": "¥8M – ¥13M",
+                "skills": [
+                    "Own a feature area end-to-end across 1-2 quarters.",
+                    "Run discovery: customer interviews, market research, competitive scan.",
+                    "Influence engineering and design without authority.",
+                ],
+                "japan_specifics": [
+                    "Bilingual PMs are heavily in demand at companies expanding into Japan.",
+                ],
+            },
+            {
+                "title": "Senior / Group PM",
+                "years": "5-9 yrs",
+                "salary": "¥13M – ¥20M",
+                "skills": [
+                    "Set product strategy for an area with multiple feature teams.",
+                    "Mentor 2-3 PMs.",
+                    "Manage stakeholders up to VP/Director level.",
+                ],
+            },
+        ],
+        "common_pivots": [
+            "→ Director of Product: ¥18-30M.",
+            "→ Chief of Staff: cross-functional executive role.",
+            "→ VC associate: Japan ecosystem is hungry for ex-PMs.",
+        ],
+    },
+    {
+        "slug": "design",
+        "icon": "pencil",
+        "title": "Design — career roadmap in Japan",
+        "summary": "Product / UX / UI designers in Japan. Bilingual roles pay more than English-only because supply is small.",
+        "stages": [
+            {
+                "title": "Junior Designer",
+                "years": "0-2 yrs",
+                "salary": "¥4M – ¥7M",
+                "skills": [
+                    "Figma fluency, design system usage.",
+                    "Wireframing and prototyping.",
+                    "Basic user research: usability tests, click tests.",
+                ],
+            },
+            {
+                "title": "Mid Product Designer",
+                "years": "2-5 yrs",
+                "salary": "¥7M – ¥11M",
+                "skills": [
+                    "Lead design for a feature from research to ship.",
+                    "Run user interviews; synthesize insights.",
+                    "Contribute to the design system.",
+                ],
+                "japan_specifics": [
+                    "JP-language case studies make a strong portfolio differentiator.",
+                ],
+            },
+            {
+                "title": "Senior / Staff Designer",
+                "years": "5-9 yrs",
+                "salary": "¥11M – ¥17M",
+                "skills": [
+                    "Own design direction for a major product area.",
+                    "Mentor mid-level designers.",
+                    "Cross-functional partnership at director level.",
+                ],
+            },
+        ],
+        "common_pivots": [
+            "→ Design Manager: ¥15-22M.",
+            "→ Design Engineer: hybrid role at modern startups.",
+            "→ Brand / Marketing design: different ladder, similar comp.",
+        ],
+    },
+]
+
+
+# ---------------------------------------------------------------------------
+# Phase 6: Pillar guides — long-form SEO content
+# ---------------------------------------------------------------------------
+
+PILLAR_GUIDES: list[dict] = [
+    {
+        "slug": "visa-deep-dive",
+        "icon": "clipboard",
+        "title": "The complete Japan work visa guide for foreigners",
+        "summary": "Everything we know about Japan's work visas in one place: who qualifies, what it costs, how long it takes, common pitfalls.",
+        "read_time": "12 min",
+        "toc": [
+            ("overview",      "Overview: which visa fits your situation"),
+            ("engineer",      "Engineer / Specialist in Humanities (most common)"),
+            ("hsp",           "Highly Skilled Professional (HSP)"),
+            ("business",      "Business Manager"),
+            ("instructor",    "Instructor"),
+            ("workinghol",    "Working Holiday"),
+            ("jfind",         "Designated Activities (J-Find)"),
+            ("spouse",        "Spouse visa"),
+            ("documents",     "Documents you'll need"),
+            ("timeline",      "Realistic timeline"),
+            ("pitfalls",      "Common pitfalls"),
+            ("transitions",   "Transitioning visa types"),
+            ("pr",            "Path to permanent residence"),
+        ],
+        "body": """
+<h2 id="overview">Overview: which visa fits your situation</h2>
+<p>Japan has 27 types of residence status, but the ones most foreigners care about are six work
+visas, a couple of "designated activities" categories, and the spouse / dependent visas.</p>
+<p>The quickest way to figure out which one fits you: run our
+<a href="/tools/visa-eligibility">visa eligibility checker</a>, then come back here for the
+deep dive. The HSP threshold can also be checked with the
+<a href="/tools/hsp-points">HSP points calculator</a>.</p>
+
+<h2 id="engineer">Engineer / Specialist in Humanities / International Services</h2>
+<p>The default work visa for most foreigners in tech, finance, business, design, marketing,
+translation, and language teaching. About 70% of new working-visa approvals fall under this
+category.</p>
+<h3>Who qualifies</h3>
+<ul>
+  <li>Bachelor's degree in a field relevant to the job, <strong>OR</strong></li>
+  <li>10+ years of practical work experience in the field (less common, harder to prove), <strong>OR</strong></li>
+  <li>For language-teaching specifically: bachelor's degree (any field) + proven language skills.</li>
+</ul>
+<h3>Sponsorship</h3>
+<p>An employer has to sponsor your application. You can't apply for this visa speculatively
+without a job offer.</p>
+<h3>Cost</h3>
+<p>The Certificate of Eligibility (COE) costs ¥0 if filed by your employer in Japan. The visa
+sticker at the embassy is roughly ¥3,000 single-entry / ¥6,000 multi.</p>
+<h3>Duration</h3>
+<p>Granted in 1, 3, or 5-year increments. Renewable indefinitely.</p>
+
+<h2 id="hsp">Highly Skilled Professional (HSP) — Type 1(b)</h2>
+<p>The "fast lane" visa. Points-based; you need 70+ to qualify for the 5-year HSP visa, or 80+
+for the 1-year permanent-residency fast track.</p>
+<p>Run the <a href="/tools/hsp-points">HSP calculator</a> to score yourself. The most common
+ways to hit 70 are:</p>
+<ul>
+  <li>Master's (20) + 7 yrs experience (15) + age &lt;35 (10) + ¥7M salary (25) = 70</li>
+  <li>Bachelor's (10) + 5 yrs (10) + age &lt;30 (15) + ¥6M (20) + JLPT N1 (15) = 70</li>
+  <li>PhD (30) + 5 yrs (10) + age &lt;35 (10) + ¥7M (25) = 80</li>
+</ul>
+
+<h2 id="business">Business Manager</h2>
+<p>For founders and executives running a Japan-registered business.</p>
+<h3>Requirements</h3>
+<ul>
+  <li>Real office (no virtual offices accepted).</li>
+  <li>¥5M minimum capital investment.</li>
+  <li>Either two full-time non-foreign staff OR ¥5M+ in operational expenses each year.</li>
+  <li>A credible business plan.</li>
+</ul>
+<p>Immigration officers may physically visit your office. Be prepared.</p>
+
+<h2 id="instructor">Instructor</h2>
+<p>Specifically for K-12 teachers at Japanese elementary, junior-high, and high schools.
+Eikaiwa (English conversation school) and corporate teaching roles use Engineer/Specialist
+instead, not Instructor.</p>
+
+<h2 id="workinghol">Working Holiday</h2>
+<p>If you're 18-30 (some countries 18-25), citizen of one of 27 partner countries, and meet
+the financial requirements (typically ¥250K liquid assets at entry), you can apply for a 6-12
+month working holiday visa.</p>
+<p>It's not a path to long-term residence, but it's an excellent way to test Japan before
+committing.</p>
+
+<h2 id="jfind">Designated Activities (J-Find)</h2>
+<p>Introduced in 2023 for graduates of top-ranked global universities. Gives you up to 2 years
+in Japan to find work.</p>
+
+<h2 id="spouse">Spouse visa</h2>
+<p>If your spouse is a Japanese citizen or PR holder, this is the simplest visa. Unrestricted
+work rights, eligible for PR after 3 years, and you stop being a visa liability for employers.</p>
+
+<h2 id="documents">Documents you'll need</h2>
+<p>Universal: passport, photos (4×3 cm), application form. Plus visa-specific items:</p>
+<ul>
+  <li><strong>Engineer/Specialist:</strong> diploma + transcript, employer's company registration, employment contract.</li>
+  <li><strong>HSP:</strong> all of the above + point sheet + supporting documents (JLPT certificate, etc.).</li>
+  <li><strong>Business Manager:</strong> business plan, office lease, capital deposit proof, hiring records.</li>
+  <li><strong>Spouse:</strong> marriage certificate (Japanese family register if applicable), spouse's residence card or koseki.</li>
+</ul>
+<p>Use our <a href="/tools/visa-timeline">visa timeline tool</a> to get a checklist
+specific to your situation.</p>
+
+<h2 id="timeline">Realistic timeline</h2>
+<ul>
+  <li>Engineer/Specialist via Japanese employer: COE takes 4-12 weeks, visa sticker 3-5 days, total ~2-4 months.</li>
+  <li>HSP: similar to E/S but officers may take longer if points are borderline (~8-14 weeks).</li>
+  <li>Business Manager: 8-16 weeks plus 2-3 months of pre-setup (registering company, opening office).</li>
+</ul>
+
+<h2 id="pitfalls">Common pitfalls</h2>
+<ul>
+  <li><strong>Mismatched job and degree:</strong> a CS grad applying for a marketing role gets refused under E/S. You'd need 10+ years of marketing experience to compensate.</li>
+  <li><strong>Salary below the minimum:</strong> ¥3M floor for E/S in practice. HSP requires ¥3M absolute minimum.</li>
+  <li><strong>Working before COE arrives:</strong> illegal. Wait.</li>
+  <li><strong>Employer trouble:</strong> if your sponsoring employer goes bankrupt or your visa is for a job that ends, you have 3 months to find a new sponsor.</li>
+  <li><strong>Visa-status mismatch:</strong> doing a job your visa doesn't permit (e.g., teaching on a marketing visa) can trigger refusal of future renewals.</li>
+</ul>
+
+<h2 id="transitions">Transitioning between visa types</h2>
+<p>Common transitions:</p>
+<ul>
+  <li>Working Holiday → Engineer/Specialist (must find sponsor before WH expires).</li>
+  <li>Engineer/Specialist → HSP (apply once you score 70+).</li>
+  <li>Engineer/Specialist or HSP → Business Manager (founding a company).</li>
+  <li>Any work visa → Spouse (marriage).</li>
+</ul>
+
+<h2 id="pr">Path to permanent residence</h2>
+<p>Standard path: 10 years of continuous residence in Japan, with 5+ of those on a working visa.
+HSP shortcuts this: 80+ points = PR in 1 year; 70+ points = PR in 3 years.</p>
+<p>Spouse visa holders: PR in 3 years (or 1 year if married 3+ years and resident 1 year).</p>
+""",
+    },
+    {
+        "slug": "negotiation-playbook",
+        "icon": "compass",
+        "title": "Salary negotiation playbook for Japan",
+        "summary": "Japanese salary negotiation has different rules than the West. Here's what works, what backfires, and how to ask for 15% more without losing the offer.",
+        "read_time": "8 min",
+        "toc": [
+            ("philosophy",   "The cultural philosophy"),
+            ("when",         "When to negotiate"),
+            ("how-much",     "How much to ask for"),
+            ("scripts",      "Scripts that work"),
+            ("non-cash",     "Non-cash negotiations"),
+            ("pitfalls",     "Pitfalls to avoid"),
+            ("counter",      "Handling 'final offer'"),
+        ],
+        "body": """
+<h2 id="philosophy">The cultural philosophy</h2>
+<p>Japanese hiring culture views salary negotiation as a normal but understated process.
+You're allowed — even expected — to negotiate, but the tone is different: collaborative,
+deferential, with specific justifications, and almost never confrontational. The goal is to
+arrive at a number both sides feel good about.</p>
+
+<h2 id="when">When to negotiate</h2>
+<ul>
+  <li><strong>After the offer arrives, before signing.</strong> Never during interviews — the
+      "salary expectations" question early on is a tripwire, not the start of negotiation.</li>
+  <li><strong>If you have a competing offer.</strong> This is the strongest lever.</li>
+  <li><strong>If your current comp is meaningfully higher.</strong> A 10-15% raise minimum is
+      standard for switching companies in Japan; less than that and you should push back.</li>
+</ul>
+
+<h2 id="how-much">How much to ask for</h2>
+<p>Reasonable asks in Japan:</p>
+<ul>
+  <li><strong>Base salary:</strong> 5-15% above the offer is normal. 20%+ is aggressive and
+      should be backed by a competing offer or unambiguous market data.</li>
+  <li><strong>Signing bonus:</strong> often easier to win than base, especially at smaller companies. ¥500K-¥3M is typical.</li>
+  <li><strong>Annual bonus structure:</strong> ask how the bonus is calculated and whether
+      it's discretionary or formula-based. Convert vague language into specific numbers.</li>
+</ul>
+
+<h2 id="scripts">Scripts that work</h2>
+<p>The script that consistently lands:</p>
+<blockquote style="background:#f9fafb; border-left:4px solid var(--accent); padding:10px 14px; margin:14px 0; font-style:italic;">
+"Thank you for the offer. I'm genuinely excited about joining {company} as {role}.
+Before I formally accept, I'd like to discuss base salary. Based on {a specific anchor —
+my current comp / a competing offer / market data}, I was hoping for {specific number}.
+Would the team have room to revisit?"
+</blockquote>
+<p>Three things this script gets right:</p>
+<ol>
+  <li>Leads with gratitude — Japanese recipients perceive any negotiation as somewhat tense
+      and lowering the temperature first reduces friction.</li>
+  <li>Names a specific anchor — vague "I think I'm worth more" lands poorly.</li>
+  <li>Uses "Would the team have room" instead of "Will you give me" — gives the recruiter
+      face to negotiate internally.</li>
+</ol>
+<p>Our <a href="/templates">email templates</a> include this script in both English and
+Japanese with prefilled placeholders.</p>
+
+<h2 id="non-cash">Non-cash negotiations</h2>
+<p>Often easier to win than base:</p>
+<ul>
+  <li><strong>Signing bonus:</strong> see above.</li>
+  <li><strong>Stock / RSU grants:</strong> at FAANG and large pre-IPO companies; ask explicitly about refresh schedule and vesting.</li>
+  <li><strong>Annual training budget:</strong> ¥200K-¥500K is increasingly common at gaijin-friendly companies.</li>
+  <li><strong>Remote work days:</strong> 2-3 days/week is negotiable; 100% remote is harder but happens.</li>
+  <li><strong>Relocation package:</strong> shipping container, 30-90 days of corporate housing,
+      Japanese lessons, family relocation assistance.</li>
+  <li><strong>Start date:</strong> push it 4-8 weeks if you need to wrap up current commitments.</li>
+</ul>
+
+<h2 id="pitfalls">Pitfalls to avoid</h2>
+<ul>
+  <li><strong>Don't give a hard number during interviews.</strong> "Open to fair-market comp"
+      or "I'm researching" is fine until the offer comes.</li>
+  <li><strong>Don't bluff about competing offers.</strong> Japanese recruiters check more than
+      you'd think; getting caught burns the offer and your reputation.</li>
+  <li><strong>Don't go silent for days.</strong> Acknowledge offers within 24 hours, even if
+      it's "thank you, I'd like a week to think it over".</li>
+  <li><strong>Don't escalate to 'final' too early.</strong> Always leave a way for both sides
+      to save face after a counter-offer.</li>
+</ul>
+
+<h2 id="counter">Handling 'this is our final offer'</h2>
+<p>Most "final offers" in Japan aren't actually final, but they signal you're approaching
+the edge. Options:</p>
+<ul>
+  <li><strong>Accept gracefully</strong> if the gap is small (less than ¥500K) and the role is
+      otherwise strong.</li>
+  <li><strong>Walk away gracefully</strong> if the gap is large. Use our
+      <a href="/templates">decline email template</a> — keep the door open. You may want to
+      apply again in 18 months.</li>
+  <li><strong>Pivot to non-cash.</strong> "I appreciate the base is fixed — would there be room
+      on the signing bonus or vesting acceleration?"</li>
+</ul>
+""",
+    },
+    {
+        "slug": "first-90-days",
+        "icon": "calendar",
+        "title": "Your first 90 days in Japan — a practical checklist",
+        "summary": "What to do in your first week, first month, and first three months in Japan — banking, phones, hanko, taxes, social. The boring-but-essential stuff.",
+        "read_time": "10 min",
+        "toc": [
+            ("airport",      "Day 1: at the airport"),
+            ("week1",        "Week 1: residence card, address registration, phone"),
+            ("month1",       "Month 1: bank account, hanko, MyNumber"),
+            ("month2",       "Month 2: National Health, pension, tax 101"),
+            ("month3",       "Month 3: language, social, hobbies, money habits"),
+            ("apartment",    "The apartment question"),
+            ("don't",        "Things you don't need to do (despite the internet)"),
+        ],
+        "body": """
+<h2 id="airport">Day 1: at the airport</h2>
+<p>At immigration, you'll receive your residence card (在留カード). Keep it on you at all times
+— it's legally required. Your work visa is now active.</p>
+<p>Most international airports have free WiFi and a JR ticket counter. Pick up an IC card
+(Suica or Pasmo) before leaving the airport — it'll be your transit pass and convenience-store
+payment method for the entire stay.</p>
+
+<h2 id="week1">Week 1: residence card, address registration, phone</h2>
+<p>Once you have a permanent address (even temporary corporate housing counts), you have
+14 days to register at your local ward office (区役所). Without this, you can't open a bank
+account or get a phone plan.</p>
+<p>What to bring: passport, residence card, lease or rental agreement.</p>
+<p>What you'll leave with: residence registration certificate (住民票), and your address gets
+printed on the back of your residence card.</p>
+<h3>Phone</h3>
+<p>Mainstream carriers (Docomo, Softbank, au) require a Japanese bank account, so most
+foreigners start with an MVNO that accepts foreign credit cards: <strong>IIJmio</strong>,
+<strong>povo 2.0</strong>, <strong>mineo</strong>, or <strong>Sakura Mobile</strong>.</p>
+<p>Plans are ¥1,500-¥3,000/month for 5-20 GB. Set this up first; you'll need a Japanese phone
+number for every subsequent step.</p>
+
+<h2 id="month1">Month 1: bank account, hanko, MyNumber</h2>
+<h3>Bank account</h3>
+<p>The bilingual-friendly banks: <strong>Shinsei Bank</strong>, <strong>Sony Bank</strong>,
+<strong>Rakuten Bank</strong>, <strong>SBI Sumishin Net Bank</strong>. JP Post Bank (ゆうちょ)
+is the universal fallback. Visit a branch; bring residence card + phone + apartment address +
+hanko (optional but often requested).</p>
+<h3>Hanko (印鑑)</h3>
+<p>The personal seal used in place of a signature on Japanese paperwork. Most newer banks
+accept signatures, but you'll eventually need one for apartments, employment paperwork, or
+buying a car. Order one online (¥3,000-¥10,000) — kanji, katakana, or romaji all work.</p>
+<h3>MyNumber card (マイナンバーカード)</h3>
+<p>Your tax/social-security ID. You'll receive a notification at your registered address
+within a couple of weeks. Then visit the ward office to convert it into the plastic card.
+You'll need it for tax filing, health-insurance changes, and government services.</p>
+
+<h2 id="month2">Month 2: National Health, pension, tax 101</h2>
+<h3>National Health Insurance (国民健康保険) — but actually 社会保険</h3>
+<p>If you're employed full-time, your employer enrolls you in 社会保険 (employee health
+insurance + pension) and withholds the premiums from your paycheck. You don't need to do
+anything yourself for this. Around 14.7% of gross salary goes to social insurance + pension.</p>
+<p>If you're freelance / unemployed for the first month, you'll enroll directly at the ward
+office in 国民健康保険 (National Health Insurance) instead.</p>
+<h3>Annual tax filing</h3>
+<p>Employed: your employer handles year-end adjustment (年末調整). You don't file unless you
+have other income.</p>
+<p>Freelance, or earnings over ¥20M, or itemized deductions: file
+<strong>確定申告</strong> (kakutei shinkoku) between February 16 and March 15 of the following
+year. Use the <a href="/tools/take-home-pay">take-home pay calculator</a> to model your
+liability.</p>
+
+<h2 id="month3">Month 3: language, social, hobbies, money habits</h2>
+<ul>
+  <li><strong>Language:</strong> commit to a JLPT level and a timeline. JLPT exams run every
+      July and December. Most foreigners benefit from N5/N4 in their first 6 months — enough
+      to read menus, ask directions, handle ward-office paperwork.</li>
+  <li><strong>Social:</strong> join 1-2 communities. See our <a href="/community">community list</a>.</li>
+  <li><strong>Money habits:</strong> Japan still has a strong cash culture, but tap-to-pay is
+      now ubiquitous (Suica/Pasmo, QR codes like PayPay/LinePay). Most utility bills get
+      direct-debited; ATM fees can be ¥220 outside business hours.</li>
+</ul>
+
+<h2 id="apartment">The apartment question</h2>
+<p>If your employer offers corporate housing for 30-90 days, take it. Apartment hunting
+is much easier once you have:</p>
+<ol>
+  <li>A residence card with your registered address.</li>
+  <li>A Japanese bank account.</li>
+  <li>A Japanese phone number.</li>
+  <li>A pay stub (給与明細) showing income, ideally 1-3 months.</li>
+</ol>
+<p>Foreigner-friendly agencies: <strong>GaijinPot Housing</strong>, <strong>Ken Real Estate</strong>,
+<strong>Apartment Japan</strong>, <strong>Sakura House</strong> (short-term). Most charge 1
+month rent as commission; plus 1-2 months key money, 1-2 months deposit, 1 month rent in
+advance. Budget ¥300K-¥600K for move-in costs.</p>
+
+<h2 id="don't">Things you don't need to do (despite the internet)</h2>
+<ul>
+  <li><strong>Carry yen in cash everywhere.</strong> Suica + a credit card covers 95% of urban purchases.</li>
+  <li><strong>Get a hanko before arriving.</strong> Order it after your name's on your
+      residence card; the kanji/katakana spelling needs to match.</li>
+  <li><strong>Bring a year's worth of medication.</strong> Japan allows a 1-month supply of
+      prescription drugs into the country without a special permit; for longer you'd need a
+      yakkan shoumei (薬監証明) form, but most foreigners just refill via a Japanese clinic.</li>
+  <li><strong>Buy a car immediately.</strong> Tokyo / Osaka / Yokohama don't need one. Outside
+      major metros, yes — but get settled first.</li>
+</ul>
+""",
+    },
+]
+
+
+# ---------------------------------------------------------------------------
+# Phase 6: Glossary of Japanese hiring terms
+# ---------------------------------------------------------------------------
+
+GLOSSARY: list[dict] = [
+    {"term": "Aiseki (相席)", "category": "Workplace",
+     "definition": "Sharing a table/seating with strangers, common at lunch counters and some izakaya. You'll experience this in corporate Japan during company outings."},
+    {"term": "Bonenkai (忘年会)", "category": "Workplace",
+     "definition": "End-of-year company drinking party held in December — literally 'forget-the-year gathering'. Attendance is socially expected but not technically mandatory."},
+    {"term": "Burakku kigyou / Black company (ブラック企業)", "category": "Warning",
+     "definition": "Slang for an exploitative employer — long unpaid hours, harassment, no career growth. Check for it in reviews before signing."},
+    {"term": "Daikigyou (大企業)", "category": "Company types",
+     "definition": "Large established Japanese corporation — Toyota, Mitsubishi, Sony, etc. Stable employment, slow career progression, strong benefits, conservative culture."},
+    {"term": "Eigyō (営業)", "category": "Role",
+     "definition": "Sales / business development. Different from Western sales — heavy on relationship cultivation, lower on quota-driven aggression."},
+    {"term": "Eikaiwa (英会話)", "category": "Industry",
+     "definition": "English conversation school. Largest employer of English-speaking foreigners in Japan. Pay is low (¥3-4M/yr), turnover is high."},
+    {"term": "Furigana (ふりがな)", "category": "Document",
+     "definition": "Phonetic reading written above or beside kanji. Required on your rirekisho for your name + address."},
+    {"term": "Gaishikei (外資系)", "category": "Company types",
+     "definition": "Foreign-capital companies — Google Japan, Goldman Sachs, Microsoft. Typically higher pay, more English, more aggressive performance management."},
+    {"term": "Genka (現価)", "category": "Compensation",
+     "definition": "Current salary. Recruiters will ask 現価はいくらですか — 'what's your current pay?'"},
+    {"term": "Hanko / Inkan (印鑑)", "category": "Document",
+     "definition": "Personal seal used in place of a signature on Japanese documents. Order one once you have your residence card."},
+    {"term": "Henji (返事)", "category": "Process",
+     "definition": "A reply — specifically the formal response (yes/no) you give the company after they make an offer. Standard to ask for a week to respond."},
+    {"term": "Hojin (法人)", "category": "Business",
+     "definition": "A legal corporate entity. Required for the Business Manager visa."},
+    {"term": "Honne / Tatemae (本音・建前)", "category": "Culture",
+     "definition": "True feelings vs. public stance. Critical for reading Japanese interviewers — what they say first is rarely what they truly mean."},
+    {"term": "HSP (高度専門職)", "category": "Visa",
+     "definition": "Highly Skilled Professional visa. Points-based; 70+ = 5-yr visa with PR in 3 yrs; 80+ = PR in 1 yr. Run the calculator at /tools/hsp-points."},
+    {"term": "Jikyū (時給)", "category": "Compensation",
+     "definition": "Hourly wage. Used for part-time and contract roles."},
+    {"term": "Joushi (上司)", "category": "Workplace",
+     "definition": "Direct manager / boss. Hierarchy matters in Japanese offices; never address your joushi by first name."},
+    {"term": "JLPT (日本語能力試験)", "category": "Certification",
+     "definition": "Japanese-Language Proficiency Test. Levels N5 (basic) to N1 (native-ish). N2+ unlocks most bilingual roles."},
+    {"term": "Kaisha-in (会社員)", "category": "Workplace",
+     "definition": "Company employee — the default identity in Japanese society. Used on the rirekisho occupation field."},
+    {"term": "Kaizen (改善)", "category": "Culture",
+     "definition": "Continuous improvement. A core Japanese workplace value — bring evidence of kaizen mindset to engineering interviews."},
+    {"term": "Keigo (敬語)", "category": "Language",
+     "definition": "Formal honorific Japanese. Used in business contexts. Spoken keigo is a JLPT N2+ skill; written is easier (templates exist)."},
+    {"term": "Kokumin Kenko Hoken (国民健康保険)", "category": "Benefits",
+     "definition": "National Health Insurance — for self-employed, students, unemployed. Most foreign workers are on 社会保険 (employer-sponsored) instead."},
+    {"term": "Koseki (戸籍)", "category": "Document",
+     "definition": "Japanese family register. You don't have one (foreigners aren't on koseki), but your Japanese spouse does — relevant for spouse visas."},
+    {"term": "Meishi (名刺)", "category": "Workplace",
+     "definition": "Business card. Receive with both hands, study briefly, place on the table in front of you. Never write on it or stuff it in a pocket."},
+    {"term": "Naitei (内定)", "category": "Process",
+     "definition": "Informal offer / 'we want to hire you'. Comes before the formal employment contract. Acceptance (内定承諾) is somewhat binding socially but not legally."},
+    {"term": "Nemawashi (根回し)", "category": "Process",
+     "definition": "Building consensus informally before formal meetings. A core skill for senior IC and PM roles in Japan."},
+    {"term": "Nenshu (年収)", "category": "Compensation",
+     "definition": "Annual income. Almost always means base + bonus. Always confirm whether bonus is included when receiving offers."},
+    {"term": "Nōkai (能力)", "category": "Skills",
+     "definition": "Ability / competency. Used in performance reviews."},
+    {"term": "Ojigi (お辞儀)", "category": "Culture",
+     "definition": "Bowing. 15° for casual workplace greetings, 30° for formal meetings, 45° for apologies or addressing executives."},
+    {"term": "OL (オーエル)", "category": "Role",
+     "definition": "'Office Lady' — slightly dated term for female office workers. You'll still see it in some job listings."},
+    {"term": "Onsha (御社)", "category": "Language",
+     "definition": "Polite way to say 'your (esteemed) company' in spoken Japanese, especially during interviews. Written equivalent: 貴社 (kisha)."},
+    {"term": "Permanent Residence / PR (永住権)", "category": "Visa",
+     "definition": "Unrestricted right to live and work in Japan. Standard path: 10 years. HSP fast-track: 3 yrs (70+ pts) or 1 yr (80+ pts)."},
+    {"term": "Rirekisho (履歴書)", "category": "Document",
+     "definition": "Standardized Japanese resume — personal info, education, work history, certs, motivation. Build one at /resume."},
+    {"term": "Sanitary (三日坊主)", "category": "Slang",
+     "definition": "Literally 'three-day monk' — someone who gives up quickly. Recruiters look for evidence you'll stay."},
+    {"term": "Sashizu (指図)", "category": "Workplace",
+     "definition": "Direct instruction. Japanese managers often avoid giving sashizu, preferring suggestion. Read context, not just words."},
+    {"term": "Senpai / Kohai (先輩・後輩)", "category": "Workplace",
+     "definition": "Senior/junior relationship by tenure. Affects who pays at drinks, who speaks first in meetings, who introduces whom."},
+    {"term": "Shachō (社長)", "category": "Workplace",
+     "definition": "Company president / CEO. Address as '社長' or '[surname]社長'."},
+    {"term": "Shakai Hoken (社会保険)", "category": "Benefits",
+     "definition": "Employer-sponsored social insurance: health + pension + employment insurance. ~14.7% of gross deducted from your paycheck."},
+    {"term": "Shōkai (紹介)", "category": "Process",
+     "definition": "Referral / introduction. A 紹介 from an existing employee often skips initial screening."},
+    {"term": "Shokumu keirekisho (職務経歴書)", "category": "Document",
+     "definition": "Career-history document — Japan's equivalent of a Western CV. More flexible than rirekisho. Build one at /resume/shokumu."},
+    {"term": "Sōkatsu (総括)", "category": "Workplace",
+     "definition": "Summary / wrap-up. End-of-project retrospectives are usually called 総括 in Japanese workplaces."},
+    {"term": "Sponsorship (スポンサーシップ)", "category": "Visa",
+     "definition": "Employer-arranged visa application. Most foreign workers need it. Filter the job board for /jobs?visa_sponsorship_mentioned=1."},
+    {"term": "Tax shōmei (納税証明)", "category": "Document",
+     "definition": "Tax payment certificate from the ward office. Often required for visa renewals and apartment applications."},
+    {"term": "Tedori (手取り)", "category": "Compensation",
+     "definition": "Take-home pay — gross minus social insurance, income tax, residence tax. Use /tools/take-home-pay to estimate."},
+    {"term": "Vacation (有給休暇 / yūkyū kyūka)", "category": "Benefits",
+     "definition": "Paid vacation. 10 days minimum after 6 months of employment; rises with tenure. Use of yūkyū is socially discouraged at conservative Japanese companies."},
+    {"term": "Wago / Jōgo (和語・上語)", "category": "Language",
+     "definition": "Native Japanese vocabulary (wago) vs. Sino-Japanese (kango). Business Japanese leans kango. Use 'gokijou (御希望)' not 'nozomi (望み)' in formal emails."},
+    {"term": "Yakuin (役員)", "category": "Workplace",
+     "definition": "Executive officer. Director-level and above. Different employment contract from regular employees (kaisha-in)."},
+    {"term": "Yen / ¥ (円)", "category": "Money",
+     "definition": "Japanese currency. Job offers are usually denominated in 万円 (man-yen) — 1 man = ¥10,000. '600 man' = ¥6,000,000/yr."},
+    {"term": "Zairyū Card (在留カード)", "category": "Document",
+     "definition": "Residence card. Issued at the airport on arrival. Must be carried at all times. Renew with your visa."},
+    {"term": "Zangyou (残業)", "category": "Workplace",
+     "definition": "Overtime. Legally capped at 45 hr/month, 360 hr/year in most industries. Service zangyou (unpaid overtime) is a major red flag — see /resources/red-flags."},
+]
+
+
+# ---------------------------------------------------------------------------
+# Community groups
+# ---------------------------------------------------------------------------
+
+COMMUNITY_GROUPS: list[dict] = [
+    {
+        "category": "Chat groups",
+        "icon": "message",
+        "links": [
+            {"name": "Tokyo Dev Slack",
+             "url": "https://www.tokyodev.com/community",
+             "desc": "5,000+ English-speaking software engineers in Tokyo. The single highest-signal community for foreign engineers."},
+            {"name": "r/movingtojapan",
+             "url": "https://www.reddit.com/r/movingtojapan/",
+             "desc": "Visa questions, paperwork, first-90-days topics. Active moderation."},
+            {"name": "r/japanlife",
+             "url": "https://www.reddit.com/r/japanlife/",
+             "desc": "Daily life as a foreigner — apartments, taxes, banks, social etiquette."},
+            {"name": "Tokyo Tech Mafia",
+             "url": "https://www.tokyotechmafia.com/",
+             "desc": "Invite-only community for senior engineers and engineering leaders in Tokyo."},
+        ],
+    },
+    {
+        "category": "Meetups & events",
+        "icon": "calendar",
+        "links": [
+            {"name": "Tokyo Dev meetups",
+             "url": "https://www.tokyodev.com/events",
+             "desc": "Monthly in-person meetups for foreign engineers in Tokyo."},
+            {"name": "Japan Rust Tokyo",
+             "url": "https://rust.tokyo/",
+             "desc": "Annual Rust conference held in Tokyo."},
+            {"name": "Tokyo JS",
+             "url": "https://tokyojs.com/",
+             "desc": "JavaScript / TypeScript meetup, mixed English/Japanese."},
+            {"name": "Startup Grind Tokyo",
+             "url": "https://www.startupgrind.com/tokyo/",
+             "desc": "Founder-focused events, mostly bilingual."},
+        ],
+    },
+    {
+        "category": "Podcasts & newsletters",
+        "icon": "megaphone",
+        "links": [
+            {"name": "Disrupting Japan",
+             "url": "https://www.disruptingjapan.com/",
+             "desc": "Long-running podcast on Japan's startup ecosystem. Hosted by Tim Romero."},
+            {"name": "Tokyo Dev's newsletter",
+             "url": "https://www.tokyodev.com/newsletter",
+             "desc": "Weekly digest of tech roles + the occasional industry report."},
+            {"name": "TokyoTechie",
+             "url": "https://tokyotechie.com/",
+             "desc": "Salary surveys, working-in-Japan deep dives."},
+        ],
+    },
+    {
+        "category": "YouTube channels",
+        "icon": "eye",
+        "links": [
+            {"name": "Life Where I'm From",
+             "url": "https://www.youtube.com/c/LifeWhereImFrom",
+             "desc": "Greg Lam's documentary-style channel on daily life in Japan."},
+            {"name": "The Japan Reporter",
+             "url": "https://www.youtube.com/c/TheJapanReporter",
+             "desc": "Investigative journalism, immigration, foreign-worker policy."},
+        ],
+    },
+    {
+        "category": "Useful blogs",
+        "icon": "pencil",
+        "links": [
+            {"name": "TokyoDev",
+             "url": "https://www.tokyodev.com/articles",
+             "desc": "Engineering-focused career advice, salary surveys, visa guides."},
+            {"name": "Tokyo Cheapo",
+             "url": "https://tokyocheapo.com/",
+             "desc": "Cost-of-living, transit, neighborhoods — written for residents."},
+            {"name": "Surviving in Japan",
+             "url": "https://www.survivingnjapan.com/",
+             "desc": "Practical 'how to do X in Japan' — taxes, healthcare, day-to-day."},
+        ],
+    },
+]

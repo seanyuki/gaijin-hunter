@@ -1,0 +1,83 @@
+{
+  "_help": "Foreigner-friendly Japan companies grouped by ATS provider. To add a company, drop in the slug used in its public job board URL. Greenhouse: https://boards.greenhouse.io/<slug> -> slug. Lever: https://jobs.lever.co/<slug> -> slug. Ashby: https://jobs.ashbyhq.com/<board> -> board. Workable: https://apply.workable.com/<subdomain>/ -> subdomain. Entries in ashby/workable are EXAMPLES to verify and expand — confirm each board actually exists and posts Japan roles. All scrapers gracefully skip 404s, so wrong/old slugs are non-fatal. SmartRecruiters: careers.smartrecruiters.com/<companyId> -> companyId. Recruitee: https://<subdomain>.recruitee.com/ -> subdomain.",
+  "greenhouse": [
+    {
+      "slug": "mercari",
+      "name": "Mercari"
+    },
+    {
+      "slug": "smartnews",
+      "name": "SmartNews"
+    },
+    {
+      "slug": "paypay",
+      "name": "PayPay"
+    },
+    {
+      "slug": "wovenbytoyota",
+      "name": "Woven by Toyota"
+    },
+    {
+      "slug": "tier4",
+      "name": "Tier IV"
+    },
+    {
+      "slug": "indeed",
+      "name": "Indeed"
+    },
+    {
+      "slug": "stripe",
+      "name": "Stripe"
+    },
+    {
+      "slug": "datadog",
+      "name": "Datadog"
+    },
+    {
+      "slug": "hubspot",
+      "name": "HubSpot"
+    },
+    {
+      "slug": "notion",
+      "name": "Notion"
+    }
+  ],
+  "lever": [
+    {
+      "slug": "wise",
+      "name": "Wise"
+    }
+  ],
+  "ashby": [
+    {
+      "slug": "openai",
+      "name": "OpenAI"
+    },
+    {
+      "slug": "ramp",
+      "name": "Ramp"
+    }
+  ],
+  "workable": [
+    {
+      "slug": "example-co",
+      "name": "Example Co (replace with a real Workable subdomain)"
+    }
+  ],
+  "smartrecruiters": [
+    {
+      "slug": "ExampleCompany",
+      "name": "Example Co (replace with a real SmartRecruiters companyId)"
+    }
+  ],
+  "recruitee": [
+    {
+      "slug": "example-co",
+      "name": "Example Co (replace with a real Recruitee subdomain)"
+    }
+  ],
+  "careercross": {
+    "search_url": "https://www.careercross.com/en/job-search/result/76028209",
+    "_help": "Paste your saved-search URL here. Build one at https://www.careercross.com/en/job-search and the result page URL becomes /en/job-search/result/<sid>. The current value targets English Level = Native/Fluent/Business + Last Updated < 1 month."
+  }
+}

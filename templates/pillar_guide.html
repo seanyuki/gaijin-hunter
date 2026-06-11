@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}{{ item.title }}, Gaijin Hunter{% endblock %}
+{% block meta_description %}{{ item.summary }}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block jsonld %}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Article","headline":{{ item.title|tojson }},"description":{{ item.summary|tojson }},"url":"{{ base_url }}/pillars/{{ item.slug }}","author":{"@type":"Organization","name":"Gaijin Hunter"},"publisher":{"@type":"Organization","name":"Gaijin Hunter","logo":{"@type":"ImageObject","url":"{{ base_url }}/static/logo.svg"}},"inLanguage":"en"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"{{ base_url }}/"},{"@type":"ListItem","position":2,"name":"Guides","item":"{{ base_url }}/guides"},{"@type":"ListItem","position":3,"name":{{ item.title|tojson }},"item":"{{ base_url }}/pillars/{{ item.slug }}"}]}
+</script>
+{% endblock %}
+{% block content %}
+<style>
+  .hero { padding: 14px 0 10px; }
+  .hero .crumb { font-size: 13px; color: var(--muted); }
+  .hero .crumb a { color: var(--muted); text-decoration: none; }
+  .hero .icon { font-size: 40px; line-height: 1; margin: 8px 0 6px; }
+  .hero h1 { margin: 0 0 8px; font-size: 32px; letter-spacing: -0.02em; line-height: 1.15; }
+  .hero .summary { color: var(--muted); margin: 0 0 4px; font-size: 16px; line-height: 1.55;
+                    max-width: 720px; }
+  .hero .read-time { color: var(--accent); font-size: 13px; font-weight: 600; margin-top: 4px; }
+
+  .layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 32px;
+            margin-top: 22px; align-items: start; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+  /* TOC */
+  nav.toc { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+             padding: 16px 18px; position: sticky; top: 90px; max-height: calc(100vh - 110px);
+             overflow-y: auto; }
+  nav.toc h4 { margin: 0 0 10px; font-size: 11px; color: var(--muted);
+                text-transform: uppercase; letter-spacing: 0.06em; }
+  nav.toc a { display: block; padding: 5px 0; font-size: 13px; color: var(--fg);
+               text-decoration: none; border-bottom: 1px solid #f3f4f6; }
+  nav.toc a:last-child { border-bottom: none; }
+  nav.toc a:hover { color: var(--accent); }
+  @media (max-width: 900px) {
+    nav.toc { position: static; max-height: none; margin-bottom: 12px; }
+    nav.toc h4 { margin-bottom: 6px; }
+  }
+
+  /* Article */
+  article.pillar { background: var(--card); border: 1px solid var(--line);
+                    border-radius: 12px; padding: 32px 40px; max-width: 100%; }
+  article.pillar h2 { margin: 30px 0 12px; font-size: 24px; scroll-margin-top: 80px;
+                       letter-spacing: -0.01em; }
+  article.pillar h2:first-child { margin-top: 0; }
+  article.pillar h3 { margin: 22px 0 10px; font-size: 18px; color: #374151; }
+  article.pillar p, article.pillar li { font-size: 16px; line-height: 1.75; color: #374151; }
+  article.pillar ul, article.pillar ol { padding-left: 24px; }
+  article.pillar li { margin-bottom: 6px; }
+  article.pillar blockquote { background: #f9fafb; border-left: 4px solid var(--accent);
+                                margin: 16px 0; padding: 10px 16px; border-radius: 4px;
+                                font-style: italic; color: #4b5563; }
+  article.pillar code { background: #f3f4f6; padding: 2px 6px; border-radius: 3px;
+                          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+                          font-size: 14px; }
+  article.pillar a { color: var(--accent); font-weight: 500; }
+
+  /* Other pillar links at the bottom */
+  .other-pillars { background: linear-gradient(135deg, #eff6ff, #fff); border: 1px solid #bfdbfe;
+                    border-radius: 12px; padding: 22px 26px; margin-top: 22px; }
+  .other-pillars h3 { color: #1e3a8a; margin: 0 0 12px; font-size: 16px; }
+  .other-pillars .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  @media (max-width: 600px) { .other-pillars .grid { grid-template-columns: 1fr; } }
+  .other-pillars a { display: flex; gap: 10px; background: #fff; border: 1px solid var(--line);
+                      border-radius: 8px; padding: 12px 14px; text-decoration: none;
+                      color: var(--fg); }
+  .other-pillars a:hover { border-color: var(--accent); }
+  .other-pillars .ic { font-size: 20px; flex-shrink: 0; line-height: 1.2; }
+  .other-pillars .ttl { font-size: 13px; font-weight: 600; }
+  .other-pillars .read-time { color: var(--muted); font-size: 11px; margin-top: 3px; }
+</style>
+
+<div class="hero">
+  <div class="crumb"><a href="/resources">← Resources</a></div>
+  <div class="icon">{{ icon(item.icon, size=20) }}</div>
+  <h1>{{ item.title }}</h1>
+  <p class="summary">{{ item.summary }}</p>
+  <div class="read-time">⏱ {{ item.read_time }} read</div>
+</div>
+
+<div class="layout">
+  <nav class="toc">
+    <h4>In this guide</h4>
+    {% for slug, label in item.toc %}
+      <a href="#{{ slug }}">{{ label }}</a>
+    {% endfor %}
+  </nav>
+
+  <article class="pillar">
+    {{ item.body | safe }}
+
+    <div class="other-pillars">
+      <h3>More long-form guides</h3>
+      <div class="grid">
+        {% for p in all_pillars %}
+          {% if p.slug != item.slug %}
+            <a href="/pillars/{{ p.slug }}">
+              <div class="ic">{{ icon(p.icon, size=20) }}</div>
+              <div>
+                <div class="ttl">{{ p.title }}</div>
+                <div class="read-time">⏱ {{ p.read_time }}</div>
+              </div>
+            </a>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </article>
+</div>
+
+<script>
+  // Smooth-scroll for TOC anchors (works without :target sticky issues)
+  document.querySelectorAll('nav.toc a[href^="#"]').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      var id = a.getAttribute('href').slice(1);
+      var el = document.getElementById(id);
+      if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    });
+  });
+</script>
+{% endblock %}

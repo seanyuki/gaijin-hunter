@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block title %}Public reports, Japan job market for foreigners, Gaijin Hunter{% endblock %}
+{% block content %}
+<style>
+  .hero { text-align: center; padding: 30px 20px 22px; }
+  .hero h1 { margin: 0 0 8px; font-size: 32px; }
+  .hero p { color: var(--muted); margin: 0 auto; max-width: 640px; font-size: 15px; line-height: 1.55; }
+  .hero .summary { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 999px;
+                    display: inline-block; padding: 6px 16px; color: #1e3a8a; font-size: 13px;
+                    font-weight: 600; margin-top: 12px; }
+
+  .reports-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 22px; }
+  @media (max-width: 900px) { .reports-grid { grid-template-columns: 1fr; } }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+          padding: 22px 24px; }
+  .card.full { grid-column: 1 / -1; }
+  .card h2 { margin: 0 0 4px; font-size: 16px; }
+  .card .sub { color: var(--muted); font-size: 12px; margin: 0 0 16px; }
+
+  /* Horizontal bar charts */
+  .chart-row { display: grid; grid-template-columns: 160px 1fr 48px; gap: 10px;
+               align-items: center; margin-bottom: 6px; font-size: 13px; }
+  .chart-row .label { color: var(--fg); white-space: nowrap; overflow: hidden;
+                       text-overflow: ellipsis; }
+  .chart-row .bar-wrap { background: #f3f4f6; border-radius: 4px; height: 16px;
+                          position: relative; overflow: hidden; }
+  .chart-row .bar { background: var(--accent); height: 100%; border-radius: 4px;
+                     transition: width 0.3s ease-out; }
+  .chart-row .bar.salary { background: linear-gradient(90deg, #10b981, #059669); }
+  .chart-row .bar.lang   { background: linear-gradient(90deg, #3b82f6, #1d4ed8); }
+  .chart-row .bar.source { background: linear-gradient(90deg, #f59e0b, #d97706); }
+  .chart-row .bar.jp     { background: linear-gradient(90deg, #a855f7, #7e22ce); }
+  .chart-row .n { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  .multi-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .multi-table th, .multi-table td { padding: 6px 8px; border-bottom: 1px solid #f3f4f6; }
+  .multi-table th { text-align: left; color: var(--muted); font-size: 11px;
+                     text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+  .multi-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .multi-table a { color: var(--accent); text-decoration: none; }
+  .multi-table a:hover { text-decoration: underline; }
+
+  .note { font-size: 11px; color: var(--muted); margin-top: 16px;
+          padding-top: 12px; border-top: 1px dashed var(--line); line-height: 1.55;
+          font-style: italic; }
+</style>
+
+<div class="hero">
+  <h1>Public reports</h1>
+  <p>Live snapshots of Japan's foreigner-friendly job market, generated directly from the
+     job database. Updated whenever a new scrape lands.</p>
+  <div class="summary">Current dataset: <strong>{{ data.total }}</strong> jobs</div>
+</div>
+
+<div class="reports-grid">
+
+  {# ---------- Foreigner Fit distribution ---------- #}
+  <div class="card">
+    <h2>Foreigner Fit score distribution</h2>
+    <p class="sub">How accessible the current postings are to foreign applicants, based on
+       language, visa support, salary listing, and source quality.</p>
+    {% set maxn = data.fit_distribution | map(attribute='n') | max %}
+    {% for r in data.fit_distribution %}
+      <div class="chart-row">
+        <div class="label">{{ r.bucket }}</div>
+        <div class="bar-wrap"><div class="bar" style="width: {{ (r.n / maxn * 100) | round(1) }}%"></div></div>
+        <div class="n">{{ r.n }}</div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {# ---------- Posting language distribution ---------- #}
+  <div class="card">
+    <h2>Posting language</h2>
+    <p class="sub">English / Japanese / Mixed, what language the job ad itself is written in.</p>
+    {% set maxn2 = data.posting_language | map(attribute='n') | max %}
+    {% for r in data.posting_language %}
+      <div class="chart-row">
+        <div class="label">{{ r.lang }}</div>
+        <div class="bar-wrap"><div class="bar lang" style="width: {{ (r.n / maxn2 * 100) | round(1) }}%"></div></div>
+        <div class="n">{{ r.n }}</div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {# ---------- Role family demand ---------- #}
+  <div class="card full">
+    <h2>Demand by role family</h2>
+    <p class="sub">Where the foreigner-friendly openings are. Includes average Foreigner Fit
+       score per family.</p>
+    <table class="multi-table">
+      <thead>
+        <tr><th>Role family</th><th class="num">Open roles</th><th class="num">Avg fit</th></tr>
+      </thead>
+      <tbody>
+        {% for r in data.role_family %}
+          <tr>
+            <td><a href="/jobs?role_family={{ r.family | urlencode }}">{{ r.family }}</a></td>
+            <td class="num">{{ r.n }}</td>
+            <td class="num">{{ r.avg_fit }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# ---------- Salary distribution ---------- #}
+  <div class="card">
+    <h2>Salary distribution</h2>
+    <p class="sub">Of the postings that disclose salary, what bands they fall into.</p>
+    {% set maxn3 = data.salary_distribution | map(attribute='n') | max %}
+    {% for r in data.salary_distribution %}
+      <div class="chart-row">
+        <div class="label">{{ r.bucket }}</div>
+        <div class="bar-wrap"><div class="bar salary" style="width: {{ (r.n / maxn3 * 100) | round(1) }}%"></div></div>
+        <div class="n">{{ r.n }}</div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {# ---------- Japanese-level requirements ---------- #}
+  <div class="card">
+    <h2>Japanese-level requirements</h2>
+    <p class="sub">What level of Japanese the postings actually demand.</p>
+    {% set maxn4 = data.japanese_levels | map(attribute='n') | max %}
+    {% for r in data.japanese_levels %}
+      <div class="chart-row">
+        <div class="label">{{ r.lvl }}</div>
+        <div class="bar-wrap"><div class="bar jp" style="width: {{ (r.n / maxn4 * 100) | round(1) }}%"></div></div>
+        <div class="n">{{ r.n }}</div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {# ---------- Top hiring companies ---------- #}
+  <div class="card">
+    <h2>Top 15 hiring companies</h2>
+    <p class="sub">By count of current active postings on the board.</p>
+    <table class="multi-table">
+      <thead>
+        <tr><th>Company</th><th class="num">Open</th><th class="num">Avg fit</th></tr>
+      </thead>
+      <tbody>
+        {% for c in data.top_companies %}
+          <tr>
+            <td><a href="/companies/{{ c.name | lower | replace(' ', '-') | replace('.', '') }}">{{ c.name }}</a></td>
+            <td class="num">{{ c.n }}</td>
+            <td class="num">{{ c.avg_fit }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# ---------- Source quality breakdown ---------- #}
+  <div class="card">
+    <h2>Postings by source quality</h2>
+    <p class="sub">Where the listings come from, direct ATS / curated boards / aggregators.
+       Higher quality = more verified, more apply-friendly.</p>
+    {% set maxn5 = data.source_quality | map(attribute='n') | max %}
+    {% for r in data.source_quality %}
+      <div class="chart-row">
+        <div class="label">{{ r.quality }}, {{ r.source }}</div>
+        <div class="bar-wrap"><div class="bar source" style="width: {{ (r.n / maxn5 * 100) | round(1) }}%"></div></div>
+        <div class="n">{{ r.n }}</div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="card full">
+    <p class="note">All numbers are live as of this page load. Want to use this data in your
+       research or writing? It's all available via the JSON API: see
+       <a href="/api/jobs.json">/api/jobs.json</a>. We just ask for a backlink.</p>
+  </div>
+</div>
+{% endblock %}

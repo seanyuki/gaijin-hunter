@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Japan Career Tools, Visa, HSP, Salary, COL Calculators · Gaijin Hunter{% endblock %}
+{% block meta_description %}Free interactive tools for foreigners working in Japan: HSP points calculator, visa eligibility checker, take-home pay calculator, cost-of-living comparator, JD match analyzer, visa timeline. No signup, browser-only.{% endblock %}
+{% block jsonld %}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"CollectionPage","name":"Japan Career Tools","description":"Interactive calculators for foreigners working in Japan.","url":"{{ base_url }}/tools"}
+</script>
+{% endblock %}
+{% block content %}
+<style>
+  .hero { text-align: center; padding: 40px 20px 26px; max-width: 760px; margin: 0 auto; }
+  .hero h1 { margin: 0 0 10px; font-size: 36px; letter-spacing: -0.025em; }
+  .hero p { color: var(--muted); margin: 0; font-size: 16px; line-height: 1.55; }
+
+  .tool-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 28px; }
+  @media (max-width: 900px) { .tool-grid { grid-template-columns: 1fr; } }
+  .tool-card {
+    display: flex; flex-direction: column; background: var(--card);
+    border: 1px solid var(--line); border-radius: 12px; padding: 26px 28px;
+    text-decoration: none; color: inherit; transition: all 0.2s;
+  }
+  .tool-card:hover { border-color: var(--accent); transform: translateY(-2px);
+                     box-shadow: var(--shadow-md); }
+  .tool-card .ic {
+    width: 44px; height: 44px; border-radius: 10px;
+    background: var(--accent-soft); color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-bottom: 14px;
+  }
+  .tool-card h3 { margin: 0 0 6px; font-size: 17px; color: var(--fg); }
+  .tool-card p { margin: 0 0 16px; color: var(--muted); font-size: 13px; line-height: 1.6; flex: 1; }
+  .tool-card .cta { color: var(--accent); font-weight: 600; font-size: 14px;
+                    display: inline-flex; align-items: center; gap: 4px; }
+</style>
+
+<div class="hero">
+  <h1>Tools</h1>
+  <p>Interactive calculators for the numbers every foreigner researching Japan needs to know, which visa you qualify for, your HSP point score, and what an offer pays after tax.</p>
+</div>
+
+<div class="tool-grid">
+  <a class="tool-card" href="/tools/visa-eligibility">
+    <div class="ic">{{ icon('badge', size=22) }}</div>
+    <h3>Visa eligibility checker</h3>
+    <p>Four questions about education, age, salary, and job offer. Returns a short list of visa
+       categories you might qualify for.</p>
+    <span class="cta">Check eligibility {{ icon('arrow-right', size=14) }}</span>
+  </a>
+  <a class="tool-card" href="/tools/hsp-points">
+    <div class="ic">{{ icon('target', size=22) }}</div>
+    <h3>HSP points calculator</h3>
+    <p>Score yourself against the Highly Skilled Professional point system. 70+ unlocks the
+       5-year visa; 80+ unlocks permanent residency in one year.</p>
+    <span class="cta">Calculate points {{ icon('arrow-right', size=14) }}</span>
+  </a>
+  <a class="tool-card" href="/tools/take-home-pay">
+    <div class="ic">{{ icon('currency-yen', size=22) }}</div>
+    <h3>Take-home pay calculator</h3>
+    <p>Enter gross annual JPY. Get your estimated monthly and annual net after Japan's social
+       insurance, income tax, and residence tax.</p>
+    <span class="cta">Calculate net {{ icon('arrow-right', size=14) }}</span>
+  </a>
+  <a class="tool-card" href="/tools/jd-match">
+    <div class="ic">{{ icon('flask', size=22) }}</div>
+    <h3>JD match analyzer</h3>
+    <p>Paste any job description. We extract requirements, score it against your profile, and
+       surface specific talking points and questions to ask.</p>
+    <span class="cta">Analyze a JD {{ icon('arrow-right', size=14) }}</span>
+  </a>
+  <a class="tool-card" href="/tools/visa-timeline">
+    <div class="ic">{{ icon('calendar', size=22) }}</div>
+    <h3>Visa timeline &amp; checklist</h3>
+    <p>Pick your visa type. Get an interactive step-by-step checklist with realistic durations
+       and exact documents needed at each step.</p>
+    <span class="cta">Open checklist {{ icon('arrow-right', size=14) }}</span>
+  </a>
+  <a class="tool-card" href="/tools/col-comparator">
+    <div class="ic">{{ icon('globe', size=22) }}</div>
+    <h3>Cost-of-living comparator</h3>
+    <p>Compare your current city + salary to a Japan offer. We factor in tax rates and
+       cost-of-living indices to give you a Tokyo-equivalent purchasing power.</p>
+    <span class="cta">Compare cities {{ icon('arrow-right', size=14) }}</span>
+  </a>
+  <a class="tool-card" href="/tools/relocation-budget">
+    <div class="ic">{{ icon('calculator', size=22) }}</div>
+    <h3>Relocation budget calculator</h3>
+    <p>The cash you need <em>before</em> your first paycheck: apartment move-in (key money,
+       deposit, guarantor), flights, shipping, furnishing, and a survival buffer, minus your
+       employer's relocation package.</p>
+    <span class="cta">Estimate your move {{ icon('arrow-right', size=14) }}</span>
+  </a>
+  <a class="tool-card" href="/resume/bullets">
+    <div class="ic">{{ icon('pencil', size=22) }}</div>
+    <h3>Resume bullet improver</h3>
+    <p>Paste a weak bullet. Rule-based diagnostics catch missing metrics, weak verbs, filler
+       language, and cliché adjectives, with concrete rewrite suggestions.</p>
+    <span class="cta">Improve a bullet {{ icon('arrow-right', size=14) }}</span>
+  </a>
+  <a class="tool-card" href="/interview-prep">
+    <div class="ic">{{ icon('megaphone', size=22) }}</div>
+    <h3>Interview prep</h3>
+    <p>Role-specific question banks, what interviewers actually look for, Japan-specific
+       cultural tips, and a STAR answer builder that saves drafts.</p>
+    <span class="cta">Prepare {{ icon('arrow-right', size=14) }}</span>
+  </a>
+  <a class="tool-card" href="/insights/salary">
+    <div class="ic">{{ icon('chart-line', size=22) }}</div>
+    <h3>Salary insights 2026</h3>
+    <p>Comprehensive industry benchmarks across 11 sectors and 580+ roles. East/West Japan
+       splits, percentiles, offer comparator.</p>
+    <span class="cta">View insights {{ icon('arrow-right', size=14) }}</span>
+  </a>
+</div>
+{% endblock %}

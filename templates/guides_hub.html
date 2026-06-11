@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}City &amp; Role Guides for Foreigners in Japan: Tokyo, Osaka, Engineering · Gaijin Hunter{% endblock %}
+{% block meta_description %}Focused guides for working in Japan as a foreigner: Tokyo and Osaka city guides, plus role-specific guides for software engineering, teaching English, product management, marketing, finance, and sales.{% endblock %}
+{% block jsonld %}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"CollectionPage","name":"City & Role Guides for Foreigners in Japan","description":"Focused guides for working in Japan: city profiles (Tokyo, Osaka) and role-specific deep dives.","url":"{{ base_url }}/guides"}
+</script>
+{% endblock %}
+{% block content %}
+<style>
+  .g-group { max-width: 1080px; margin: 0 auto; padding: 26px 24px 0; }
+  .g-group.hidden { display: none; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+  .card { display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 20px 22px; text-decoration: none; color: inherit; }
+  .card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .card .ic { width: 38px; height: 38px; border-radius: 9px; background: var(--accent-soft); color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+  .card h3 { margin: 0 0 6px; font-size: 17px; color: var(--ink); }
+  .card p { margin: 0 0 12px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+  .card .arrow { color: var(--accent); font-weight: 600; font-size: 13px; margin-top: auto; display: inline-flex; align-items: center; gap: 4px; }
+  .gh-empty { text-align: center; padding: 30px 20px; color: var(--muted); display: none; max-width: 1080px; margin: 0 auto; }
+  .gh-empty.show { display: block; }
+</style>
+
+<div class="hub-wrap">
+  <div class="hub-hero">
+    <span class="eyebrow-rule">City &amp; role guides</span>
+    <h1>Advice tuned to your city and your career track.</h1>
+    <p>Place-specific and role-specific guides, each with deep links into the job board so you can
+      browse the roles a guide describes the moment you finish reading.</p>
+    <div class="hub-search" id="gh-filter">
+      <span class="hs-icon">{{ icon('search', size=16) }}</span>
+      <input id="gh-filter-input" type="search" placeholder="Filter guides…" aria-label="Filter guides">
+      <button type="button" class="hs-clear" id="gh-filter-clear" aria-label="Clear filter">{{ icon('close', size=14) }}</button>
+    </div>
+  </div>
+</div>
+
+<!-- Start here: by career path -->
+<section class="hub-sec">
+  <div class="sec-head">
+    <span class="eyebrow-rule">Start here</span>
+    <h2>Pick your path</h2>
+    <p>Six routes foreigners take into the Japanese market.</p>
+  </div>
+  <div class="pathways">
+    <a class="pway" href="/guides/software-engineering"><span class="pic">{{ icon('wrench', size=18) }}</span><span class="pt"><b>Software / data / product</b><span>The English-friendly track</span></span></a>
+    <a class="pway" href="/guides/teaching-english"><span class="pic">{{ icon('book', size=18) }}</span><span class="pt"><b>Teaching &amp; transition</b><span>A common first foothold</span></span></a>
+    <a class="pway" href="/jobs?posting_language=English"><span class="pic">{{ icon('building', size=18) }}</span><span class="pt"><b>Gaishikei / bilingual</b><span>Foreign-capital employers</span></span></a>
+    <a class="pway" href="/jobs?japanese_level=Not+Required"><span class="pic">{{ icon('globe', size=18) }}</span><span class="pt"><b>No Japanese required</b><span>Roles that don't need JLPT</span></span></a>
+    <a class="pway" href="/jobs?overseas_application_ok=1"><span class="pic">{{ icon('plane', size=18) }}</span><span class="pt"><b>Applying from overseas</b><span>Hire-from-abroad roles</span></span></a>
+    <a class="pway" href="/insights/salary"><span class="pic">{{ icon('currency-yen', size=18) }}</span><span class="pt"><b>Salary negotiation</b><span>Know your worth first</span></span></a>
+  </div>
+</section>
+
+{% set cities = guides | selectattr('category', 'equalto', 'City') | list %}
+{% set roles = guides | selectattr('category', 'equalto', 'Role') | list %}
+
+<div class="g-group" data-group="cities">
+  <div class="sec-head"><span class="eyebrow-rule">Cities</span><h2>Where you'll work</h2></div>
+  <div class="grid">
+    {% for g in cities %}
+      <a class="card" href="/guides/{{ g.slug }}" data-search="{{ g.title|lower }} {{ g.summary|lower }} {{ g.slug }}">
+        <div class="ic">{{ icon(g.icon, size=20) }}</div>
+        <h3>{{ g.title }}</h3><p>{{ g.summary }}</p>
+        <span class="arrow">Read {{ icon('arrow-right', size=12) }}</span>
+      </a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="g-group" data-group="roles">
+  <div class="sec-head"><span class="eyebrow-rule">Roles</span><h2>What you'll do</h2></div>
+  <div class="grid">
+    {% for g in roles %}
+      <a class="card" href="/guides/{{ g.slug }}" data-search="{{ g.title|lower }} {{ g.summary|lower }} {{ g.slug }}">
+        <div class="ic">{{ icon(g.icon, size=20) }}</div>
+        <h3>{{ g.title }}</h3><p>{{ g.summary }}</p>
+        <span class="arrow">Read {{ icon('arrow-right', size=12) }}</span>
+      </a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="gh-empty" id="gh-empty">No matching guides. Try a different keyword.</div>
+
+<script>
+(function () {
+  var input = document.getElementById('gh-filter-input');
+  var wrap = document.getElementById('gh-filter');
+  var empty = document.getElementById('gh-empty');
+  var clearBtn = document.getElementById('gh-filter-clear');
+  if (!input) return;
+  var groups = Array.prototype.slice.call(document.querySelectorAll('.g-group[data-group]'));
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.g-group .card'));
+  function applyFilter() {
+    var q = input.value.trim().toLowerCase();
+    var anyVisible = false;
+    cards.forEach(function (c) {
+      var hay = c.getAttribute('data-search') || '';
+      var matches = !q || q.split(/\s+/).every(function (t) { return hay.indexOf(t) !== -1; });
+      c.style.display = matches ? '' : 'none';
+      if (matches) anyVisible = true;
+    });
+    groups.forEach(function (g) {
+      var visible = g.querySelectorAll('.card:not([style*="display: none"])').length;
+      g.classList.toggle('hidden', visible === 0);
+    });
+    empty.classList.toggle('show', !anyVisible);
+    wrap.classList.toggle('has-value', q.length > 0);
+  }
+  input.addEventListener('input', applyFilter);
+  clearBtn.addEventListener('click', function () { input.value = ''; applyFilter(); input.focus(); });
+})();
+</script>
+
+<section class="hub-sec hub-pad">
+  <div class="sec-head"><span class="eyebrow-rule">Keep going</span><h2>Most useful next steps</h2></div>
+  <div class="nextsteps">
+    <div class="nscard"><h3>Browse matching jobs</h3><p>Every guide links into the board. Jump straight to roles.</p>
+      <div class="nslinks"><a href="/jobs">All jobs</a><a href="/jobs?japanese_level=Not+Required">No Japanese</a><a href="/jobs?salary_min=8000000">¥8M+</a></div></div>
+    <div class="nscard"><h3>Prep your application</h3><p>Resume documents and interview etiquette before you apply.</p>
+      <div class="nslinks"><a href="/resume">Resume builder</a><a href="/interview-prep">Interview prep</a></div></div>
+    <div class="nscard"><h3>Plan the move</h3><p>Visas, costs, and the post-offer relocation journey.</p>
+      <div class="nslinks"><a href="/resources">Resources</a><a href="/living">Living in Japan</a></div></div>
+  </div>
+</section>
+{% endblock %}

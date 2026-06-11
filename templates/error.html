@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} · Gaijin Hunter{% endblock %}
+{% block meta_robots %}noindex{% endblock %}
+{% block content %}
+<div style="max-width:520px; margin:60px auto; text-align:center;">
+  <div style="font-family:var(--font-display); font-size:64px; font-weight:600; color:var(--line-strong); line-height:1;">
+    {{ code }}</div>
+  <h1 style="font-size:26px; margin:14px 0 8px;">{{ title }}</h1>
+  <p style="color:var(--muted); line-height:1.65; margin:0 0 24px;">{{ message }}</p>
+  <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+    <a class="btn primary" href="/jobs" style="text-decoration:none;">Browse jobs</a>
+    <a class="btn secondary" href="/" style="text-decoration:none;">Go home</a>
+  </div>
+</div>
+{% endblock %}

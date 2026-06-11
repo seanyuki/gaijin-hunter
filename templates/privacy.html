@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Privacy & Data · Gaijin Hunter{% endblock %}
+{% block meta_description %}How Gaijin Hunter handles your data: profile, tracker, saved jobs and resume data stay in your browser's localStorage. Job data is aggregated from public job pages. No accounts, no tracking.{% endblock %}
+{% block content %}
+<div style="max-width:720px; margin:0 auto;">
+  <div class="breadcrumb"><a href="/">Home</a> / Privacy &amp; data</div>
+  <h1 style="margin:0 0 6px;">Privacy &amp; data</h1>
+  <p style="color:var(--muted); margin:0 0 26px;">Short version: your data stays in your browser; job data comes from public pages.</p>
+
+  <h2 style="font-size:19px; margin:26px 0 8px;">Your data stays in your browser</h2>
+  <p style="line-height:1.7; color:var(--fg-soft);">
+    Your profile, saved jobs, applied list, application tracker, saved searches, and everything
+    you type into the resume builders (including the photo you upload) are stored in
+    <strong>this browser's localStorage</strong>. They are not sent to or stored on our server.
+    There are no accounts and no login. The trade-offs of that design: clearing your browser
+    data erases it, and it doesn't sync between devices — use
+    <a href="/data">Export / import data</a> to back it up, move it, or delete it completely.
+  </p>
+  <p style="line-height:1.7; color:var(--fg-soft);">
+    The optional <a href="/newsletter">newsletter</a> is the one exception: if you subscribe,
+    your email address and preferences are stored server-side so we can send it. Every email
+    includes a one-click unsubscribe, which also lets you remove your address.
+  </p>
+  <p style="line-height:1.7; color:var(--fg-soft);">
+    If a future deployment of this site changes any of this (for example, adding accounts or
+    server-side sync), this page will say so explicitly before that applies to you.
+  </p>
+
+  <h2 id="sources" style="font-size:19px; margin:26px 0 8px;">Where the job data comes from</h2>
+  <p style="line-height:1.7; color:var(--fg-soft);">
+    Job listings are aggregated from publicly available job pages and public APIs (GaijinPot,
+    TokyoDev, Japan Dev, YOLO Japan, company ATS pages such as Greenhouse and Lever, and
+    aggregators). Every listing links back to the original posting — always apply at the source.
+    Some fields are <strong>inferred from posting text</strong> by conservative rules (and labeled
+    as such on job pages); inferred or missing data can be wrong or incomplete.
+    <strong>Always verify visa, salary, and language requirements with the employer.</strong>
+  </p>
+
+  <h2 style="font-size:19px; margin:26px 0 8px;">Not advice</h2>
+  <p style="line-height:1.7; color:var(--fg-soft);">
+    Guides, calculators, and visa/tax content here are practical information, not legal,
+    immigration, tax, or financial advice. Rules change; for decisions that matter, confirm with
+    the Immigration Services Agency of Japan, your employer, or a licensed professional
+    (行政書士 / immigration lawyer).
+  </p>
+
+  <h2 style="font-size:19px; margin:26px 0 8px;">Quick actions</h2>
+  <p style="line-height:1.7;">
+    <a href="/data">Export, import, or delete all your local data →</a><br>
+    <a href="/profile">Edit your profile →</a><br>
+    <a href="/newsletter">Newsletter (optional) →</a>
+  </p>
+</div>
+{% endblock %}

@@ -1,0 +1,497 @@
+{% extends "base.html" %}
+{% block title %}{{ job['title'] }}, Gaijin Hunter{% endblock %}
+{% block meta_description %}{{ job['title'] }} at {{ job['company_name'] or 'a company in Japan' }}{% if job['location'] %} ({{ job['location'] | truncate(40) }}){% endif %}. {{ (job['description'] or job['requirements'] or 'See requirements, salary, visa and language details.') | snippet(150) }}{% endblock %}
+{% block jsonld %}
+{% if job_jsonld %}
+<script type="application/ld+json">{{ job_jsonld | tojson }}</script>
+{% endif %}
+{% endblock %}
+{% block content %}
+
+<div class="breadcrumb"><a href="/">← Back to listings</a></div>
+
+<div class="detail">
+  <h1>{{ job['title'] }}</h1>
+  <div class="meta">
+    {% if job['company_name'] %}{{ job['company_name'] }}
+      {% if job['company_name_jp'] %} <span style="color: var(--muted)">({{ job['company_name_jp'] }})</span>{% endif %}
+    {% endif %}
+    {% if job['location'] %} · {{ job['location'] }}{% endif %}
+  </div>
+
+  {# ============ At a glance: definitive answers to the questions foreign
+     applicants actually ask. Unknowns are stated honestly. ============ #}
+  <style>
+    .gh-glance { display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:1px;
+      background:var(--line); border:1px solid var(--line); border-radius:10px; overflow:hidden; margin-top:14px; }
+    .gh-glance > div { background:var(--card, #fff); padding:10px 12px; }
+    .gh-glance .gl { font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:700; }
+    .gh-glance .gv { font-size:13.5px; font-weight:600; margin-top:2px; color:var(--fg); }
+    .gh-glance .gv.yes { color:#166534; }
+    .gh-glance .gv.no { color:#991b1b; }
+    .gh-glance .gv.unknown { color:var(--muted); font-weight:500; font-style:italic; }
+    /* Provenance: how we know each fact. Quiet by design. */
+    .gh-glance .gp { display:block; font-size:10px; font-weight:500; color:var(--muted-soft);
+      margin-top:2px; font-style:normal; }
+  </style>
+  {# Provenance helper: 'explicit' -> Stated in posting, 'inferred' -> read
+     from the posting text by our rules. Quiet label under each value. #}
+  {% macro prov(src) -%}
+    {%- if src == 'explicit' -%}<small class="gp">stated in posting</small>
+    {%- elif src == 'inferred' -%}<small class="gp">inferred from posting text</small>
+    {%- endif -%}
+  {%- endmacro %}
+  <div class="gh-glance" aria-label="Key facts for foreign applicants">
+    <div>
+      <div class="gl">Visa sponsorship</div>
+      {% if job['visa_sponsorship_mentioned'] == 1 %}<div class="gv yes">✓ Mentioned {{ prov(job['visa_source']) }}</div>
+      {% elif job['visa_sponsorship_mentioned'] == 0 %}<div class="gv no">✕ Explicitly no {{ prov(job['visa_source']) }}</div>
+      {% else %}<div class="gv unknown">Not stated — ask</div>{% endif %}
+    </div>
+    <div>
+      <div class="gl">Apply from abroad</div>
+      {% if job['overseas_application_ok'] == 1 %}<div class="gv yes">✓ Yes {{ prov(job['abroad_source']) }}</div>
+      {% elif job['overseas_application_ok'] == 0 %}<div class="gv no">✕ Residents only {{ prov(job['abroad_source']) }}</div>
+      {% else %}<div class="gv unknown">Not stated</div>{% endif %}
+    </div>
+    <div>
+      <div class="gl">Japanese required</div>
+      {% if job['japanese_level'] == 'Not Required' %}<div class="gv yes">None required {{ prov(job['japanese_level_source']) }}</div>
+      {% elif job['japanese_level'] %}<div class="gv">{{ job['japanese_level'] }} {{ prov(job['japanese_level_source']) }}</div>
+      {% else %}<div class="gv unknown">Not stated — check posting</div>{% endif %}
+    </div>
+    <div>
+      <div class="gl">English level</div>
+      {% if job['english_level'] %}<div class="gv">{{ job['english_level'] }} {{ prov(job['english_level_source']) }}</div>
+      {% elif job['posting_language'] in ('English', 'Bilingual') %}<div class="gv unknown">Not stated — posting is in English</div>
+      {% else %}<div class="gv unknown">Not stated</div>{% endif %}
+    </div>
+    <div>
+      <div class="gl">Salary</div>
+      {% if job['salary'] %}<div class="gv">{{ job['salary'] | snippet(40) }}
+        {%- if job['salary_source'] == 'inferred' %} <small class="gp">extracted from description</small>{% else %} {{ prov(job['salary_source']) }}{% endif %}</div>
+      {% elif job['salary_min_annual_jpy'] %}<div class="gv">{{ job['salary_min_annual_jpy'] | yen_short }}{% if job['salary_max_annual_jpy'] and job['salary_max_annual_jpy'] != job['salary_min_annual_jpy'] %}–{{ job['salary_max_annual_jpy'] | yen_short }}{% endif %}/yr
+        {%- if job['salary_source'] == 'inferred' %} <small class="gp">extracted from description</small>{% endif %}</div>
+      {% else %}<div class="gv unknown">Not listed</div>{% endif %}
+    </div>
+    <div>
+      <div class="gl">Work style</div>
+      {% if job['remote_work_ok'] == 1 %}<div class="gv yes">Remote / hybrid OK {{ prov(job['remote_source']) }}</div>
+      {% elif job['remote_work_ok'] == 0 %}<div class="gv">On-site {{ prov(job['remote_source']) }}</div>
+      {% else %}<div class="gv unknown">Not stated</div>{% endif %}
+    </div>
+    <div>
+      <div class="gl">Employment</div>
+      {% if job['employment_terms'] %}<div class="gv">{{ job['employment_terms'] }}</div>
+      {% else %}<div class="gv unknown">Not stated</div>{% endif %}
+    </div>
+    <div>
+      <div class="gl">Source</div>
+      <div class="gv">{{ job['source'] }}{% if job['source_quality'] %} <small style="color:var(--muted); font-weight:500;">· {{ job['source_quality'] }}</small>{% endif %}</div>
+    </div>
+  </div>
+
+  {% set apply_url = job['application_url'] or job['url'] %}
+  {% set apply_domain = apply_url.split('//')[-1].split('/')[0] if apply_url else '' %}
+  <div class="actions" style="margin: 16px 0 20px;">
+    <a class="primary" href="{{ apply_url }}" target="_blank" rel="noopener"
+       title="Opens the original posting on {{ apply_domain }}">Apply on {{ job['source'] }} ↗</a>
+    <button type="button" class="save-btn-large" data-job-id="{{ job['id'] }}">
+      <span class="icon">☆</span> <span class="label">Save</span>
+    </button>
+    <button type="button" class="action-btn applied-btn" data-action="applied" data-job-id="{{ job['id'] }}">
+      <span class="applied-label">✓ Mark applied</span>
+    </button>
+    <button type="button" class="action-btn hide-btn" data-action="hide" data-job-id="{{ job['id'] }}">
+      ✕ Hide
+    </button>
+    <span style="font-size:11.5px; color:var(--muted); font-family:var(--font-mono);">{{ apply_domain }}</span>
+  </div>
+
+  {% if job['foreigner_fit_reasons'] %}
+    {% set reasons = job['foreigner_fit_reasons'].split(',') %}
+    {% set positive = [] %}{% set negative = [] %}
+    {% for r in reasons %}
+      {% if r in ['no_location','no_description','salary_missing','japanese_heavy_posting','japanese_required','aggregator_source','no_visa_sponsorship'] %}
+        {% if negative.append(r) %}{% endif %}
+      {% else %}
+        {% if positive.append(r) %}{% endif %}
+      {% endif %}
+    {% endfor %}
+    <div style="margin-top:14px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:12px 14px;">
+      <strong style="font-size:13px; color:#166534;">★ Why this fits foreign applicants{% if job['foreigner_fit_score'] is not none %} · {{ job['foreigner_fit_score'] }}/100{% endif %}</strong>
+      {% if positive and fit_reason_labels %}
+        <ul style="margin:6px 0 0; padding-left:18px; font-size:13px; color:#15803d;">
+          {% for r in positive[:6] %}{% if r in fit_reason_labels %}<li>{{ fit_reason_labels[r] }}</li>{% endif %}{% endfor %}
+        </ul>
+      {% endif %}
+      {% if negative and fit_reason_labels %}
+        <div style="font-size:12px; color:#92400e; margin-top:6px;">⚠ Things to check:
+          {% for r in negative[:4] %}{% if r in fit_reason_labels %}{{ fit_reason_labels[r] }}{% if not loop.last %} · {% endif %}{% endif %}{% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% if salary_ctx %}
+    <div style="margin-top:14px; background:var(--indigo-tint); border:1px solid #dfe3ec; border-radius:10px; padding:12px 14px;">
+      <strong style="font-size:13px; color:var(--indigo);">Salary context</strong>
+      {% if salary_ctx.kind == 'actual' %}
+        <div style="font-size:13px; color:#3730a3; margin-top:4px;">
+          {{ salary_ctx.label }}, this role pays
+          <strong>{{ salary_ctx.p25|yen_short }}</strong> (25th) ·
+          <strong>{{ salary_ctx.p50|yen_short }}</strong> (median) ·
+          <strong>{{ salary_ctx.p75|yen_short }}</strong> (75th)
+          across {{ salary_ctx.n }} listed postings.
+        </div>
+      {% else %}
+        <div style="font-size:13px; color:#475569; margin-top:4px;">
+          This posting doesn't list pay. Comparable <strong>{{ salary_ctx.role }}</strong>
+          roles typically pay <strong>{{ salary_ctx.p25|yen_short }}–{{ salary_ctx.p75|yen_short }}</strong>
+          (median {{ salary_ctx.p50|yen_short }}), based on {{ salary_ctx.n }} listed postings.
+          <a href="/insights/salary" style="color:var(--accent);">See salary insights →</a>
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <!-- =================== PROFILE MATCH + APPLICATION TRACKER =================== -->
+  <script type="application/json" id="gh-job-data">
+  {{ {
+      'id': job['id'],
+      'title': job['title'],
+      'role_family': job['role_family'],
+      'japanese_level': job['japanese_level'],
+      'employment_terms': job['employment_terms'] or job['work_type'],
+      'remote_work_ok': job['remote_work_ok'],
+      'visa_sponsorship_mentioned': job['visa_sponsorship_mentioned'],
+      'overseas_application_ok': job['overseas_application_ok'],
+      'location': job['location'],
+      'salary_min_annual_jpy': job['salary_min_annual_jpy'],
+      'salary_max_annual_jpy': job['salary_max_annual_jpy'],
+      'foreigner_fit_score': job['foreigner_fit_score'],
+      'text': ((job['title'] or '') ~ ' ' ~ (job['description'] or '') ~ ' ' ~ (job['requirements'] or '') ~ ' ' ~ (job['tags'] or '')),
+      'url': job['url'],
+      'application_url': job['application_url'],
+    } | tojson }}
+  </script>
+
+  <style>
+    .gh-panel { border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin:0 0 18px; background:var(--card); }
+    .gh-panel h3 { margin:0 0 12px; font-size:15px; display:flex; align-items:center; gap:8px; }
+    .gh-match-head { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+    .gh-match-ring { --pct:0; width:74px; height:74px; border-radius:50%; flex:none;
+      background:conic-gradient(var(--gh-ring,#1e3a8a) calc(var(--pct)*1%), var(--line) 0);
+      display:flex; align-items:center; justify-content:center; }
+    .gh-match-ring > span { width:58px; height:58px; border-radius:50%; background:var(--card);
+      display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .gh-match-ring b { font-size:19px; line-height:1; color:var(--fg); }
+    .gh-match-ring small { font-size:9px; color:var(--muted); letter-spacing:.04em; }
+    .gh-match-label { font-size:16px; font-weight:800; }
+    .gh-chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
+    .gh-chip-good { font-size:12px; background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; border-radius:999px; padding:3px 9px; }
+    .gh-chip-gap  { font-size:12px; background:#fffbeb; color:#92400e; border:1px solid #fde68a; border-radius:999px; padding:3px 9px; }
+    .gh-strategy { margin-top:12px; background:var(--accent-tint); border:1px solid #c7d2fe; border-radius:10px;
+      padding:12px 14px; font-size:13.5px; line-height:1.6; color:var(--fg-soft); }
+    .gh-tk-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    @media (max-width:560px){ .gh-tk-grid { grid-template-columns:1fr; } }
+    .gh-tk-grid .full { grid-column:1/-1; }
+    .gh-tk-grid label.fl { display:block; font-size:11px; text-transform:uppercase; letter-spacing:.04em;
+      color:var(--muted); font-weight:600; margin-bottom:4px; }
+    .gh-tk-grid input, .gh-tk-grid select, .gh-tk-grid textarea {
+      width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-size:14px;
+      font-family:inherit; background:#fff; color:var(--fg); }
+    .gh-docs { display:flex; flex-wrap:wrap; gap:10px 16px; }
+    .gh-docs label { display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--fg-soft); }
+    .gh-docs input { width:auto; accent-color:var(--accent); }
+    .gh-cta-box { background:var(--accent-tint); border:1px solid #c7d2fe; border-radius:10px; padding:16px;
+      text-align:center; font-size:14px; color:var(--fg-soft); }
+  </style>
+
+  <div class="gh-panel" id="gh-match-panel" style="display:none;">
+    <h3>{{ icon('target', size=16) }} Your profile match</h3>
+    <div id="gh-match-body"></div>
+  </div>
+
+  <div class="detail-grid">
+    <div>
+      <div class="card">
+        <h3>Job details</h3>
+        <dl>
+          {% if job['source_job_id'] %}<dt>Job ID</dt><dd>{{ job['source_job_id'] }}</dd>{% endif %}
+          {% if job['post_date'] %}<dt>Posted</dt><dd>{{ job['post_date'] }}</dd>{% endif %}
+          {% if job['last_modified_date'] %}<dt>Last modified</dt><dd>{{ job['last_modified_date'] }}</dd>{% endif %}
+          {% if job['industries'] %}<dt>Industries</dt><dd>{{ job['industries'] }}</dd>{% endif %}
+          {% if job['function'] %}<dt>Function</dt><dd>{{ job['function'] }}</dd>{% endif %}
+          {% if job['work_type'] %}<dt>Work type</dt><dd>{{ job['work_type'] }}</dd>{% endif %}
+          {% if job['career_level'] %}<dt>Career level</dt><dd>{{ job['career_level'] }}</dd>{% endif %}
+          {% if job['employer_type'] %}<dt>Employer type</dt><dd>{{ job['employer_type'] }}</dd>{% endif %}
+          {% if job['salary'] %}<dt>Salary</dt><dd>{{ job['salary'] }}{% if job['salary_period'] %} <small>({{ job['salary_period'] }})</small>{% endif %}</dd>
+          {% elif job['salary_min_annual_jpy'] %}<dt>Salary</dt><dd>{{ job['salary_min_annual_jpy'] | yen_short }}{% if job['salary_max_annual_jpy'] and job['salary_max_annual_jpy'] != job['salary_min_annual_jpy'] %} ~ {{ job['salary_max_annual_jpy'] | yen_short }}{% endif %} <small>(annualized)</small></dd>{% endif %}
+          {% if job['salary_perks'] %}<dt>Perks</dt><dd>{{ job['salary_perks'] }}</dd>{% endif %}
+          {% if job['english_level'] %}<dt>English</dt><dd>{{ job['english_level'] }}</dd>{% endif %}
+          {% if job['japanese_level'] %}<dt>Japanese</dt><dd>{{ job['japanese_level'] }}</dd>{% endif %}
+          {% if job['other_language'] %}<dt>Other language</dt><dd>{{ job['other_language'] }}</dd>{% endif %}
+          {% if job['tags'] %}<dt>Tags</dt><dd>{{ job['tags'] }}</dd>{% endif %}
+        </dl>
+      </div>
+
+      {% if job['requirements'] %}
+      <div class="card">
+        <h3>Requirements</h3>
+        <ul class="req">
+          {% for item in job['requirements'].split('\n') %}
+            {% if item.strip() %}<li>{{ item }}</li>{% endif %}
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if job['description'] %}
+      <div class="card">
+        <h3>Description</h3>
+        <div class="body">{{ job['description'] }}</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <aside>
+      <div class="card">
+        <h3>Company</h3>
+        <dl>
+          {% if job['company_name'] %}<dt>Name</dt><dd>{{ job['company_name'] }}{% if job['company_name_jp'] %}<br><small>{{ job['company_name_jp'] }}</small>{% endif %}</dd>{% endif %}
+          {% if job['company_year_founded'] %}<dt>Founded</dt><dd>{{ job['company_year_founded'] }}</dd>{% endif %}
+          {% if job['company_size'] %}<dt>Employees</dt><dd>{{ job['company_size'] }}</dd>{% endif %}
+        </dl>
+        {% if job['company_about'] %}
+          <p style="font-size: 13px; color: #374151; margin-top: 12px;">{{ job['company_about'] | snippet(400) }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Application packet: one-click deep links into the career tools with
+           this job's company + role prefilled. -->
+      {% set company_qs = (job['company_name'] or '') | urlencode %}
+      {% set role_qs = (job['title'] or '') | urlencode %}
+      <div class="card" style="background:#f0f9ff; border-color:#bae6fd;">
+        <h3 style="color:#0c4a6e;">📝 Build application packet</h3>
+        <p style="font-size:13px; color:#0c4a6e; margin:0 0 12px;">
+          One-click jump into the career tools with <strong>{{ job['company_name'] or 'this company' }}</strong>
+          and <strong>{{ job['title'] | snippet(40) }}</strong> already filled in.
+        </p>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <a href="/resume/cover-letter?company={{ company_qs }}&role={{ role_qs }}"
+             style="background:var(--accent); color:#fff; padding:8px 14px; border-radius:6px;
+             text-decoration:none; font-weight:600; font-size:13px; text-align:center;">
+            ✍ Draft a cover letter
+          </a>
+          <a href="/templates?company={{ company_qs }}&role={{ role_qs }}"
+             style="background:#fff; color:var(--accent); padding:8px 14px; border-radius:6px;
+             text-decoration:none; font-weight:600; font-size:13px; text-align:center;
+             border:1px solid var(--accent);">
+            📨 Open email templates
+          </a>
+          <a href="/resume/cv"
+             style="background:#fff; color:#374151; padding:8px 14px; border-radius:6px;
+             text-decoration:none; font-weight:500; font-size:13px; text-align:center;
+             border:1px solid var(--line);">
+            📄 English CV builder
+          </a>
+          <a href="/resume"
+             style="background:#fff; color:#374151; padding:8px 14px; border-radius:6px;
+             text-decoration:none; font-weight:500; font-size:13px; text-align:center;
+             border:1px solid var(--line);">
+            Rirekisho / Shokumu builder
+          </a>
+        </div>
+      </div>
+    </aside>
+  </div>
+  <!-- Similar jobs strip (loaded async to keep TTFB low) -->
+  <div id="similar-jobs-strip" style="display:none; margin: 16px 0 22px;">
+    <h3 style="font-size:13px; color:var(--muted); text-transform:uppercase;
+        letter-spacing:0.06em; margin:0 0 10px;">Similar foreigner-friendly jobs</h3>
+    <div id="similar-jobs-list" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+        gap:10px;"></div>
+  </div>
+
+  <script>
+    (function () {
+      fetch("/api/similar/{{ job['id'] }}")
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          var rows = data.jobs || [];
+          if (!rows.length) return;
+          var strip = document.getElementById("similar-jobs-strip");
+          var list  = document.getElementById("similar-jobs-list");
+          list.innerHTML = rows.map(function (j) {
+            var fit = j.foreigner_fit_score;
+            var fitCls = fit >= 75 ? "#dcfce7;color:#166534" : fit >= 60 ? "#fef3c7;color:#92400e" : "#fee2e2;color:#991b1b";
+            var salary = j.salary_min_annual_jpy
+              ? "¥" + (j.salary_min_annual_jpy / 1e6).toFixed(1) + "M" : "";
+            return '<a href="/job/' + j.id + '" style="display:block;background:var(--card);' +
+              'border:1px solid var(--line); border-radius:8px; padding:12px 14px; ' +
+              'text-decoration:none; color:inherit; transition:all 0.15s;" ' +
+              'onmouseover="this.style.borderColor=\'var(--accent)\'" ' +
+              'onmouseout="this.style.borderColor=\'var(--line)\'">' +
+              '<div style="display:flex; justify-content:space-between; align-items:flex-start;">' +
+                '<div style="font-size:13px; font-weight:600; flex:1; color:var(--fg); line-height:1.35;">' +
+                  (j.title || '').replace(/</g, '&lt;') + '</div>' +
+                (fit != null ? '<span style="background:' + fitCls + '; padding:2px 8px;' +
+                  ' border-radius:999px; font-size:11px; font-weight:700; margin-left:6px;">Fit ' + fit + '</span>' : '') +
+              '</div>' +
+              '<div style="font-size:11px; color:var(--muted); margin-top:4px;">' +
+                (j.company_name || '—') + (j.location ? ' · ' + j.location : '') +
+                (salary ? ' · ' + salary : '') + '</div>' +
+              '</a>';
+          }).join("");
+          strip.style.display = "";
+        });
+    })();
+  </script>
+
+
+  <div class="gh-panel" id="gh-tracker-panel">
+    <h3>{{ icon('clipboard', size=16) }} Application tracker</h3>
+    <div class="gh-tk-grid">
+      <div>
+        <label class="fl" for="tk-status">Status</label>
+        <select id="tk-status"></select>
+      </div>
+      <div>
+        <label class="fl" for="tk-followup">Next follow-up date</label>
+        <input type="date" id="tk-followup">
+      </div>
+      <div>
+        <label class="fl" for="tk-applied">Applied date</label>
+        <input type="date" id="tk-applied">
+      </div>
+      <div>
+        <label class="fl" for="tk-salary">Salary discussed</label>
+        <input type="text" id="tk-salary" placeholder="e.g. ¥9M base + bonus">
+      </div>
+      <div>
+        <label class="fl" for="tk-rec-name">Recruiter / contact name</label>
+        <input type="text" id="tk-rec-name" placeholder="Optional">
+      </div>
+      <div>
+        <label class="fl" for="tk-rec-email">Recruiter / contact email</label>
+        <input type="email" id="tk-rec-email" placeholder="Optional">
+      </div>
+      <div class="full">
+        <label class="fl">Documents submitted</label>
+        <div class="gh-docs">
+          <label><input type="checkbox" id="tk-doc-en"> English resume</label>
+          <label><input type="checkbox" id="tk-doc-rireki"> 履歴書</label>
+          <label><input type="checkbox" id="tk-doc-shokumu"> 職務経歴書</label>
+          <label><input type="checkbox" id="tk-doc-cover"> Cover letter</label>
+          <label><input type="checkbox" id="tk-doc-portfolio"> Portfolio</label>
+        </div>
+      </div>
+      <div class="full">
+        <label class="fl" for="tk-notes">Notes</label>
+        <textarea id="tk-notes" rows="3" placeholder="Interview prep, contacts, salary expectations…"></textarea>
+      </div>
+    </div>
+    <div style="margin-top:14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+      <button type="button" class="action-btn" id="tk-save" style="background:var(--accent); color:#fff; border-color:var(--accent); font-weight:700;">Save tracker details</button>
+      <button type="button" class="action-btn" id="tk-remove" style="color:#b91c1c; border-color:#fca5a5;">Remove from tracker</button>
+      <a class="action-btn" href="/tracker">Open full tracker →</a>
+      <span id="tk-saved-note" style="font-size:12px; color:var(--good); opacity:0; transition:opacity .2s;">Saved ✓</span>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    if (!window.GH) return;
+    var JOB = {};
+    try { JOB = JSON.parse(document.getElementById("gh-job-data").textContent); } catch (e) {}
+    var id = JOB.id;
+    var RING = { excellent:"#2f7d5b", strong:"#c3382f", possible:"#b4690e", weak:"#a86a3c", poor:"#9c2a23" };
+
+    function esc(s){ var d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
+
+    // ---- match panel ----
+    function renderMatch() {
+      var panel = document.getElementById("gh-match-panel");
+      var body = document.getElementById("gh-match-body");
+      panel.style.display = "";
+      if (!GH.profile.isConfigured()) {
+        body.innerHTML = '<div class="gh-cta-box">Set up your <a href="/profile">profile</a> to see how well this role matches your goals, language level, visa needs, salary target and location — all computed privately in your browser.</div>';
+        return;
+      }
+      var m = GH.computeMatch(JOB);
+      var html = '<div class="gh-match-head">';
+      html += '<div class="gh-match-ring" style="--pct:' + m.score + '; --gh-ring:' + (RING[m.band]||"#1e3a8a") + ';"><span><b>' + m.score + '%</b><small>MATCH</small></span></div>';
+      html += '<div><div class="gh-match-label" style="color:' + (RING[m.band]||"#1e3a8a") + ';">' + esc(m.label) + '</div>';
+      html += '<div style="font-size:12.5px; color:var(--muted); margin-top:2px;">Personalized — separate from the universal Foreigner Fit score.</div></div></div>';
+      if (m.why.length) {
+        html += '<div style="margin-top:12px;"><div style="font-size:12px; font-weight:700; color:#065f46; margin-bottom:5px;">Why it matches</div><div class="gh-chips">' +
+          m.why.map(function (w){ return '<span class="gh-chip-good">✓ ' + esc(w) + '</span>'; }).join("") + '</div></div>';
+      }
+      if (m.gaps.length) {
+        html += '<div style="margin-top:10px;"><div style="font-size:12px; font-weight:700; color:#92400e; margin-bottom:5px;">Potential gaps</div><div class="gh-chips">' +
+          m.gaps.map(function (g){ return '<span class="gh-chip-gap">⚠ ' + esc(g) + '</span>'; }).join("") + '</div></div>';
+      }
+      html += '<div class="gh-strategy"><strong>Recommended application strategy.</strong> ' + esc(GH.applicationStrategy(JOB, m)) + '</div>';
+      body.innerHTML = html;
+    }
+
+    // ---- tracker card ----
+    var statusSel = document.getElementById("tk-status");
+    GH.STATUSES.forEach(function (s) {
+      var o = document.createElement("option"); o.value = s; o.textContent = s; statusSel.appendChild(o);
+    });
+    function isoToDate(v){ return v ? String(v).slice(0,10) : ""; }
+    function loadTracker() {
+      var e = GH.tracker.get(id) || {};
+      statusSel.value = e.status || "Saved";
+      document.getElementById("tk-followup").value = isoToDate(e.followUpAt);
+      document.getElementById("tk-applied").value = isoToDate(e.appliedAt);
+      document.getElementById("tk-salary").value = e.salaryDiscussed || "";
+      document.getElementById("tk-rec-name").value = e.recruiterName || "";
+      document.getElementById("tk-rec-email").value = e.recruiterEmail || "";
+      document.getElementById("tk-notes").value = e.notes || "";
+      var d = e.docs || {};
+      document.getElementById("tk-doc-en").checked = !!d.englishResume;
+      document.getElementById("tk-doc-rireki").checked = !!d.rirekisho;
+      document.getElementById("tk-doc-shokumu").checked = !!d.shokumu;
+      document.getElementById("tk-doc-cover").checked = !!d.coverLetter;
+      document.getElementById("tk-doc-portfolio").checked = !!d.portfolio;
+      document.getElementById("tk-remove").style.display = GH.tracker.get(id) ? "" : "none";
+    }
+    document.getElementById("tk-save").addEventListener("click", function () {
+      function dv(elid){ var v=document.getElementById(elid).value; return v ? new Date(v).toISOString() : ""; }
+      GH.tracker.set(id, {
+        status: statusSel.value,
+        followUpAt: dv("tk-followup"),
+        appliedAt: dv("tk-applied"),
+        salaryDiscussed: document.getElementById("tk-salary").value.trim(),
+        recruiterName: document.getElementById("tk-rec-name").value.trim(),
+        recruiterEmail: document.getElementById("tk-rec-email").value.trim(),
+        notes: document.getElementById("tk-notes").value.trim(),
+        sourceUrl: JOB.application_url || JOB.url || "",
+        docs: {
+          englishResume: document.getElementById("tk-doc-en").checked,
+          rirekisho: document.getElementById("tk-doc-rireki").checked,
+          shokumu: document.getElementById("tk-doc-shokumu").checked,
+          coverLetter: document.getElementById("tk-doc-cover").checked,
+          portfolio: document.getElementById("tk-doc-portfolio").checked,
+        },
+      });
+      var note = document.getElementById("tk-saved-note");
+      note.style.opacity = "1"; setTimeout(function(){ note.style.opacity = "0"; }, 1600);
+      if (window.ghToast) ghToast("Tracker details saved");
+      loadTracker();
+    });
+    document.getElementById("tk-remove").addEventListener("click", function () {
+      GH.tracker.remove(id); loadTracker();
+    });
+
+    document.addEventListener("DOMContentLoaded", function () { renderMatch(); loadTracker(); });
+    if (document.readyState !== "loading") { renderMatch(); loadTracker(); }
+  })();
+  </script>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,1258 @@
+{% extends "base.html" %}
+{% block title %}Email Templates, Gaijin Hunter{% endblock %}
+{% block content %}
+<style>
+  .et-h { padding: 8px 0 18px; }
+  .et-h h1 { margin: 0 0 6px; font-size: 28px; }
+  .et-h p  { margin: 0; color: var(--muted); max-width: 720px; }
+
+  .placeholders { background: #fff; border: 1px solid var(--line); border-radius: 10px;
+                  padding: 16px 18px; margin-bottom: 22px; }
+  .placeholders h2 { margin: 0 0 10px; font-size: 15px; }
+  .placeholders .grid { display: grid; gap: 8px; grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 800px) { .placeholders .grid { grid-template-columns: repeat(2, 1fr); } }
+  .placeholders label { display: block; font-size: 11px; color: var(--muted);
+                        text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
+  .placeholders input {
+    width: 100%; padding: 6px 9px; border: 1px solid var(--line); border-radius: 6px;
+    font-size: 13px; background: #fff;
+  }
+
+  .topic-nav { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+  .topic-nav button {
+    background: #fff; color: var(--fg); border: 1px solid var(--line);
+    padding: 7px 14px; border-radius: 999px; cursor: pointer; font-size: 13px;
+  }
+  .topic-nav button:hover { border-color: var(--accent); color: var(--accent); }
+  .topic-nav button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .tpl-card { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+              padding: 0; margin-bottom: 18px; overflow: hidden; }
+  .tpl-card.hidden { display: none; }
+  .tpl-card h3 { margin: 0; padding: 14px 20px; background: #f9fafb; font-size: 15px;
+                 border-bottom: 1px solid var(--line); display: flex;
+                 justify-content: space-between; align-items: center; }
+  .tpl-card .tagline { color: var(--muted); font-size: 12px; font-weight: 400; margin-left: 8px; }
+  .tpl-card .body { display: grid; grid-template-columns: 1fr 1fr; }
+  .tpl-card .body > div { padding: 16px 20px; }
+  .tpl-card .body > div:first-child { border-right: 1px solid var(--line); }
+  @media (max-width: 800px) {
+    .tpl-card .body { grid-template-columns: 1fr; }
+    .tpl-card .body > div:first-child { border-right: none; border-bottom: 1px solid var(--line); }
+  }
+  .tpl-card .lang-label { font-size: 11px; color: var(--muted); text-transform: uppercase;
+                          letter-spacing: 0.06em; margin-bottom: 6px; display: flex;
+                          justify-content: space-between; align-items: center; }
+  .tpl-card .copy-btn { background: #fff; color: var(--accent); border: 1px solid var(--accent);
+                        padding: 3px 10px; border-radius: 999px; font-size: 11px; cursor: pointer; }
+  .tpl-card .copy-btn:hover { background: var(--accent); color: #fff; }
+  .tpl-card .subject { font-weight: 700; font-size: 13px; margin-bottom: 8px;
+                       padding-bottom: 6px; border-bottom: 1px dashed var(--line); }
+  .tpl-card pre { margin: 0; font-family: inherit; font-size: 13px; white-space: pre-wrap;
+                  line-height: 1.6; color: var(--fg); }
+  .tpl-card pre .ph { background: #fef3c7; color: #92400e; padding: 0 4px;
+                      border-radius: 3px; font-weight: 600; }
+
+  .legend { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px;
+            padding: 12px 16px; font-size: 13px; color: #0c4a6e; margin-bottom: 20px; }
+  .legend code { background: #fff; padding: 1px 6px; border-radius: 3px; font-size: 12px;
+                 color: #1a1a1a; }
+</style>
+
+<div class="et-h">
+  <h1>Email Templates</h1>
+  <p>Bilingual templates for every step of a Japanese job hunt, initial application,
+     follow-ups, thank-yous, salary discussion, and offer responses. English on the left,
+     Japanese on the right. Click "Copy" to grab either version.</p>
+</div>
+
+<div class="placeholders">
+  <h2>Placeholders, fill these in once, every template uses them:</h2>
+  <div class="grid">
+    <div><label>Your name</label><input data-ph="name" placeholder="Jane Doe"></div>
+    <div><label>Your name (kanji/katakana)</label><input data-ph="nameJp" placeholder="ジェーン・ドウ"></div>
+    <div><label>Company</label><input data-ph="company" placeholder="Mercari"></div>
+    <div><label>Company (Japanese)</label><input data-ph="companyJp" placeholder="株式会社メルカリ"></div>
+    <div><label>Role / position</label><input data-ph="role" placeholder="Senior Backend Engineer"></div>
+    <div><label>Role (Japanese)</label><input data-ph="roleJp" placeholder="シニアバックエンドエンジニア"></div>
+    <div><label>Recruiter / hiring manager</label><input data-ph="recipient" placeholder="Tanaka-san"></div>
+    <div><label>Recipient (Japanese)</label><input data-ph="recipientJp" placeholder="田中様"></div>
+  </div>
+</div>
+
+<div class="legend">
+  Placeholders look like <code>{name}</code>, <code>{company}</code>, etc. They update in
+  every template as you type. Japanese versions use Japanese placeholders (<code>{companyJp}</code>)
+  when set; otherwise they fall back to the English ones.
+</div>
+
+<div class="topic-nav" id="topic-nav">
+  <button data-topic="all" class="active">All</button>
+  <button data-topic="networking">Networking &amp; outreach</button>
+  <button data-topic="initial">Initial application</button>
+  <button data-topic="followup">Follow-up</button>
+  <button data-topic="scheduling">Scheduling</button>
+  <button data-topic="interview">After interview</button>
+  <button data-topic="offer">Offer / negotiation</button>
+  <button data-topic="decline">Decline / withdraw</button>
+  <button data-topic="onboarding">After acceptance</button>
+  <button data-topic="resignation">Resignation</button>
+  <button data-topic="references">References &amp; recommendations</button>
+  <button data-topic="recruiter">Recruiter management</button>
+</div>
+
+<div id="templates"></div>
+
+<script>
+(function () {
+  // ----- placeholders persisted in localStorage -----
+  var PH_KEY = "gh-email-placeholders-v1";
+  var phState = {};
+  try { phState = JSON.parse(localStorage.getItem(PH_KEY) || "{}"); } catch (e) {}
+  // URL prefill for company/role from /job/<id>
+  var urlqs = new URLSearchParams(window.location.search);
+  if (urlqs.get("company") && !phState.company) phState.company = urlqs.get("company");
+  if (urlqs.get("role")    && !phState.role)    phState.role    = urlqs.get("role");
+
+  // Server-side prefill (matches the route's deep-link).
+  var serverCompany = {{ prefill_company | tojson }};
+  var serverRole    = {{ prefill_role | tojson }};
+  if (serverCompany && !phState.company) phState.company = serverCompany;
+  if (serverRole    && !phState.role)    phState.role    = serverRole;
+
+  // Fall back to profile name if not set
+  if (window.GH && !phState.name) {
+    var prof = GH.profile.get();
+    if (prof.name) phState.name = prof.name;
+  }
+
+  function savePh() { localStorage.setItem(PH_KEY, JSON.stringify(phState)); }
+
+  // Templates: id, topic, title, tagline, en {subject, body}, ja {subject, body}
+  var TEMPLATES = [
+    // ============ INITIAL APPLICATION ============
+    { id: "apply-direct", topic: "initial",
+      title: "Initial application — Direct (no recruiter)",
+      tagline: "When you're applying via a company's careers page or to a posted job.",
+      en: {
+        subject: "Application for {role} — {name}",
+        body:
+"Dear {recipient},\n\n" +
+"I'd like to apply for the {role} position at {company}. I've attached my resume and a brief cover letter.\n\n" +
+"Briefly, my background: (one or two sentences on your most relevant experience). I'm based in (location) and available for an interview at your convenience.\n\n" +
+"Please let me know if you need any additional materials. Thank you for considering my application.\n\n" +
+"Best regards,\n{name}",
+      },
+      ja: {
+        subject: "{role}への応募の件 — {name}",
+        body:
+"{recipient}\n\n" +
+"突然のメール失礼いたします。{name}と申します。\n\n" +
+"この度、貴社の{role}のポジションに応募させていただきたく、ご連絡を差し上げました。履歴書および簡単なカバーレターを添付しております。\n\n" +
+"私の経歴を簡単にご紹介しますと、（経験を一〜二文で記載してください）。現在は（居住地）に在住しており、ご都合のよい日時に面接へお伺いすることが可能です。\n\n" +
+"その他に必要な書類等がございましたら、お気軽にお申し付けください。\n\n" +
+"ご検討のほど、どうぞよろしくお願い申し上げます。\n\n" +
+"{name}",
+      },
+    },
+    { id: "apply-recruiter-intro", topic: "initial",
+      title: "Initial application — Reaching out to a recruiter",
+      tagline: "Cold or warm intro to a recruiter / hiring manager.",
+      en: {
+        subject: "Interested in {role} at {company}",
+        body:
+"Hi {recipient},\n\n" +
+"I came across the {role} role at {company} and wanted to reach out directly. (One sentence on why this company specifically — a product, a value, a recent announcement.)\n\n" +
+"Quick summary of my background: (1–2 sentences). I'd love to learn more about the role and the team. Would you be open to a 15–20 minute call?\n\n" +
+"I'll attach my resume for context. Looking forward to hearing from you.\n\n" +
+"Best,\n{name}",
+      },
+      ja: {
+        subject: "{role}のポジションについて",
+        body:
+"{recipient}\n\n" +
+"はじめまして。{name}と申します。\n\n" +
+"貴社の{role}の募集を拝見し、ぜひ詳しくお話を伺いたくご連絡差し上げました。（具体的に貴社のどこに惹かれたかを一文）\n\n" +
+"私の経歴を簡単にご説明すると、（経歴を一〜二文で）。ポジションおよびチームについて、お時間を15〜20分ほどいただけますと幸いです。\n\n" +
+"参考までに履歴書を添付しております。ご検討のほど、よろしくお願いいたします。\n\n" +
+"{name}",
+      },
+    },
+
+    // ============ FOLLOW-UP ============
+    { id: "followup-1week", topic: "followup",
+      title: "Follow-up — 1 week after applying",
+      tagline: "Polite nudge if you haven't heard back in ~7 business days.",
+      en: {
+        subject: "Following up: {role} application",
+        body:
+"Hi {recipient},\n\n" +
+"I wanted to follow up on my application for the {role} role at {company} from last week. I'm still very interested in the opportunity and happy to provide any additional information that would be helpful.\n\n" +
+"Thanks again for your time.\n\n" +
+"Best,\n{name}",
+      },
+      ja: {
+        subject: "{role}応募の件 — フォローアップ",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"先週、貴社の{role}のポジションへ応募させていただきましたが、その後の状況をお伺いできればと存じます。本ポジションに大変関心がございますので、追加で必要な情報や書類などがございましたら、ぜひお知らせください。\n\n" +
+"お忙しいところ恐縮ですが、ご返信いただけますと幸いです。\n\n" +
+"何卒よろしくお願い申し上げます。\n\n" +
+"{name}",
+      },
+    },
+    { id: "followup-confirm-interview", topic: "followup",
+      title: "Follow-up — Confirming interview details",
+      tagline: "After the recruiter proposes a date/time.",
+      en: {
+        subject: "Confirming interview — {role}",
+        body:
+"Hi {recipient},\n\n" +
+"Thank you for the invitation. I'd like to confirm the interview for the {role} role at (DATE) at (TIME), via (Zoom / in-person at OFFICE).\n\n" +
+"Please let me know if there's anything I should prepare in advance.\n\n" +
+"Looking forward to it.\n\n" +
+"Best,\n{name}",
+      },
+      ja: {
+        subject: "面接日程確認 — {role}",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"この度はご連絡をいただき誠にありがとうございます。{role}のポジションに関する面接につきまして、（日付）（時間）に（ZoomまたはオフィスXXX）にて、伺わせていただきます。\n\n" +
+"事前にご準備が必要なものがございましたら、お知らせいただけますと幸いです。\n\n" +
+"何卒よろしくお願い申し上げます。\n\n" +
+"{name}",
+      },
+    },
+
+    // ============ AFTER INTERVIEW ============
+    { id: "thanks-postinterview", topic: "interview",
+      title: "Thank-you — After interview (same day)",
+      tagline: "Send within 24 hours. Short, specific, reference one thing discussed.",
+      en: {
+        subject: "Thank you — {role} interview",
+        body:
+"Dear {recipient},\n\n" +
+"Thank you for taking the time to speak with me today about the {role} role. I especially enjoyed (specific topic — a project, a question, a challenge they mentioned).\n\n" +
+"Our conversation reinforced my interest in {company}, and I'd be glad to continue the process. Please let me know if there's anything else I can share.\n\n" +
+"Thanks again,\n{name}",
+      },
+      ja: {
+        subject: "本日の面接のお礼 — {role}",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。本日{role}の面接にてお時間をいただきました{name}です。\n\n" +
+"本日はお忙しい中、貴重なお時間をいただき誠にありがとうございました。特に（具体的な話題 — プロジェクト、質問、課題）についてのお話が非常に印象に残っております。\n\n" +
+"お話を通じて、貴社で働きたいという気持ちが一層強くなりました。引き続き選考のほど、よろしくお願いいたします。追加で必要な情報がございましたら、お知らせください。\n\n" +
+"改めて、ありがとうございました。\n\n" +
+"{name}",
+      },
+    },
+    { id: "thanks-multi-round", topic: "interview",
+      title: "Thank-you — Multiple interviewers",
+      tagline: "Send one email per interviewer, personalize each.",
+      en: {
+        subject: "Thank you — {role} interview today",
+        body:
+"Hi {recipient},\n\n" +
+"Thank you for the time you spent with me today. I enjoyed your perspective on (specific topic this person owns).\n\n" +
+"I left the conversation more excited about the {role} role at {company}. Happy to follow up on any of the points we discussed.\n\n" +
+"Best,\n{name}",
+      },
+      ja: {
+        subject: "本日の面接の御礼 — {role}",
+        body:
+"{recipient}\n\n" +
+"本日はお時間をいただき、誠にありがとうございました。{name}です。\n\n" +
+"特に（その方ご担当の話題）に関するお話が大変参考になり、{role}のポジションに対する関心がますます強まりました。\n\n" +
+"本日伺ったお話について、補足が必要な点がございましたら、お気軽にお申し付けください。\n\n" +
+"今後ともよろしくお願いいたします。\n\n" +
+"{name}",
+      },
+    },
+
+    // ============ OFFER / NEGOTIATION ============
+    { id: "offer-considering", topic: "offer",
+      title: "Offer — Asking for time to consider",
+      tagline: "When the offer arrives but you need a few days. Standard Japanese practice.",
+      en: {
+        subject: "Thank you for the offer — request for time",
+        body:
+"Dear {recipient},\n\n" +
+"Thank you very much for the offer for the {role} position at {company}. I'm grateful for the opportunity.\n\n" +
+"Could I have until (DATE) to review the terms and respond formally? I want to make sure I can commit fully if I accept.\n\n" +
+"Thank you for your understanding.\n\n" +
+"Best,\n{name}",
+      },
+      ja: {
+        subject: "内定のお礼と回答期日のご相談",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"この度は{role}のポジションにて内定をいただき、誠にありがとうございます。心より光栄に存じます。\n\n" +
+"つきましては、条件の確認も含めまして、（日付）まで回答のお時間をいただけませんでしょうか。重要な決断のため、慎重に判断したく存じます。\n\n" +
+"ご検討のほど、どうぞよろしくお願い申し上げます。\n\n" +
+"{name}",
+      },
+    },
+    { id: "offer-negotiate", topic: "offer",
+      title: "Salary negotiation — Counter-offer",
+      tagline: "Friendly, specific, with a number. Tie it to market or to a competing offer.",
+      en: {
+        subject: "Re: Offer — {role}",
+        body:
+"Dear {recipient},\n\n" +
+"Thank you again for the offer. I'm enthusiastic about joining {company} as {role}.\n\n" +
+"Before I formally accept, I'd like to discuss the base salary. Based on (recent offers for comparable roles / market data for this seniority in Tokyo / a competing offer at COMPETITOR), I was hoping for a base of ¥(AMOUNT). Would the team have room to revisit?\n\n" +
+"Happy to discuss on a call if easier.\n\n" +
+"Best regards,\n{name}",
+      },
+      ja: {
+        subject: "条件のご相談 — {role}",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"改めまして、内定をいただき誠にありがとうございます。{company}にて{role}としてお力になれることを大変楽しみにしております。\n\n" +
+"正式にお受けする前に、基本給につきまして一点ご相談させていただけませんでしょうか。同等のポジションの市場相場、ならびに（競合他社からのオファー条件）を考慮いたしますと、基本給を年収（金額）円でご検討いただけますと幸甚です。\n\n" +
+"必要であれば、お電話にてご相談させていただくことも可能です。\n\n" +
+"ご検討のほど、何卒よろしくお願い申し上げます。\n\n" +
+"{name}",
+      },
+    },
+    { id: "offer-accept", topic: "offer",
+      title: "Offer — Acceptance",
+      tagline: "Short, warm, no surprises.",
+      en: {
+        subject: "Offer acceptance — {role}",
+        body:
+"Dear {recipient},\n\n" +
+"I'm delighted to formally accept the {role} position at {company}. Thank you for the opportunity.\n\n" +
+"I'll be ready to start on (START DATE) as discussed. Please let me know what documents I should prepare in advance.\n\n" +
+"Looking forward to joining the team.\n\n" +
+"Best regards,\n{name}",
+      },
+      ja: {
+        subject: "内定承諾のご連絡 — {role}",
+        body:
+"{recipient}\n\n" +
+"いつもお世話になっております。{name}です。\n\n" +
+"この度は{role}のポジションにて内定をいただき、誠にありがとうございます。正式にお受けいたしたく、ご連絡申し上げます。\n\n" +
+"入社日につきましては、ご相談させていただいた通り（入社日）を予定しております。事前にご準備が必要な書類等がございましたら、お知らせください。\n\n" +
+"今後ともどうぞよろしくお願い申し上げます。\n\n" +
+"{name}",
+      },
+    },
+
+    // ============ DECLINE / WITHDRAW ============
+    { id: "decline-offer", topic: "decline",
+      title: "Decline offer",
+      tagline: "Be brief, warm, and keep the door open.",
+      en: {
+        subject: "Re: Offer — {role}",
+        body:
+"Dear {recipient},\n\n" +
+"Thank you again for the offer for the {role} position. After careful consideration, I've decided to accept another opportunity that's a closer fit for my current goals.\n\n" +
+"I really appreciate the time and care your team invested. I hope our paths cross again in the future.\n\n" +
+"Wishing you and {company} all the best.\n\n" +
+"Best,\n{name}",
+      },
+      ja: {
+        subject: "内定辞退のご連絡 — {role}",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"この度は、{role}のポジションにて内定をいただき、誠にありがとうございました。慎重に検討させていただいた結果、現時点の自身のキャリア方針に鑑み、別の機会をお受けすることを決断いたしました。\n\n" +
+"選考の過程で皆様より頂戴したお時間とご厚意に、心より感謝申し上げます。またご縁がございましたら幸いです。\n\n" +
+"貴社の今後のますますのご発展を心よりお祈り申し上げます。\n\n" +
+"{name}",
+      },
+    },
+    { id: "withdraw-application", topic: "decline",
+      title: "Withdraw application (before offer)",
+      tagline: "Mid-process exit. Brief, professional, no over-explaining.",
+      en: {
+        subject: "Withdrawing my application — {role}",
+        body:
+"Dear {recipient},\n\n" +
+"Thank you for the time you've spent on my application for the {role} role. After reflection, I've decided to withdraw from the process.\n\n" +
+"I appreciate your team's consideration and apologize for any inconvenience. Hopefully our paths cross again down the line.\n\n" +
+"Best regards,\n{name}",
+      },
+      ja: {
+        subject: "選考辞退のご連絡 — {role}",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"{role}の選考にあたり、これまでお時間をいただき誠にありがとうございました。慎重に検討した結果、誠に勝手ながら選考を辞退させていただきたく、ご連絡申し上げます。\n\n" +
+"皆様にご迷惑をおかけしてしまい申し訳ございません。またご縁がございましたら、よろしくお願いいたします。\n\n" +
+"貴社のますますのご発展を心よりお祈り申し上げます。\n\n" +
+"{name}",
+      },
+    },
+
+    // ============ NETWORKING & OUTREACH ============
+    { id: "linkedin-cold-recruiter", topic: "networking",
+      title: "Cold LinkedIn message — recruiter or hiring manager",
+      tagline: "Short, specific, asks for nothing the recipient hasn't already volunteered.",
+      en: {
+        subject: "(LinkedIn DM — no subject)",
+        body:
+"Hi {recipient},\n\n" +
+"I came across your profile through your recent post on (TOPIC). Your point about (SPECIFIC) resonated with how I think about (RELATED).\n\n" +
+"I'm currently exploring {role}-type roles in Japan and would love to learn about how {company} approaches it, if you have 15 minutes in the coming weeks. Happy to send over my background ahead of time.\n\n" +
+"Thanks either way for the read.\n\n" +
+"{name}",
+      },
+      ja: {
+        subject: "(LinkedIn DM — 件名なし)",
+        body:
+"{recipient}\n\n" +
+"はじめまして。{name}と申します。\n\n" +
+"先日の投稿で（具体的なトピック）について触れられていた点に大変共感し、ご連絡を差し上げました。\n\n" +
+"現在、日本での{role}の機会を探しており、貴社における{role}の進め方について15分ほどお話を伺えればと思っております。事前に経歴をお送りいたしますので、ご都合のよろしいときにお返事をいただけますと幸いです。\n\n" +
+"突然のメッセージで失礼いたしました。\n\n" +
+"{name}",
+      },
+    },
+    { id: "alumni-network", topic: "networking",
+      title: "Reaching out to a fellow alum at a target company",
+      tagline: "Shared affiliation lowers the cost of a reply. Keep the ask narrow.",
+      en: {
+        subject: "Fellow (SCHOOL) alum — quick question about {company}",
+        body:
+"Hi {recipient},\n\n" +
+"I'm a fellow (SCHOOL) (DEGREE / YEAR) alum and saw you've been at {company} for (X) years. I'm exploring {role} opportunities in Japan and would value your perspective on what the engineering / product / business culture is actually like there.\n\n" +
+"Would you have 20 minutes for a coffee chat or video call sometime in the next two weeks? Happy to send my background in advance.\n\n" +
+"Thanks for considering — go (MASCOT)!\n\n" +
+"{name}",
+      },
+      ja: {
+        subject: "（学校名）の卒業生として — {company}についてご相談",
+        body:
+"{recipient}\n\n" +
+"はじめまして。{name}と申します。同じ（学校名）の出身で、（学位/卒業年）の卒業生です。\n\n" +
+"現在、日本での{role}の機会を探しており、貴社の文化や働き方について、もしよろしければ20分ほどお話を伺えませんでしょうか。\n\n" +
+"事前に簡単な経歴をお送りすることも可能です。お時間のあるときに、ご検討いただけますと幸いです。\n\n" +
+"よろしくお願いいたします。\n\n" +
+"{name}",
+      },
+    },
+    { id: "referral-ask", topic: "networking",
+      title: "Asking a contact for an internal referral",
+      tagline: "Make it easy for them. Attach the job link and your one-paragraph pitch.",
+      en: {
+        subject: "Quick favor — referral for {role} at {company}?",
+        body:
+"Hi {recipient},\n\n" +
+"Hope you're doing well. I noticed {company} has an open {role} role (link: JOB URL) and it looks like an excellent fit for my background.\n\n" +
+"Would you be comfortable submitting me as an internal referral? I've attached my resume and a one-paragraph pitch tailored to the role — feel free to forward as-is or pass on if it's not a fit.\n\n" +
+"Thanks either way for the consideration.\n\n" +
+"{name}",
+      },
+      ja: {
+        subject: "リファラルのお願い — {company}の{role}",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"{company}にて{role}のポジションが募集されていることを拝見いたしました（求人URL: ）。私の経歴と非常にマッチしているように感じております。\n\n" +
+"もしご無理がなければ、社内リファラルとしてご紹介いただくことは可能でしょうか。履歴書および本ポジションに合わせた簡単な志望理由を添付しております。そのまま転送いただいても、難しいようでしたらご遠慮なくお知らせください。\n\n" +
+"ご検討のほど、よろしくお願いいたします。\n\n" +
+"{name}",
+      },
+    },
+    { id: "informational-interview", topic: "networking",
+      title: "Informational interview request",
+      tagline: "20–30 minutes to learn, not to ask for a job. Be explicit about that.",
+      en: {
+        subject: "Informational chat about working at {company}?",
+        body:
+"Hi {recipient},\n\n" +
+"My name is {name} — I'm a (BACKGROUND) currently exploring a move into {role} roles in Japan. I came across your work at {company} through (HOW YOU FOUND THEM) and would love to hear how you found your way into the role.\n\n" +
+"Would you be open to a 20-minute informational call? I'm not applying for anything right now — I'd just like to understand the path. I'm flexible around your schedule and happy to make it as easy as possible.\n\n" +
+"Thanks for considering.\n\n" +
+"{name}",
+      },
+      ja: {
+        subject: "{company}でのキャリアについてお話を伺えませんでしょうか",
+        body:
+"{recipient}\n\n" +
+"はじめまして。{name}と申します。現在（バックグラウンド）として働いており、日本での{role}のキャリアを検討しております。\n\n" +
+"（見つけた経緯）を通じて{recipient}様のことを知り、これまでのキャリアパスについて20分ほどお話を伺えればと思っております。\n\n" +
+"現時点で具体的な応募などは考えておらず、純粋にキャリアの参考にさせていただきたく存じます。ご都合のよろしい日時をお知らせいただけますと幸いです。\n\n" +
+"突然のご連絡、誠に失礼いたしました。\n\n" +
+"{name}",
+      },
+    },
+    { id: "post-event-followup", topic: "networking",
+      title: "Following up after meeting at an event",
+      tagline: "Within 48 hours. Reference one specific thing you discussed.",
+      en: {
+        subject: "Great meeting you at (EVENT)",
+        body:
+"Hi {recipient},\n\n" +
+"It was a pleasure meeting you at (EVENT) — I really enjoyed our conversation about (TOPIC).\n\n" +
+"I wanted to follow up on (SPECIFIC THING DISCUSSED). I've been thinking more about it, and (BRIEF FOLLOW-UP THOUGHT OR LINK).\n\n" +
+"Hope we stay in touch — would be great to grab coffee sometime if you're open to it.\n\n" +
+"Best,\n{name}",
+      },
+      ja: {
+        subject: "（イベント名）でお会いできて光栄でした",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。先日（イベント名）でお会いいたしました{name}と申します。\n\n" +
+"その節は（話題）について大変興味深いお話をお聞かせいただき、ありがとうございました。\n\n" +
+"あの後（具体的に議論した内容）について改めて考え、（簡単な続き、または関連リンク）と感じました。\n\n" +
+"またお時間のあるときにコーヒーでもご一緒できれば幸いです。今後ともよろしくお願いいたします。\n\n" +
+"{name}",
+      },
+    },
+
+    // ============ SCHEDULING ============
+    { id: "reschedule-interview", topic: "scheduling",
+      title: "Rescheduling an interview",
+      tagline: "Apologize, give a clear reason, propose 2–3 alternatives.",
+      en: {
+        subject: "Re: Interview — {role} — rescheduling request",
+        body:
+"Dear {recipient},\n\n" +
+"I'm very sorry to ask this, but due to (BRIEF REASON — illness, urgent commitment, conflict), I'm unable to attend our interview scheduled for (ORIGINAL DATE / TIME). I apologize for the inconvenience.\n\n" +
+"Could we reschedule to one of the following slots?\n" +
+"  - (DATE / TIME 1)\n" +
+"  - (DATE / TIME 2)\n" +
+"  - (DATE / TIME 3)\n\n" +
+"If none of these work, I'm happy to be flexible around your schedule. Thanks for your understanding.\n\n" +
+"Best regards,\n{name}",
+      },
+      ja: {
+        subject: "面接日程変更のお願い — {role}",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"誠に申し訳ございませんが、（簡単な理由 — 体調不良、急な業務、他の予定との重複など）のため、（当初の日時）の面接にお伺いすることが難しくなってしまいました。直前のご連絡となり、深くお詫び申し上げます。\n\n" +
+"可能でしたら、下記のいずれかへの変更をお願いできませんでしょうか。\n" +
+"・（候補日時1）\n" +
+"・（候補日時2）\n" +
+"・（候補日時3）\n\n" +
+"上記でご都合がつかない場合は、貴社のご都合に合わせて調整させていただきます。お忙しいところ恐縮ですが、何卒よろしくお願い申し上げます。\n\n" +
+"{name}",
+      },
+    },
+    { id: "confirm-interview-onsite", topic: "scheduling",
+      title: "Confirming an in-person interview",
+      tagline: "Confirm date, time, location, format, and what to bring.",
+      en: {
+        subject: "Confirming interview — {role} — (DATE) (TIME)",
+        body:
+"Dear {recipient},\n\n" +
+"Thank you for the invitation. I'd like to confirm our interview:\n\n" +
+"  - Date / time: (DATE) at (TIME)\n" +
+"  - Location: (OFFICE / ROOM)\n" +
+"  - Interviewer(s): (NAMES)\n" +
+"  - Format: (TECHNICAL / BEHAVIORAL / PANEL / ETC.)\n\n" +
+"Please let me know if I should prepare anything in advance or bring specific documents.\n\n" +
+"Looking forward to it.\n\n" +
+"Best,\n{name}",
+      },
+      ja: {
+        subject: "面接日程確認のご連絡 — {role}（日付・時間）",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"この度はご連絡をいただき、誠にありがとうございます。下記の通り、面接日程を確認させていただきます。\n\n" +
+"・日時：（日付）（時間）\n" +
+"・場所：（オフィス／会議室）\n" +
+"・面接官：（お名前）\n" +
+"・形式：（技術／行動／パネルなど）\n\n" +
+"事前にご準備が必要なものや、お持ちすべき書類などがございましたら、お知らせいただけますと幸いです。\n\n" +
+"当日はどうぞよろしくお願いいたします。\n\n" +
+"{name}",
+      },
+    },
+    { id: "request-remote-interview", topic: "scheduling",
+      title: "Requesting a remote / video interview",
+      tagline: "When you're abroad or unable to travel for the first round.",
+      en: {
+        subject: "Re: {role} interview — possible to do remotely?",
+        body:
+"Dear {recipient},\n\n" +
+"Thank you for inviting me to interview for the {role} role.\n\n" +
+"I'm currently based in (LOCATION) and would not be able to travel for the first round in the proposed timeframe. Would it be possible to conduct the initial interview by video call? I'm available across (TIME RANGE / DAYS) and can accommodate your team's preferred platform (Zoom, Google Meet, etc.).\n\n" +
+"If an in-person first round is required, I'd appreciate a couple of weeks' lead time to arrange travel.\n\n" +
+"Thank you for your flexibility.\n\n" +
+"Best,\n{name}",
+      },
+      ja: {
+        subject: "面接形式のご相談 — {role}",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"この度は{role}の面接にお招きいただき、誠にありがとうございます。\n\n" +
+"現在（居住地）に在住しており、ご提案いただいた時期での渡航が難しい状況です。可能でしたら、初回面接をビデオ会議形式で実施いただくことはできますでしょうか。（曜日・時間帯）で柔軟に対応可能で、Zoom、Google Meetなどご希望の形式に合わせさせていただきます。\n\n" +
+"対面での面接が必須ということでしたら、渡航準備のため2週間ほどの余裕をいただければ幸いです。\n\n" +
+"ご検討のほど、よろしくお願いいたします。\n\n" +
+"{name}",
+      },
+    },
+    { id: "sick-day-interview", topic: "scheduling",
+      title: "Cancelling on the day due to illness",
+      tagline: "Same day. Brief, sincere, with a clear next step.",
+      en: {
+        subject: "Apologies — unable to make today's interview",
+        body:
+"Dear {recipient},\n\n" +
+"I'm very sorry to write this on short notice, but I've come down with (illness / flu) this morning and am not able to attend our interview today. I didn't want to take the risk of being unwell during our conversation or potentially exposing the team.\n\n" +
+"Could we reschedule for later this week or next? I'm available (PROPOSED SLOTS) and will be flexible around your team's calendar.\n\n" +
+"Apologies again for the disruption.\n\n" +
+"Best,\n{name}",
+      },
+      ja: {
+        subject: "本日の面接欠席のご連絡とお詫び",
+        body:
+"{recipient}\n\n" +
+"急のご連絡、誠に申し訳ございません。{name}です。\n\n" +
+"今朝より（風邪／インフルエンザなど）の症状が出てしまい、本日の面接にお伺いすることが難しい状況となってしまいました。万一の場合を考え、欠席のご連絡を差し上げる次第です。\n\n" +
+"可能でしたら、来週以降に再調整させていただけませんでしょうか。（候補日時）で対応可能ですが、貴社のご都合に合わせて柔軟に調整いたします。\n\n" +
+"直前のご連絡、重ねてお詫び申し上げます。\n\n" +
+"{name}",
+      },
+    },
+
+    // ============ FOLLOW-UP additions ============
+    { id: "followup-after-2weeks", topic: "followup",
+      title: "Follow-up — 2 weeks after a strong interview, no response",
+      tagline: "After 2 weeks of silence. Friendly tone, gentle nudge.",
+      en: {
+        subject: "Checking in — {role} at {company}",
+        body:
+"Hi {recipient},\n\n" +
+"I wanted to check in about my application for the {role} role. We last spoke on (DATE), and I'm still very interested in the opportunity. I understand these things take time, but if there's any update or additional information I can provide, I'd be glad to.\n\n" +
+"Thanks again for your time.\n\n" +
+"Best,\n{name}",
+      },
+      ja: {
+        subject: "選考状況のお伺い — {role}",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"{role}のポジションに関しまして、（日付）にお話しさせていただきましてから、その後のご状況をお伺いできればと思いご連絡いたしました。本ポジションに引き続き大変関心がございますので、追加で必要な情報がございましたらお知らせいただけますと幸いです。\n\n" +
+"お忙しいところ恐縮ですが、ご返信いただけますと幸いです。\n\n" +
+"{name}",
+      },
+    },
+    { id: "followup-second-interview-prep", topic: "followup",
+      title: "Asking what to prepare before the next round",
+      tagline: "After advancing — confirm the next round's format and what to focus on.",
+      en: {
+        subject: "Preparing for the next round — {role}",
+        body:
+"Dear {recipient},\n\n" +
+"Thank you for the update that I've advanced to the next round. I'm looking forward to it.\n\n" +
+"Could you share a bit more about the format and what areas the panel would like me to focus on? Specifically:\n" +
+"  - How many interviewers and their roles?\n" +
+"  - Is there a coding / case-study / presentation component?\n" +
+"  - Any topics or projects from my background you'd like me to be ready to discuss in depth?\n\n" +
+"Knowing this ahead will help me make the most of everyone's time.\n\n" +
+"Thanks,\n{name}",
+      },
+      ja: {
+        subject: "次回面接のご相談 — {role}",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"この度は次回選考にお進めいただきありがとうございます。誠に光栄に存じます。\n\n" +
+"より有意義な面接とするため、次回の形式について以下お伺いできますでしょうか。\n" +
+"・面接官の人数とご担当領域\n" +
+"・コーディング／ケーススタディ／プレゼンテーションなどの形式有無\n" +
+"・私の経歴の中で、特に詳しくお話しすることが望まれる項目\n\n" +
+"事前準備の参考にさせていただければ幸いです。\n\n" +
+"よろしくお願いいたします。\n\n" +
+"{name}",
+      },
+    },
+
+    // ============ AFTER INTERVIEW additions ============
+    { id: "thanks-technical-round", topic: "interview",
+      title: "Thank-you after a technical interview",
+      tagline: "Reference one technical question. Brief follow-up on anything you'd answer differently.",
+      en: {
+        subject: "Thank you — {role} technical interview",
+        body:
+"Hi {recipient},\n\n" +
+"Thanks for the technical interview earlier today. I enjoyed walking through (PROBLEM / SYSTEM DESIGN AREA) — it was a great window into how your team thinks about (RELATED TOPIC).\n\n" +
+"On reflection, for the (SPECIFIC QUESTION), I would also have considered (BRIEF FOLLOW-UP THOUGHT). Wanted to share that in case it's useful for the panel's notes.\n\n" +
+"Looking forward to next steps.\n\n" +
+"Best,\n{name}",
+      },
+      ja: {
+        subject: "本日の技術面接のお礼 — {role}",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。本日{role}の技術面接にてお時間をいただきました{name}です。\n\n" +
+"本日は貴重なお時間をいただき誠にありがとうございました。（問題／システム設計のトピック）について議論できたことで、貴社チームの考え方をより深く理解することができました。\n\n" +
+"改めて振り返り、（具体的な質問）について（簡単な補足の考え）も検討に加えるべきだったと考えております。今後のご参考までにお伝えできればと思います。\n\n" +
+"引き続きよろしくお願いいたします。\n\n" +
+"{name}",
+      },
+    },
+    { id: "thanks-final-round", topic: "interview",
+      title: "Thank-you after the final round",
+      tagline: "After meeting the hiring manager or executive — slightly warmer tone, reinforce commitment.",
+      en: {
+        subject: "Thank you for the final-round conversation — {role}",
+        body:
+"Dear {recipient},\n\n" +
+"Thank you for taking the time to meet me today, and for the candid conversation about (TOPIC / SOMETHING THEY SHARED). It gave me a clearer picture of the role and the team, and reinforced my interest in joining {company}.\n\n" +
+"I'd be glad to provide anything else you need from my side — references, additional samples of my work, or further discussion on any of the topics we covered.\n\n" +
+"Looking forward to hearing about next steps.\n\n" +
+"Best regards,\n{name}",
+      },
+      ja: {
+        subject: "本日の最終面接のお礼 — {role}",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。本日最終面接にてお時間をいただきました{name}です。\n\n" +
+"率直なお話をお聞かせいただき、誠にありがとうございました。（具体的な話題）について伺い、本ポジションおよびチームについてより深く理解することができ、{company}に参画したいという思いがさらに強くなりました。\n\n" +
+"推薦状や追加の作品、本日伺ったトピックに関する補足など、必要なものがございましたらお気軽にお申し付けください。\n\n" +
+"次のステップについてのご連絡をお待ちしております。\n\n" +
+"{name}",
+      },
+    },
+
+    // ============ OFFER additions ============
+    { id: "offer-clarify-package", topic: "offer",
+      title: "Asking for clarification on the offer package",
+      tagline: "Before negotiating — get the full picture in writing.",
+      en: {
+        subject: "Re: Offer — clarification on package",
+        body:
+"Dear {recipient},\n\n" +
+"Thank you again for the offer for the {role} role. Before I respond formally, could you confirm a few details in writing?\n\n" +
+"  - Annual base: confirmed at ¥(BASE)\n" +
+"  - Bonus structure: target % of base, payment schedule, individual vs. company-performance weighting\n" +
+"  - Equity / RSUs (if applicable): grant amount, vesting schedule, refresh policy\n" +
+"  - Sign-on bonus and any conditions (clawback)\n" +
+"  - Benefits: health insurance details, paid time off, parental leave\n" +
+"  - Start date flexibility\n" +
+"  - Remote / hybrid policy in writing\n\n" +
+"Once I have these confirmed, I'll be in a position to respond formally within (DAYS).\n\n" +
+"Thanks,\n{name}",
+      },
+      ja: {
+        subject: "内定条件の詳細についてのご相談",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"この度は{role}の内定をいただき、誠にありがとうございます。正式にお返事させていただく前に、いくつかの条件を書面でご確認いただけませんでしょうか。\n\n" +
+"・基本給：年収（金額）円\n" +
+"・賞与：基本給に対する目標支給率、支給時期、個人・会社業績の比重\n" +
+"・株式・RSU（該当する場合）：付与額、ベスティングスケジュール、リフレッシュ方針\n" +
+"・サインオンボーナス：金額および条件（クローバック条項など）\n" +
+"・福利厚生：健康保険、有給休暇、育休に関する詳細\n" +
+"・入社日の調整可能性\n" +
+"・リモート／ハイブリッド勤務の方針（書面でのご確認）\n\n" +
+"上記をご確認いただき次第、（日数）以内に正式にお返事申し上げます。\n\n" +
+"よろしくお願いいたします。\n\n" +
+"{name}",
+      },
+    },
+    { id: "offer-competing", topic: "offer",
+      title: "Using a competing offer for leverage",
+      tagline: "Honest, specific, doesn't ultimatum. Ask if they can match or improve.",
+      en: {
+        subject: "Re: Offer — {role}",
+        body:
+"Dear {recipient},\n\n" +
+"Thank you again for the offer. I want to be direct with you about my situation: I've recently received an offer from (COMPETING COMPANY) for a similar role at (¥AMOUNT) base plus (BONUS / EQUITY).\n\n" +
+"{company} is genuinely my first choice — I'm more excited about the team, the product, and the long-term opportunity. But the gap between the two offers is meaningful for me. Would there be any room to revisit the package on your side?\n\n" +
+"Happy to discuss on a call if easier, or to wait if you need time to look into it internally.\n\n" +
+"Thanks for the consideration.\n\n" +
+"Best,\n{name}",
+      },
+      ja: {
+        subject: "条件のご相談 — {role}",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"率直にお伝えさせてください。先日、（競合他社名）より同等のポジションにて、基本給（金額）円＋（賞与／株式）の内定をいただきました。\n\n" +
+"私自身の第一志望は{company}であり、チーム、プロダクト、長期的なキャリア機会に魅力を感じております。一方で、両社の条件の差は無視できないものとなっており、貴社にて条件のご再検討の余地があるかご相談させていただきたく存じます。\n\n" +
+"必要であれば、お電話にてお話しすることも可能です。社内でご確認いただく時間が必要であれば、お待ちすることもできます。\n\n" +
+"ご検討のほど、よろしくお願いいたします。\n\n" +
+"{name}",
+      },
+    },
+    { id: "offer-signon-only", topic: "offer",
+      title: "Negotiating sign-on bonus only (when base is fixed)",
+      tagline: "When base salary won't move — pivot to one-time cash.",
+      en: {
+        subject: "Re: Offer — {role}",
+        body:
+"Dear {recipient},\n\n" +
+"Thank you for the clarification on base salary — I understand the band is fixed.\n\n" +
+"Would there be flexibility on a sign-on bonus instead? In addition to making the move financially smoother (relocation costs, gap in income during transition), it would help bridge the difference with my current compensation. A sign-on of ¥(AMOUNT) would make this offer easy to accept.\n\n" +
+"Happy to discuss further.\n\n" +
+"Best,\n{name}",
+      },
+      ja: {
+        subject: "サインオンボーナスのご相談 — {role}",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"基本給の調整が難しい旨、承知いたしました。ご説明いただきありがとうございます。\n\n" +
+"その代わりに、サインオンボーナスについてご相談させていただけませんでしょうか。引越し費用、転職に伴う収入のギャップなどを補うため、また現在の給与との差を埋めるためにも、（金額）円のサインオンボーナスをご検討いただけると、本内定を心からお受けすることができます。\n\n" +
+"必要であれば、詳細についてもう少しお話しすることも可能です。\n\n" +
+"よろしくお願いいたします。\n\n" +
+"{name}",
+      },
+    },
+    { id: "offer-start-date", topic: "offer",
+      title: "Negotiating a later start date",
+      tagline: "When you need extra time — for current notice, family, or visa.",
+      en: {
+        subject: "Re: Start date — {role}",
+        body:
+"Dear {recipient},\n\n" +
+"Thank you for the offer details. I'd like to discuss the start date.\n\n" +
+"My current employer requires (X weeks) notice, and I'd also like (BRIEF REASON — visa processing time, family obligation, project handover). Would a start date of (TARGET DATE) work for the team? That would give me roughly (TIMEFRAME) to wrap up cleanly before joining.\n\n" +
+"If you need someone sooner, I'm happy to discuss what we could accelerate.\n\n" +
+"Thanks,\n{name}",
+      },
+      ja: {
+        subject: "入社日についてのご相談 — {role}",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"内定条件の詳細をご確認いただきありがとうございました。入社日についてご相談させていただきたく、ご連絡いたしました。\n\n" +
+"現職においては（X週間）の引き継ぎ期間が必要であり、加えて（簡単な理由 — ビザ手続き／家族の事情／プロジェクトの引き継ぎ）にも時間を要する見込みです。可能でしたら、入社日を（希望日）にさせていただくことはできませんでしょうか。これにより、約（期間）で現職を整理し、十分な準備をもって入社することができます。\n\n" +
+"もし貴社にてより早期の入社が必要な場合は、調整可能な点について別途ご相談させていただければと思います。\n\n" +
+"ご検討のほど、よろしくお願いいたします。\n\n" +
+"{name}",
+      },
+    },
+    { id: "offer-relocation-package", topic: "offer",
+      title: "Negotiating relocation support",
+      tagline: "If you're moving from abroad, ask for shipping, housing, lessons, and family support.",
+      en: {
+        subject: "Re: Offer — relocation support",
+        body:
+"Dear {recipient},\n\n" +
+"Thank you for the offer details. Since I'd be relocating to Japan from (COUNTRY), I'd like to discuss relocation support.\n\n" +
+"Specifically:\n" +
+"  - Shipping costs for personal effects\n" +
+"  - Corporate housing or housing allowance for the first 30–90 days\n" +
+"  - Visa application support and any related fees\n" +
+"  - Japanese language lessons in the first 12 months\n" +
+"  - (IF FAMILY) Spouse / dependent visa support and school search assistance\n\n" +
+"Could you let me know what {company} typically offers, or what could be put together for this hire?\n\n" +
+"Thanks for considering.\n\n" +
+"Best,\n{name}",
+      },
+      ja: {
+        subject: "リロケーション支援のご相談 — {role}",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"内定条件の詳細をいただきありがとうございました。今回、（国名）から日本への移住となるため、リロケーション支援についてご相談させていただきたく存じます。\n\n" +
+"具体的には以下の点についてです：\n" +
+"・身の回り品の輸送費\n" +
+"・最初の30〜90日間の社宅または住宅手当\n" +
+"・ビザ申請のサポートおよび関連費用\n" +
+"・最初の12ヶ月間の日本語レッスン\n" +
+"・（家族同伴の場合）配偶者・扶養者のビザサポート、学校探しのサポート\n\n" +
+"{company}様にて通常ご提供いただける範囲、または今回のポジションでご対応可能な内容についてお知らせいただけますと幸いです。\n\n" +
+"よろしくお願いいたします。\n\n" +
+"{name}",
+      },
+    },
+
+    // ============ AFTER ACCEPTANCE / ONBOARDING ============
+    { id: "preboard-check-in", topic: "onboarding",
+      title: "Pre-start check-in with the hiring manager",
+      tagline: "2–3 weeks before start date — confirm logistics, ask what to read.",
+      en: {
+        subject: "Quick check-in before starting on (DATE)",
+        body:
+"Hi {recipient},\n\n" +
+"As my start date approaches, I wanted to check in briefly.\n\n" +
+"  - Anything I should read or familiarize myself with before day one?\n" +
+"  - First-day logistics — office location, arrival time, who to ask for?\n" +
+"  - Any paperwork or pre-onboarding steps I should complete?\n\n" +
+"Looking forward to joining the team.\n\n" +
+"Best,\n{name}",
+      },
+      ja: {
+        subject: "入社前のご確認 — （入社日）",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"入社日が近づいてまいりましたので、いくつか確認させていただければと思います。\n\n" +
+"・入社前に読んでおくべき資料や事前準備しておくべき事項はございますでしょうか\n" +
+"・初日の集合場所、到着時刻、お訪ねする方のお名前\n" +
+"・事前に提出が必要な書類や手続きはございますでしょうか\n\n" +
+"入社を心より楽しみにしております。\n\n" +
+"{name}",
+      },
+    },
+    { id: "first-day-intro", topic: "onboarding",
+      title: "First-day team introduction email",
+      tagline: "Send to your team on day one — friendly, brief, with a hook.",
+      en: {
+        subject: "Hello from your new {role}, {name}",
+        body:
+"Hi team,\n\n" +
+"I'm {name}, joining today as your new {role}. A quick introduction:\n\n" +
+"  - Most recently I (PREVIOUS ROLE)\n" +
+"  - I'm based in (LOCATION) and originally from (COUNTRY)\n" +
+"  - Outside work, I (HOBBY / INTEREST — keep it human)\n\n" +
+"I'm excited to learn from each of you. Feel free to grab time on my calendar this week or next for a 1-on-1 — I'd love to hear about your work and what's on your plate.\n\n" +
+"Looking forward to it!\n\n" +
+"{name}",
+      },
+      ja: {
+        subject: "新メンバーのご挨拶 — {role}の{name}です",
+        body:
+"皆様\n\n" +
+"はじめまして。本日より{role}として入社いたしました{name}と申します。簡単に自己紹介させていただきます。\n\n" +
+"・直前まで（前職）を担当しておりました\n" +
+"・現在（居住地）に在住で、出身は（国名）です\n" +
+"・業務外では（趣味／関心事）に取り組んでおります\n\n" +
+"皆様から多くを学ばせていただきたく存じます。今週または来週、お時間のあるときに1on1で皆様のお仕事や現在取り組まれていることをお聞かせいただけますと幸いです。\n\n" +
+"これから皆様と一緒に働けることを大変楽しみにしております。どうぞよろしくお願いいたします。\n\n" +
+"{name}",
+      },
+    },
+
+    // ============ RESIGNATION ============
+    { id: "resignation-formal", topic: "resignation",
+      title: "Formal resignation letter (退職届)",
+      tagline: "Two weeks minimum (legal). Keep tone respectful and clean.",
+      en: {
+        subject: "Notice of resignation",
+        body:
+"Dear (MANAGER NAME),\n\n" +
+"I am writing to formally notify you of my resignation from my role as (YOUR ROLE) at (COMPANY), effective (LAST DAY — minimum 2 weeks out, ideally 1 month).\n\n" +
+"This was a difficult decision. I am grateful for the opportunity I've had at (COMPANY) and for everything I've learned from the team.\n\n" +
+"I am committed to a smooth transition during my remaining time and am happy to help with handover documentation, training a replacement, or any other handover priorities.\n\n" +
+"Thank you for your understanding.\n\n" +
+"Sincerely,\n{name}",
+      },
+      ja: {
+        subject: "退職のご報告",
+        body:
+"（マネージャーのお名前）\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"私事で恐れ入りますが、（退職日 — 最低2週間後、できれば1ヶ月後）をもちまして、（会社名）の（役職）を退職させていただきたく、ご報告申し上げます。\n\n" +
+"熟慮の末の決断であり、これまで貴社にて貴重な経験と多くを学ばせていただきましたこと、心より感謝しております。\n\n" +
+"残りの期間、引き継ぎ書類の作成、後任者へのトレーニング、その他必要な業務の整理など、円滑な引き継ぎに全力で取り組ませていただきます。\n\n" +
+"ご理解のほど、よろしくお願い申し上げます。\n\n" +
+"{name}",
+      },
+    },
+    { id: "resignation-counteroffer", topic: "resignation",
+      title: "Declining a counteroffer",
+      tagline: "Your current employer offers more to keep you. Decline firmly but warmly.",
+      en: {
+        subject: "Thank you for the counter-offer",
+        body:
+"Dear (MANAGER),\n\n" +
+"Thank you for the counter-offer — I'm genuinely flattered, and I appreciate the trust this shows.\n\n" +
+"After thinking carefully, I'm going to move forward with my decision to leave. The reasons behind this aren't primarily about compensation, and I don't want to put either of us in a position where the same questions come back up in 6 months.\n\n" +
+"My commitment to a clean handover is unchanged. Thank you again for everything.\n\n" +
+"Sincerely,\n{name}",
+      },
+      ja: {
+        subject: "カウンターオファーへのお返事",
+        body:
+"（マネージャーのお名前）\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"先日のカウンターオファーをいただき、誠にありがとうございました。お気持ちと信頼に大変感謝しております。\n\n" +
+"よく考えた結果、当初の決断通り退職させていただくことといたしました。退職の主な理由は給与に関するものではなく、6ヶ月後に同じ議論を繰り返すことは双方にとって望ましくないと判断しております。\n\n" +
+"引き継ぎについては引き続き責任を持って対応させていただきますので、ご安心ください。\n\n" +
+"これまで本当にありがとうございました。\n\n" +
+"{name}",
+      },
+    },
+    { id: "handover-team-announcement", topic: "resignation",
+      title: "Announcing your departure to your team",
+      tagline: "After your manager knows — send to direct teammates and stakeholders.",
+      en: {
+        subject: "Some news — leaving (COMPANY) on (DATE)",
+        body:
+"Hi everyone,\n\n" +
+"I want to share some personal news. My last day at (COMPANY) will be (DATE) — I've decided to take on a new opportunity (BRIEF DIRECTION, e.g., 'closer to the AI work I've wanted to focus on' or 'an in-house role at a product company').\n\n" +
+"Working with you has been a privilege. Some of you have taught me how to (SPECIFIC LESSON); others have stayed late helping me debug (SPECIFIC THING). I'll miss those interactions more than I can say.\n\n" +
+"Between now and (DATE), I'll be focused on handover. Please grab time on my calendar if there's anything you want me to document or transfer before I go.\n\n" +
+"Let's stay in touch — (LinkedIn / personal email).\n\n" +
+"With gratitude,\n{name}",
+      },
+      ja: {
+        subject: "ご報告 — （日付）に（会社名）を退職します",
+        body:
+"皆様\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"私事のご報告で恐縮ですが、（日付）をもちまして（会社名）を退職することとなりました。次は（簡単な方向性 — 例：「より深くAIに関わる仕事」「事業会社でのインハウスのポジション」など）に取り組む予定です。\n\n" +
+"皆様と一緒に働けたことは、私にとってかけがえのない経験でした。（具体的な学び）を教えてくださった方、深夜まで（具体的な問題）のデバッグにお付き合いくださった方など、皆様との時間は本当に貴重なものでした。\n\n" +
+"残りの期間、（日付）まで引き継ぎに集中させていただきます。退職前に引き継いでおくべき事項やご相談があれば、お気軽にカレンダーをご確認ください。\n\n" +
+"今後とも何卒よろしくお願いいたします。LinkedInや個人メール（連絡先）でつながっていただけますと幸いです。\n\n" +
+"心より感謝を込めて、\n{name}",
+      },
+    },
+
+    // ============ REFERENCES & RECOMMENDATIONS ============
+    { id: "reference-ask-manager", topic: "references",
+      title: "Asking a former manager for a reference",
+      tagline: "Make it easy — say what role, what they'd likely be asked, when.",
+      en: {
+        subject: "Quick favor — reference for (NEW COMPANY)?",
+        body:
+"Hi {recipient},\n\n" +
+"Hope you're doing well. I'm in late-stage interviews with (NEW COMPANY) for a {role} role, and they'll likely reach out for references. Would you be willing to be one?\n\n" +
+"A few things that might help:\n" +
+"  - (NEW COMPANY) is interested in (WHICH ASPECT OF YOUR WORK / SKILLS)\n" +
+"  - They'll likely ask about (TOPICS — your work on X project, how you handled Y challenge, etc.)\n" +
+"  - They expect to call in the next (1–2 weeks)\n\n" +
+"Happy to send your contact info, or you can email them directly at (RECRUITER EMAIL). I'd be deeply grateful for your help.\n\n" +
+"Thanks either way,\n{name}",
+      },
+      ja: {
+        subject: "推薦人のお願い — (新しい会社名)",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。{name}です。お元気でしょうか。\n\n" +
+"現在、（新しい会社名）の{role}のポジションに最終選考の段階で応募しており、推薦人が必要になる可能性があります。お忙しいところ恐縮ですが、推薦人をお引き受けいただくことは可能でしょうか。\n\n" +
+"参考情報として：\n" +
+"・先方が特に関心を持っている領域：（仕事内容／スキル）\n" +
+"・想定される質問内容：（プロジェクト、課題への対応など）\n" +
+"・先方からのご連絡時期：今後1〜2週間以内の予定\n\n" +
+"ご連絡先の共有、もしくは（採用担当のメール）への直接ご連絡、いずれの方法でも構いません。ご協力いただけますと大変ありがたく存じます。\n\n" +
+"ご検討のほど、よろしくお願いいたします。\n\n" +
+"{name}",
+      },
+    },
+    { id: "recommendation-linkedin", topic: "references",
+      title: "Asking for a LinkedIn recommendation",
+      tagline: "Specific, gives them an angle, doesn't put them on the spot.",
+      en: {
+        subject: "Would you be open to a LinkedIn recommendation?",
+        body:
+"Hi {recipient},\n\n" +
+"Hope you're doing well. I'm updating my LinkedIn profile as I think about next steps, and was wondering if you'd be open to writing a short recommendation.\n\n" +
+"If it helps, the angle I'd most value coming from you is (SPECIFIC: my work on X project / how I handled Y / mentorship of junior engineers / etc.). I'm happy to draft something for you to edit if that's easier — no pressure either way.\n\n" +
+"Thanks for considering.\n\n" +
+"{name}",
+      },
+      ja: {
+        subject: "LinkedIn推薦文のお願い",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"今後のキャリアの参考にLinkedInのプロフィールを更新しているのですが、もしご無理がなければ短い推薦文を書いていただくことは可能でしょうか。\n\n" +
+"特にお書きいただけると嬉しい観点は（具体例：あるプロジェクトでの仕事ぶり、課題への対応、後輩へのメンタリングなど）です。下書きをこちらでご用意し、編集いただく形でも構いません。お忙しい中恐縮ですので、ご無理のない範囲でご検討ください。\n\n" +
+"よろしくお願いいたします。\n\n" +
+"{name}",
+      },
+    },
+
+    // ============ RECRUITER MANAGEMENT ============
+    { id: "recruiter-not-interested", topic: "recruiter",
+      title: "Politely declining a recruiter's outreach",
+      tagline: "Keep the door open without leading them on.",
+      en: {
+        subject: "Re: {role} opportunity",
+        body:
+"Hi {recipient},\n\n" +
+"Thanks for reaching out about the {role} role at {company}. I appreciate you thinking of me.\n\n" +
+"I'm not actively looking right now, but I'd like to keep in touch. If something senior or particularly aligned with (SPECIFIC INTEREST — AI, specific industry, particular tech stack) comes up in the future, please feel free to ping me again.\n\n" +
+"Best of luck with the search.\n\n" +
+"{name}",
+      },
+      ja: {
+        subject: "Re: {role}のポジションについて",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"この度は{company}の{role}のポジションについてご連絡をいただき、誠にありがとうございました。お声がけいただけたこと、大変光栄に存じます。\n\n" +
+"現時点では積極的な転職活動はしておりませんが、今後も継続してご連絡をいただけますと幸いです。特に（具体的な関心 — AI、特定の業界、特定の技術スタックなど）に関連する上級ポジションが出てきましたら、改めてお声がけいただければ嬉しく存じます。\n\n" +
+"今回のご紹介、誠にありがとうございました。\n\n" +
+"{name}",
+      },
+    },
+    { id: "recruiter-criteria", topic: "recruiter",
+      title: "Setting clear criteria with a recruiter",
+      tagline: "Save everyone time — be specific upfront.",
+      en: {
+        subject: "Re: Recruiting follow-up — my criteria",
+        body:
+"Hi {recipient},\n\n" +
+"Thanks for the follow-up. To save us both time, here's what I'm looking for at the moment:\n\n" +
+"  - Role: (SPECIFIC TITLE / LEVEL — e.g., Senior or Staff Backend Engineer)\n" +
+"  - Industry: (e.g., consumer tech, fintech, AI)\n" +
+"  - Location: (Tokyo, hybrid OK, remote-OK / fully remote, etc.)\n" +
+"  - Base salary floor: ¥(AMOUNT) — open on bonus / equity structure\n" +
+"  - Visa: (need sponsorship / already have / spouse / PR)\n" +
+"  - Languages: (Japanese N2+ required / English-only fine)\n" +
+"  - Companies I'm explicitly NOT interested in: (NAMES — competitive reasons, prior bad experience)\n\n" +
+"Looking forward to hearing about anything that fits this profile.\n\n" +
+"{name}",
+      },
+      ja: {
+        subject: "Re: ご紹介の件 — 希望条件のご共有",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"ご連絡ありがとうございます。お互いの時間を有効に活用するため、現在の希望条件をお知らせいたします。\n\n" +
+"・職種：（具体的な役職／レベル — 例：シニアまたはスタッフのバックエンドエンジニア）\n" +
+"・業界：（例：消費者向けテック、フィンテック、AI）\n" +
+"・勤務地：（東京、ハイブリッド可、フルリモート可など）\n" +
+"・基本給の下限：（金額）円（賞与・株式の構成は柔軟）\n" +
+"・ビザ：（要サポート／既に保有／配偶者ビザ／永住権）\n" +
+"・言語要件：（日本語N2以上必要／英語のみ可）\n" +
+"・興味の対象外の企業：（社名 — 競合関係、過去の経験など）\n\n" +
+"上記の条件にマッチする案件がございましたら、ぜひお知らせください。\n\n" +
+"よろしくお願いいたします。\n\n" +
+"{name}",
+      },
+    },
+    { id: "recruiter-ghost-followup", topic: "recruiter",
+      title: "Re-engaging a recruiter who went silent",
+      tagline: "Light tone — they might have just gotten busy.",
+      en: {
+        subject: "Re: {role} — checking in",
+        body:
+"Hi {recipient},\n\n" +
+"I wanted to check in on the {role} at {company}. We last spoke (TIMEFRAME) and I've been excited about the role since.\n\n" +
+"Is there any update on the timing, or has the role changed? Happy to wait if things are slow on their side — just wanted to make sure I'm not missing anything.\n\n" +
+"Thanks,\n{name}",
+      },
+      ja: {
+        subject: "Re: {role}の件 — お伺い",
+        body:
+"{recipient}\n\n" +
+"お世話になっております。{name}です。\n\n" +
+"{company}の{role}のポジションに関しまして、（期間）前にお話しさせていただきましたが、その後のご状況はいかがでしょうか。本ポジションには引き続き強い関心がございます。\n\n" +
+"先方のスケジュールがゆっくりしている場合は、もちろんお待ちいたしますので、何か見落としていることがないかだけご確認いただけますと幸いです。\n\n" +
+"よろしくお願いいたします。\n\n" +
+"{name}",
+      },
+    },
+  ];
+
+  function fillPlaceholders(text, useJp) {
+    return String(text).replace(/\{(\w+)\}/g, function (_, key) {
+      // Prefer the explicit Japanese variant when in JP mode and one was set.
+      if (useJp) {
+        var jpKey = key + "Jp";
+        if (phState[jpKey]) return phState[jpKey];
+        // Best-effort fallbacks for recipient → recipient
+        if (phState[key]) return phState[key];
+      } else {
+        if (phState[key]) return phState[key];
+      }
+      // No value — preserve as a styled placeholder span.
+      return '<<' + key + '>>';
+    });
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function highlightPlaceholders(htmlStr) {
+    // Already escaped — replace <<key>> with span
+    return htmlStr.replace(/&lt;&lt;(\w+)&gt;&gt;/g, '<span class="ph">{$1}</span>');
+  }
+
+  function renderTemplate(tpl) {
+    var card = document.createElement("div");
+    card.className = "tpl-card";
+    card.setAttribute("data-topic", tpl.topic);
+    card.setAttribute("data-id", tpl.id);
+
+    var enSubj = highlightPlaceholders(esc(fillPlaceholders(tpl.en.subject, false)));
+    var enBody = highlightPlaceholders(esc(fillPlaceholders(tpl.en.body, false)));
+    var jaSubj = highlightPlaceholders(esc(fillPlaceholders(tpl.ja.subject, true)));
+    var jaBody = highlightPlaceholders(esc(fillPlaceholders(tpl.ja.body, true)));
+
+    card.innerHTML =
+      '<h3>' + esc(tpl.title) + '<span class="tagline">' + esc(tpl.tagline) + '</span></h3>' +
+      '<div class="body">' +
+        '<div>' +
+          '<div class="lang-label">English' +
+            '<button class="copy-btn" data-copy-en>Copy</button></div>' +
+          '<div class="subject">Subject: ' + enSubj + '</div>' +
+          '<pre data-en-body>' + enBody + '</pre>' +
+        '</div>' +
+        '<div>' +
+          '<div class="lang-label">日本語 (Japanese)' +
+            '<button class="copy-btn" data-copy-ja>Copy</button></div>' +
+          '<div class="subject">件名: ' + jaSubj + '</div>' +
+          '<pre data-ja-body>' + jaBody + '</pre>' +
+        '</div>' +
+      '</div>';
+
+    // Copy handlers — copy plain text (subject + body)
+    function plainEn() {
+      return "Subject: " + fillPlaceholders(tpl.en.subject, false).replace(/<<(\w+)>>/g, "[$1]") +
+        "\n\n" + fillPlaceholders(tpl.en.body, false).replace(/<<(\w+)>>/g, "[$1]");
+    }
+    function plainJa() {
+      return "件名: " + fillPlaceholders(tpl.ja.subject, true).replace(/<<(\w+)>>/g, "[$1]") +
+        "\n\n" + fillPlaceholders(tpl.ja.body, true).replace(/<<(\w+)>>/g, "[$1]");
+    }
+    card.querySelector('[data-copy-en]').addEventListener("click", function (e) {
+      navigator.clipboard.writeText(plainEn()).then(function () {
+        e.target.textContent = "✓ Copied"; setTimeout(function () { e.target.textContent = "Copy"; }, 1500);
+      });
+    });
+    card.querySelector('[data-copy-ja]').addEventListener("click", function (e) {
+      navigator.clipboard.writeText(plainJa()).then(function () {
+        e.target.textContent = "✓ Copied"; setTimeout(function () { e.target.textContent = "Copy"; }, 1500);
+      });
+    });
+    return card;
+  }
+
+  function renderAll() {
+    var c = document.getElementById("templates");
+    c.innerHTML = "";
+    TEMPLATES.forEach(function (t) { c.appendChild(renderTemplate(t)); });
+    applyTopicFilter();
+  }
+
+  function applyTopicFilter() {
+    var active = document.querySelector("#topic-nav button.active").getAttribute("data-topic");
+    document.querySelectorAll(".tpl-card").forEach(function (card) {
+      var match = active === "all" || card.getAttribute("data-topic") === active;
+      card.classList.toggle("hidden", !match);
+    });
+  }
+
+  // Placeholder inputs
+  function fillPh() {
+    document.querySelectorAll('[data-ph]').forEach(function (el) {
+      var k = el.getAttribute("data-ph");
+      if (phState[k] != null) el.value = phState[k];
+    });
+  }
+  document.querySelectorAll('[data-ph]').forEach(function (el) {
+    el.addEventListener("input", function () {
+      phState[el.getAttribute("data-ph")] = el.value;
+      savePh();
+      renderAll();   // re-render all cards with new placeholders
+    });
+  });
+
+  // Topic nav
+  document.querySelectorAll("#topic-nav button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      document.querySelectorAll("#topic-nav button").forEach(function (x) { x.classList.remove("active"); });
+      b.classList.add("active");
+      applyTopicFilter();
+    });
+  });
+
+  fillPh();
+  renderAll();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Living in Japan: Relocation &amp; Settlement Guide for Foreigners · Gaijin Hunter{% endblock %}
+{% block meta_description %}Everything that happens after you accept a job in Japan: the Certificate of Eligibility and visa process, renting an apartment (key money, guarantors), opening a bank account, the ward office and My Number, health insurance, pension and the lump-sum refund, phones and utilities, and bringing your family. Specific 2026 figures.{% endblock %}
+{% block jsonld %}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"CollectionPage","name":"Living in Japan: Relocation & Settlement","description":"Post-offer relocation and settlement guides for foreigners moving to Japan.","url":"{{ base_url }}/living"}
+</script>
+{% endblock %}
+{% block content %}
+<style>
+  .lv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  @media (max-width: 800px) { .lv-grid { grid-template-columns: 1fr; } }
+  .lv-card { display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 20px 22px; text-decoration: none; color: inherit; }
+  .lv-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .lv-card .top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .lv-card .icon-wrap { width: 36px; height: 36px; border-radius: 9px; background: var(--accent-soft);
+    color: var(--accent); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .lv-card h3 { margin: 0; font-size: 15.5px; color: var(--ink); line-height: 1.3; }
+  .lv-card p { margin: 0 0 12px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+  .lv-card .meta { font-size: 11.5px; color: var(--muted); margin-top: auto; }
+  .lv-card .arrow { color: var(--accent); font-weight: 600; }
+
+  /* relocation budget band (sumi ink) */
+  .lv-cta-inner { display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+    background: var(--ink); color: #f4efe6; border-radius: var(--radius-lg); padding: 22px 26px; }
+  .lv-cta-inner .txt { flex: 1; min-width: 240px; }
+  .lv-cta-inner h3 { margin: 0 0 4px; font-size: 18px; color: #fff; font-family: var(--font-display); font-weight: 600; }
+  .lv-cta-inner p { margin: 0; font-size: 13.5px; color: rgba(255,255,255,0.78); line-height: 1.5; }
+  .lv-cta-inner a { background: var(--accent); color: #fff; padding: 11px 20px; border-radius: var(--radius-sm);
+    text-decoration: none; font-weight: 700; font-size: 14px; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px; }
+  .lv-cta-inner a:hover { background: var(--accent-dark); }
+  .lv-note { background: var(--accent-soft); border: 1px solid #eccfca; border-radius: var(--radius); padding: 14px 18px;
+    font-size: 13px; color: var(--accent-dark); line-height: 1.6; }
+  /* pathway with stage number */
+  .pway .stg { font-family: var(--font-mono); font-size: 11px; color: var(--accent); font-weight: 600; }
+</style>
+
+<div class="hub-wrap">
+  <div class="hub-hero">
+    <span class="eyebrow-rule">Living in Japan</span>
+    <h1>You got the offer. Now comes the hard part.</h1>
+    <p>The job search is the easy bit. This is everything that happens after you accept: the Certificate
+      of Eligibility, renting with no credit history, the ward office on day one, insurance and pension,
+      getting connected, and bringing your family. Specific, current, first-timer friendly.</p>
+  </div>
+</div>
+
+<!-- Start here: by relocation stage -->
+<section class="hub-sec">
+  <div class="sec-head">
+    <span class="eyebrow-rule">Start here</span>
+    <h2>Follow the relocation timeline</h2>
+    <p>From the offer letter to long-term settlement, in the order it actually happens.</p>
+  </div>
+  <div class="pathways">
+    <a class="pway" href="/living/coe-and-arrival"><span class="pic">{{ icon('plane', size=18) }}</span><span class="pt"><span class="stg">BEFORE ARRIVAL</span><b>COE &amp; the move</b></span></a>
+    <a class="pway" href="/living/ward-office"><span class="pic">{{ icon('document', size=18) }}</span><span class="pt"><span class="stg">FIRST WEEK</span><b>Ward office &amp; My Number</b></span></a>
+    <a class="pway" href="/living/housing"><span class="pic">{{ icon('building', size=18) }}</span><span class="pt"><span class="stg">HOUSING</span><b>Renting an apartment</b></span></a>
+    <a class="pway" href="/living/banking"><span class="pic">{{ icon('currency-yen', size=18) }}</span><span class="pt"><span class="stg">FIRST MONTH</span><b>Banking &amp; cards</b></span></a>
+    <a class="pway" href="/living/phone-utilities"><span class="pic">{{ icon('globe', size=18) }}</span><span class="pt"><span class="stg">FIRST MONTH</span><b>Phone &amp; utilities</b></span></a>
+    <a class="pway" href="/living/health-insurance"><span class="pic">{{ icon('badge', size=18) }}</span><span class="pt"><span class="stg">HEALTHCARE</span><b>Insurance &amp; taxes</b></span></a>
+    <a class="pway" href="/living/pension"><span class="pic">{{ icon('chart-line', size=18) }}</span><span class="pt"><span class="stg">LONG TERM</span><b>Pension &amp; refund</b></span></a>
+    <a class="pway" href="/living/family"><span class="pic">{{ icon('users', size=18) }}</span><span class="pt"><span class="stg">LONG TERM</span><b>Bringing family</b></span></a>
+  </div>
+</section>
+
+<!-- Budget band -->
+<section class="hub-sec">
+  <div class="lv-cta-inner">
+    <div class="txt">
+      <h3>Know your number before you fly</h3>
+      <p>The biggest surprise is upfront cost: apartment move-in alone can be 4 to 6 times monthly rent.
+         Estimate flights, shipping, deposits, and a survival buffer in 60 seconds.</p>
+    </div>
+    <a href="/tools/relocation-budget">{{ icon('calculator', size=15) }} Relocation budget calculator</a>
+  </div>
+</section>
+
+<!-- Full guide library -->
+<section class="hub-sec">
+  <div class="sec-head"><span class="eyebrow-rule">The library</span><h2>All settlement guides</h2></div>
+  <div class="lv-grid">
+    {% for g in guides %}
+      <a class="lv-card" href="/living/{{ g.slug }}">
+        <div class="top">
+          <span class="icon-wrap">{{ icon(g.icon, size=18) }}</span>
+          <h3>{{ g.title.split(', ')[0].strip() }}</h3>
+        </div>
+        <p>{{ g.summary }}</p>
+        <div class="meta">{% if g.read_time %}{{ g.read_time }} read · {% endif %}<span class="arrow">Read {{ icon('arrow-right', size=11) }}</span></div>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="hub-sec hub-pad">
+  <div class="lv-note">
+    <strong>How current is this?</strong> Figures reflect 2025 to 2026, including the 2024 child-allowance
+    expansion, the pension lump-sum 60-month cap, and current move-in cost norms. Rules and amounts
+    change; for legal-status questions always confirm with the Immigration Services Agency of Japan or
+    a licensed administrative scrivener (行政書士). This is orientation, not legal advice.
+  </div>
+</section>
+{% endblock %}

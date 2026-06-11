@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Japan Relocation Budget Calculator, What It Really Costs to Move · Gaijin Hunter{% endblock %}
+{% block meta_description %}Free calculator estimating the real upfront cost of moving to Japan for a job: apartment move-in (key money, deposit, guarantor), flights, shipping, initial living costs, and a survival buffer until your first paycheck. 2026 figures.{% endblock %}
+{% block meta_keywords %}cost of moving to Japan, Japan relocation budget, apartment move-in cost Japan, key money, how much money to move to Japan{% endblock %}
+{% block jsonld %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org", "@type": "SoftwareApplication",
+  "name": "Japan Relocation Budget Calculator", "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any (web-based)",
+  "description": "Estimate the upfront cost of relocating to Japan for a job — apartment move-in, flights, shipping, initial living costs, and a buffer until your first salary.",
+  "url": "{{ base_url }}/tools/relocation-budget",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "JPY"},
+  "creator": {"@type": "Organization", "name": "Gaijin Hunter"}
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org", "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ base_url }}/"},
+    {"@type": "ListItem", "position": 2, "name": "Tools", "item": "{{ base_url }}/tools"},
+    {"@type": "ListItem", "position": 3, "name": "Relocation Budget Calculator", "item": "{{ base_url }}/tools/relocation-budget"}
+  ]
+}
+</script>
+{% endblock %}
+{% block content %}
+<style>
+  .tool-h { padding: 14px 0 18px; }
+  .tool-h .crumb { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .tool-h .crumb a { color: var(--muted); text-decoration: none; }
+  .tool-h .crumb a:hover { color: var(--accent); }
+  .tool-h h1 { margin: 0 0 4px; font-size: 28px; letter-spacing: -0.02em; }
+  .tool-h .lede { color: var(--muted); margin: 0; max-width: 760px; line-height: 1.55; }
+
+  .layout { display: grid; grid-template-columns: 1fr 1.05fr; gap: 22px; align-items: start; }
+  @media (max-width: 920px) { .layout { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; }
+  .panel h2 { margin: 0 0 4px; font-size: 17px; }
+  .panel .hint { font-size: 12px; color: var(--muted); margin: 0 0 16px; }
+
+  .field { margin-bottom: 14px; }
+  .field label { display: flex; justify-content: space-between; font-size: 13px; color: var(--fg);
+                 margin-bottom: 5px; font-weight: 500; }
+  .field label .q { color: var(--muted-soft); font-weight: 400; cursor: help; }
+  .field input[type=number], .field select {
+    width: 100%; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px;
+    font-size: 14px; font-family: inherit; background: #fff; color: var(--fg); }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--fg-soft);
+           padding: 7px 0; }
+  .group-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+                 color: var(--muted); margin: 18px 0 8px; padding-top: 14px; border-top: 1px solid var(--line-soft); }
+  .group-label:first-of-type { border-top: none; padding-top: 0; }
+
+  /* Results */
+  .result-card { position: sticky; top: 90px; }
+  .big { text-align: center; padding: 8px 0 16px; border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+  .big .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .big .amount { font-size: 40px; font-weight: 800; letter-spacing: -0.02em; color: var(--accent); margin: 2px 0; }
+  .big .sub { font-size: 13px; color: var(--muted); }
+  .line { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 0;
+          font-size: 14px; border-bottom: 1px dashed var(--line-soft); }
+  .line:last-child { border-bottom: none; }
+  .line .v { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .line.sub-item { padding-left: 14px; font-size: 13px; color: var(--muted); }
+  .line.total { border-top: 2px solid var(--line); margin-top: 6px; padding-top: 12px;
+                font-size: 16px; font-weight: 700; }
+  .seg { display: flex; gap: 6px; margin-bottom: 14px; }
+  .seg button { flex: 1; padding: 8px; border: 1px solid var(--line); background: #fff; border-radius: 8px;
+    font-size: 12.5px; cursor: pointer; font-family: inherit; color: var(--fg-soft); }
+  .seg button.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+  .bars { margin: 14px 0 4px; }
+  .bar { height: 8px; border-radius: 4px; margin-bottom: 2px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11.5px; color: var(--muted); margin-top: 6px; }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .dot { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+  .note { font-size: 12px; color: var(--muted); line-height: 1.55; margin-top: 14px;
+          background: var(--accent-soft); border-radius: 8px; padding: 11px 13px; color: var(--accent-dark); }
+  .disclaim { font-size: 11.5px; color: var(--muted-soft); margin-top: 14px; line-height: 1.5; }
+</style>
+
+<div class="tool-h">
+  <div class="crumb"><a href="/tools">← All tools</a> · <a href="/living">Living in Japan</a></div>
+  <h1>Relocation budget calculator</h1>
+  <p class="lede">The single biggest financial surprise of moving to Japan is how much cash you need
+     <em>before</em> your first paycheck, apartment move-in alone runs 4–6× the monthly rent. Estimate
+     your real upfront number, then see how much your employer's relocation package offsets it.
+     Everything runs in your browser.</p>
+</div>
+
+<div class="layout">
+  <div class="panel">
+    <h2>Your move</h2>
+    <p class="hint">Defaults are realistic 2026 figures for a single professional moving to Tokyo. Adjust freely.</p>
+
+    <div class="group-label">Housing (the big one)</div>
+    <div class="field">
+      <label for="rent">Monthly rent (¥) <span class="q" title="Tokyo 1R/1K averages ¥80–130k; family 2LDK ¥180k+">?</span></label>
+      <input type="number" id="rent" value="120000" step="5000" min="0">
+    </div>
+    <div class="field">
+      <label for="housingType">Move-in cost model</label>
+      <select id="housingType">
+        <option value="standard" selected>Standard lease (deposit + key money + agency + guarantor ≈ 4.5×)</option>
+        <option value="zerozero">"Zero-zero" / foreigner-friendly (≈ 2×)</option>
+        <option value="sharehouse">Share house first (low deposit ≈ 0.5×)</option>
+        <option value="corporate">Employer corporate housing (≈ 0)</option>
+      </select>
+    </div>
+
+    <div class="group-label">Getting there</div>
+    <div class="row2">
+      <div class="field">
+        <label for="flights">Flights (¥)</label>
+        <input type="number" id="flights" value="120000" step="10000" min="0">
+      </div>
+      <div class="field">
+        <label for="people"># of people moving</label>
+        <input type="number" id="people" value="1" step="1" min="1" max="8">
+      </div>
+    </div>
+    <div class="field">
+      <label for="shipping">Shipping belongings (¥) <span class="q" title="Suitcases only ≈ 0; a few boxes ¥50–150k; full container ¥400k+">?</span></label>
+      <select id="shipping">
+        <option value="0">Suitcases only, ¥0</option>
+        <option value="100000" selected>A few boxes / excess baggage, ¥100,000</option>
+        <option value="350000">Partial shipment, ¥350,000</option>
+        <option value="700000">Full container (family move), ¥700,000</option>
+      </select>
+    </div>
+
+    <div class="group-label">Landing & setup</div>
+    <div class="field">
+      <label for="furnish">Furnishing &amp; appliances (¥) <span class="q" title="Unfurnished Japanese apartments come with nothing, no fridge, washer, light fixtures, curtains">?</span></label>
+      <input type="number" id="furnish" value="150000" step="10000" min="0">
+    </div>
+    <div class="field">
+      <label for="setup">Phone, internet, transport IC, misc setup (¥)</label>
+      <input type="number" id="setup" value="40000" step="5000" min="0">
+    </div>
+
+    <div class="group-label">Survival buffer</div>
+    <div class="field">
+      <label for="firstpay">Weeks until your first paycheck <span class="q" title="Japanese payroll often pays end-of-month; many people wait 4–8 weeks">?</span></label>
+      <input type="number" id="firstpay" value="6" step="1" min="0" max="16">
+    </div>
+    <div class="field">
+      <label for="living">Your weekly living cost before salary (¥) <span class="q" title="Food, transport, incidentals, excludes rent, which is counted in move-in">?</span></label>
+      <input type="number" id="living" value="25000" step="5000" min="0">
+    </div>
+
+    <div class="group-label">Employer relocation package (offset)</div>
+    <div class="field">
+      <label for="reloc">Lump sum / reimbursement (¥) <span class="q" title="Ask in negotiation, common at foreign-capital firms and for senior hires">?</span></label>
+      <input type="number" id="reloc" value="0" step="50000" min="0">
+    </div>
+    <label class="check"><input type="checkbox" id="empFlights"> Employer covers flights</label>
+    <label class="check"><input type="checkbox" id="empHousing"> Employer provides 1st-month housing</label>
+  </div>
+
+  <div class="panel result-card">
+    <div class="seg" role="tablist" aria-label="Currency">
+      <button id="cur-jpy" class="active" type="button">¥ JPY</button>
+      <button id="cur-usd" type="button">$ USD</button>
+      <button id="cur-eur" type="button">€ EUR</button>
+    </div>
+
+    <div class="big">
+      <div class="label">Cash you need before you fly</div>
+      <div class="amount" id="grand">¥0</div>
+      <div class="sub" id="grandSub"></div>
+    </div>
+
+    <div class="bars" id="bars"></div>
+    <div class="legend" id="legend"></div>
+
+    <div style="margin-top:16px;">
+      <div class="line"><span>🏠 Apartment move-in</span><span class="v" id="r-housing">¥0</span></div>
+      <div class="line"><span>✈️ Flights</span><span class="v" id="r-flights">¥0</span></div>
+      <div class="line"><span>📦 Shipping</span><span class="v" id="r-shipping">¥0</span></div>
+      <div class="line"><span>🛋️ Furnishing &amp; appliances</span><span class="v" id="r-furnish">¥0</span></div>
+      <div class="line"><span>📱 Setup (phone, net, IC)</span><span class="v" id="r-setup">¥0</span></div>
+      <div class="line"><span>🍱 Survival buffer to 1st pay</span><span class="v" id="r-buffer">¥0</span></div>
+      <div class="line" id="reloc-line" style="color:#15803d;"><span>− Employer package</span><span class="v" id="r-reloc">−¥0</span></div>
+      <div class="line total"><span>Total upfront</span><span class="v" id="r-total">¥0</span></div>
+    </div>
+
+    <div class="note" id="insight"></div>
+    <p class="disclaim">Estimates only, in current-year ballpark figures. Move-in costs, FX, and
+      shipping vary widely, treat this as a planning floor, not a quote. FX rates are approximate
+      and fixed for illustration. See the <a href="/living/housing">housing</a> and
+      <a href="/living/coe-and-arrival">arrival</a> guides for the detail behind each line.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  var FX = { jpy: 1, usd: 1/155, eur: 1/168 };   // approx, illustrative
+  var SYM = { jpy: '¥', usd: '$', eur: '€' };
+  var cur = 'jpy';
+
+  var HOUSING_MULT = { standard: 4.5, zerozero: 2.0, sharehouse: 0.5, corporate: 0 };
+
+  function $(id){ return document.getElementById(id); }
+  function num(id){ var v = parseFloat($(id).value); return isNaN(v) ? 0 : v; }
+
+  function fmt(jpy) {
+    var v = jpy * FX[cur];
+    var s = SYM[cur];
+    if (cur === 'jpy') return s + Math.round(v).toLocaleString();
+    return s + Math.round(v).toLocaleString();
+  }
+
+  function calc() {
+    var rent = num('rent');
+    var people = Math.max(1, num('people'));
+    var mult = HOUSING_MULT[$('housingType').value];
+    var empHousing = $('empHousing').checked;
+    var housing = empHousing ? 0 : Math.round(rent * mult);
+
+    var empFlights = $('empFlights').checked;
+    var flights = empFlights ? 0 : num('flights') * people;
+
+    var shipping = parseFloat($('shipping').value) || 0;
+    var furnish = num('furnish');
+    var setup = num('setup');
+    var buffer = num('firstpay') * num('living') * people;
+
+    var reloc = num('reloc');
+
+    var subtotal = housing + flights + shipping + furnish + setup + buffer;
+    var total = Math.max(0, subtotal - reloc);
+
+    // line items
+    $('r-housing').textContent = fmt(housing);
+    $('r-flights').textContent = fmt(flights);
+    $('r-shipping').textContent = fmt(shipping);
+    $('r-furnish').textContent = fmt(furnish);
+    $('r-setup').textContent = fmt(setup);
+    $('r-buffer').textContent = fmt(buffer);
+    $('r-reloc').textContent = '−' + fmt(reloc);
+    $('reloc-line').style.display = reloc > 0 ? '' : 'none';
+    $('r-total').textContent = fmt(total);
+    $('grand').textContent = fmt(total);
+
+    var months = rent > 0 ? (total / rent) : 0;
+    $('grandSub').textContent = rent > 0
+      ? ('≈ ' + months.toFixed(1) + '× your monthly rent') : '';
+
+    // stacked bar
+    var parts = [
+      ['Housing', housing, '#1e3a8a'],
+      ['Flights', flights, '#2563eb'],
+      ['Shipping', shipping, '#0891b2'],
+      ['Furnishing', furnish, '#0d9488'],
+      ['Setup', setup, '#7c3aed'],
+      ['Buffer', buffer, '#d97706']
+    ];
+    var sum = parts.reduce(function(a,p){ return a + p[1]; }, 0) || 1;
+    var bar = '<div class="bar" style="display:flex; overflow:hidden;">';
+    parts.forEach(function(p){
+      var w = (p[1] / sum * 100);
+      if (w > 0) bar += '<div style="width:' + w + '%; background:' + p[2] + '; height:8px;"></div>';
+    });
+    bar += '</div>';
+    $('bars').innerHTML = bar;
+    $('legend').innerHTML = parts.filter(function(p){ return p[1] > 0; }).map(function(p){
+      return '<span><span class="dot" style="background:' + p[2] + '"></span>' + p[0] + '</span>';
+    }).join('');
+
+    // insight
+    var msg;
+    if (total === 0) {
+      msg = 'With employer housing and package fully offsetting costs, your upfront cash need is near zero — rare and excellent. Confirm exactly what the package reimburses, and when.';
+    } else if (months >= 5) {
+      msg = '⚠️ This is a heavy upfront load (' + months.toFixed(1) + '× rent). A "zero-zero" or share-house first landing, or negotiating a relocation lump sum, could cut it sharply — switch the housing model above to compare.';
+    } else if (months >= 3) {
+      msg = 'A typical first-move number. The biggest lever is housing: a share house or zero-zero unit for the first few months can roughly halve the apartment line while you find a long-term place.';
+    } else {
+      msg = 'A lean, well-optimised move. Keep a little extra slack — first-month gas activation, a hanko, and unexpected fees have a way of appearing.';
+    }
+    $('insight').textContent = msg;
+  }
+
+  ['rent','housingType','flights','people','shipping','furnish','setup','firstpay','living','reloc']
+    .forEach(function(id){ $(id).addEventListener('input', calc); $(id).addEventListener('change', calc); });
+  ['empFlights','empHousing'].forEach(function(id){ $(id).addEventListener('change', calc); });
+
+  function setCur(c){ cur = c;
+    ['jpy','usd','eur'].forEach(function(x){ $('cur-'+x).classList.toggle('active', x===c); });
+    calc();
+  }
+  $('cur-jpy').addEventListener('click', function(){ setCur('jpy'); });
+  $('cur-usd').addEventListener('click', function(){ setCur('usd'); });
+  $('cur-eur').addEventListener('click', function(){ setCur('eur'); });
+
+  calc();
+})();
+</script>
+{% endblock %}

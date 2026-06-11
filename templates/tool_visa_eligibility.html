@@ -1,0 +1,381 @@
+{% extends "base.html" %}
+{% block title %}Japan Work Visa Eligibility Checker (2026), Free Tool · Gaijin Hunter{% endblock %}
+{% block meta_description %}Free Japan work visa eligibility checker. Identifies your best visa option across Engineer/Specialist, HSP, J-Skip, J-Find, Business Manager, Instructor, SSW, Spouse, and Working Holiday visas. Updated for 2026 rules.{% endblock %}
+{% block meta_keywords %}Japan visa eligibility, Japan work visa, Engineer Specialist visa, HSP visa Japan, J-Find visa, J-Skip visa, Business Manager visa Japan, Japan visa for foreigners{% endblock %}
+{% block jsonld %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Japan Visa Eligibility Checker",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Any (web-based)",
+  "description": "Free in-browser tool that maps your background to Japanese work visa categories. Covers Engineer/Specialist, HSP, J-Skip, J-Find, Business Manager, Instructor, SSW, Spouse, and Working Holiday visas.",
+  "url": "{{ base_url }}/tools/visa-eligibility",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "JPY"},
+  "creator": {"@type": "Organization", "name": "Gaijin Hunter"}
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ base_url }}/"},
+    {"@type": "ListItem", "position": 2, "name": "Tools", "item": "{{ base_url }}/tools"},
+    {"@type": "ListItem", "position": 3, "name": "Visa Eligibility Checker", "item": "{{ base_url }}/tools/visa-eligibility"}
+  ]
+}
+</script>
+{% endblock %}
+{% block content %}
+<style>
+  .tool-h { padding: 14px 0 18px; }
+  .tool-h .crumb { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .tool-h .crumb a { color: var(--muted); text-decoration: none; }
+  .tool-h .crumb a:hover { color: var(--accent); }
+  .tool-h h1 { margin: 0 0 4px; font-size: 28px; }
+  .tool-h .lede { color: var(--muted); margin: 0; max-width: 640px; }
+
+  .tool-layout { display: grid; grid-template-columns: 1.1fr 1fr; gap: 22px; align-items: start; }
+  @media (max-width: 900px) { .tool-layout { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+           padding: 22px 24px; }
+  .panel h2 { margin: 0 0 14px; font-size: 17px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; color: var(--muted);
+                 text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .field select, .field input {
+    width: 100%; padding: 9px 12px; border: 1px solid var(--line); border-radius: 6px;
+    font-size: 14px; background: #fff; font-family: inherit;
+  }
+  .checkbox-row { display: flex; flex-direction: column; gap: 6px; }
+  .checkbox-row label { font-size: 13px; color: #374151; display: inline-flex;
+                        align-items: center; gap: 8px; font-weight: 400;
+                        text-transform: none; letter-spacing: 0; margin: 0; }
+  .checkbox-row input { width: auto; margin: 0; }
+
+  .result { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+            padding: 22px 24px; position: sticky; top: 90px; }
+  .result h2 { margin: 0 0 12px; font-size: 17px; }
+  .verdict { padding: 14px 16px; border-radius: 8px; margin-bottom: 12px; }
+  .verdict.high { background: #ecfdf5; border: 1px solid #10b981; }
+  .verdict.med  { background: #fef3c7; border: 1px solid #fbbf24; }
+  .verdict.low  { background: #fef2f2; border: 1px solid #fca5a5; }
+  .verdict h3 { margin: 0 0 4px; font-size: 16px; color: #064e3b; }
+  .verdict.med h3 { color: #78350f; }
+  .verdict.low h3 { color: #7f1d1d; }
+  .verdict p { margin: 0; font-size: 13px; line-height: 1.55; color: inherit; }
+
+  .visa-list { list-style: none; padding: 0; margin: 0; }
+  .visa-list li { padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .visa-list li:last-child { border-bottom: none; }
+  .visa-list .visa-name { font-weight: 700; font-size: 14px; color: var(--fg); }
+  .visa-list .visa-why  { font-size: 12px; color: var(--muted); margin-top: 3px;
+                          line-height: 1.5; }
+  .visa-list .visa-fit  { display: inline-block; padding: 2px 8px; border-radius: 999px;
+                          font-size: 11px; font-weight: 700; margin-left: 6px; }
+  .visa-list .visa-fit.likely  { background: #dcfce7; color: #166534; }
+  .visa-list .visa-fit.maybe   { background: #fef3c7; color: #92400e; }
+  .visa-list .visa-fit.unlikely{ background: #fee2e2; color: #991b1b; }
+
+  .disclaimer { font-size: 11px; color: var(--muted); margin-top: 14px;
+                font-style: italic; line-height: 1.55; }
+</style>
+
+<div class="tool-h">
+  <div class="crumb"><a href="/tools">← All tools</a></div>
+  <h1>Visa eligibility checker</h1>
+  <p class="lede">Quick assessment based on Japan's main work-visa categories. Updates as you
+     answer, informational only, not legal advice.</p>
+</div>
+
+<div class="tool-layout">
+
+  <form class="panel" id="visa-form" onsubmit="return false;">
+    <h2>Tell us about your situation</h2>
+
+    <div class="field">
+      <label for="v-edu">Highest education completed</label>
+      <select id="v-edu">
+        <option value="">Select…</option>
+        <option value="doctorate">Doctorate / PhD</option>
+        <option value="masters">Master's degree</option>
+        <option value="bachelors">Bachelor's degree</option>
+        <option value="vocational">Vocational degree / specialist school</option>
+        <option value="hs">High school only</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="v-years">Years of relevant work experience</label>
+      <select id="v-years">
+        <option value="0">Less than 1</option>
+        <option value="2">1–2</option>
+        <option value="3">3–4</option>
+        <option value="5">5–6</option>
+        <option value="7">7–9</option>
+        <option value="10">10+</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="v-age">Your age</label>
+      <input type="number" id="v-age" min="16" max="80" placeholder="32">
+    </div>
+
+    <div class="field">
+      <label for="v-salary">Expected annual salary in Japan (¥)</label>
+      <select id="v-salary">
+        <option value="">Select…</option>
+        <option value="2500000">Under ¥3M</option>
+        <option value="3500000">¥3M – ¥4M</option>
+        <option value="4500000">¥4M – ¥5M</option>
+        <option value="5500000">¥5M – ¥6M</option>
+        <option value="6500000">¥6M – ¥7M</option>
+        <option value="8000000">¥7M – ¥9M</option>
+        <option value="10000000">¥9M+</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="v-field">Your job field</label>
+      <select id="v-field">
+        <option value="">Select…</option>
+        <option value="tech">Engineering / IT / data</option>
+        <option value="business">Business / finance / marketing / sales</option>
+        <option value="design">Design / creative</option>
+        <option value="teaching">Teaching English (eikaiwa / ALT)</option>
+        <option value="schoolteaching">Teaching at a public/private school (Instructor)</option>
+        <option value="research">Research / academia</option>
+        <option value="founder">Founding / running a business</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Other details</label>
+      <div class="checkbox-row">
+        <label><input type="checkbox" id="v-offer"> I have (or expect to receive) a job offer in Japan</label>
+        <label><input type="checkbox" id="v-jdegree"> My degree was obtained in Japan</label>
+        <label><input type="checkbox" id="v-jlpt-n1"> I have JLPT N1</label>
+        <label><input type="checkbox" id="v-jlpt-n2"> I have JLPT N2 (skip if N1)</label>
+        <label><input type="checkbox" id="v-toprated"> I graduated from a top-ranked global university (top ~300)</label>
+        <label><input type="checkbox" id="v-spouse"> My spouse is Japanese or Japan PR</label>
+        <label><input type="checkbox" id="v-capital"> I can invest ¥5M+ and open an office (for Business Manager visa)</label>
+      </div>
+    </div>
+  </form>
+
+  <aside class="result">
+    <h2>Likely visa fit</h2>
+    <div id="verdict" class="verdict med">
+      <h3>Fill in the form</h3>
+      <p>Your visa shortlist updates live as you answer.</p>
+    </div>
+    <ul class="visa-list" id="visa-list"></ul>
+    <p class="disclaimer">
+      Final eligibility is decided by Japan's Immigration Services Agency based on full
+      documentation. This tool surfaces the categories most worth investigating, it does
+      not guarantee approval.
+    </p>
+  </aside>
+</div>
+
+<script>
+(function () {
+  function val(id) {
+    var el = document.getElementById(id);
+    if (!el) return "";
+    if (el.type === "checkbox") return el.checked;
+    return el.value;
+  }
+  function num(id) { var v = val(id); return v === "" ? null : parseInt(v, 10); }
+
+  // Build visa shortlist. Each entry: { name, fit: 'likely'/'maybe'/'unlikely', why }
+  function evaluate() {
+    var edu = val("v-edu");
+    var years = num("v-years") || 0;
+    var age = num("v-age");
+    var salary = num("v-salary") || 0;
+    var field = val("v-field");
+    var hasOffer = val("v-offer");
+    var jpDegree = val("v-jdegree");
+    var jlptN1 = val("v-jlpt-n1");
+    var jlptN2 = val("v-jlpt-n2");
+    var topRated = val("v-toprated");
+    var spouse = val("v-spouse");
+    var capital = val("v-capital");
+
+    var list = [];
+
+    // Engineer / Specialist
+    var engFit = "unlikely", engWhy = [];
+    if (edu === "doctorate" || edu === "masters" || edu === "bachelors") {
+      engFit = "likely"; engWhy.push("you have a relevant degree");
+    } else if (years >= 10 && (field === "tech" || field === "business" || field === "design")) {
+      engFit = "likely"; engWhy.push("10+ years of relevant experience can substitute for a degree");
+    } else if (edu === "vocational" && field === "design") {
+      engFit = "maybe"; engWhy.push("vocational degrees sometimes qualify for design / specialist roles");
+    } else if (field === "teaching" || field === "schoolteaching") {
+      engFit = "maybe"; engWhy.push("English-teaching eikaiwa roles use this visa — bachelor's typically required");
+    }
+    if (engFit !== "unlikely" && !hasOffer) {
+      engFit = "maybe";
+      engWhy.push("but you need a sponsoring employer to actually apply");
+    }
+    list.push({
+      name: "Engineer / Specialist in Humanities / International Services",
+      fit: engFit,
+      why: engWhy.length ? engWhy.join("; ") : "Requires a bachelor's degree (or 10+ yrs experience) plus a job offer.",
+    });
+
+    // HSP — score roughly
+    var hspScore = 0;
+    if (edu === "doctorate") hspScore += 30;
+    else if (edu === "masters") hspScore += 20;
+    else if (edu === "bachelors") hspScore += 10;
+    if (years >= 10) hspScore += 20;
+    else if (years >= 7) hspScore += 15;
+    else if (years >= 5) hspScore += 10;
+    else if (years >= 3) hspScore += 5;
+    if (age !== null && age < 30) hspScore += 15;
+    else if (age !== null && age < 35) hspScore += 10;
+    else if (age !== null && age < 40) hspScore += 5;
+    if (salary >= 10000000) hspScore += 40;
+    else if (salary >= 9000000) hspScore += 35;
+    else if (salary >= 8000000) hspScore += 30;
+    else if (salary >= 7000000) hspScore += 25;
+    else if (salary >= 6000000 && (age !== null && age < 35)) hspScore += 20;
+    else if (salary >= 5000000 && (age !== null && age < 35)) hspScore += 15;
+    else if (salary >= 4000000 && (age !== null && age < 30)) hspScore += 10;
+    if (jlptN1) hspScore += 15;
+    else if (jlptN2) hspScore += 10;
+    if (jpDegree) hspScore += 10;
+    if (topRated) hspScore += 10;
+
+    var hspFit = hspScore >= 80 ? "likely"
+              : hspScore >= 70 ? "likely"
+              : hspScore >= 55 ? "maybe"
+              : "unlikely";
+    list.push({
+      name: "Highly Skilled Professional (HSP) — Type 1(b)",
+      fit: hspFit,
+      why: "Estimated " + hspScore + " points. Need 70+ for the 5-year visa, 80+ for fast PR. "
+        + (hspScore < 70 ? "Run the full calculator for the exact breakdown." : "Likely qualifies."),
+    });
+
+    // Business Manager
+    var bmFit = "unlikely", bmWhy = [];
+    if (field === "founder") {
+      bmFit = capital ? "likely" : "maybe";
+      bmWhy.push("starting a business is the right path");
+      if (!capital) bmWhy.push("but you need ¥5M+ capital and a real office");
+    }
+    list.push({
+      name: "Business Manager",
+      fit: bmFit,
+      why: bmWhy.length ? bmWhy.join("; ") : "For founders / executives running a Japan-registered business.",
+    });
+
+    // Instructor visa
+    var instrFit = "unlikely", instrWhy = [];
+    if (field === "schoolteaching") {
+      instrFit = "likely"; instrWhy.push("teaching at a public/private school qualifies");
+    } else if (field === "teaching") {
+      instrFit = "unlikely"; instrWhy.push("eikaiwa/ALT roles use the Engineer/Specialist visa, not Instructor");
+    }
+    list.push({
+      name: "Instructor",
+      fit: instrFit,
+      why: instrWhy.length ? instrWhy.join("; ") : "Specifically for K-12 teachers at Japanese schools.",
+    });
+
+    // Spouse visa
+    if (spouse) {
+      list.push({
+        name: "Spouse of Japanese national / PR holder",
+        fit: "likely",
+        why: "Spouse visas grant unrestricted work rights — the simplest path.",
+      });
+    }
+
+    // J-Find (Designated Activities — recent graduate)
+    if (topRated && years <= 5) {
+      list.push({
+        name: "Designated Activities (J-Find)",
+        fit: "likely",
+        why: "Recent grad of a top-ranked global uni → up to 2 years in Japan to find work.",
+      });
+    }
+
+    // Working Holiday — only useful if young
+    if (age !== null && age <= 30) {
+      list.push({
+        name: "Working Holiday",
+        fit: "maybe",
+        why: "Available if you're a citizen of a partner country (Australia, UK, Canada, Korea, etc.) and under 30.",
+      });
+    }
+
+    // Sort: likely first, then maybe, then unlikely
+    var order = { likely: 0, maybe: 1, unlikely: 2 };
+    list.sort(function (a, b) { return order[a.fit] - order[b.fit]; });
+    return { list: list, hspScore: hspScore };
+  }
+
+  function setVerdict(result) {
+    var hasLikely = result.list.some(function (v) { return v.fit === "likely"; });
+    var hasMaybe  = result.list.some(function (v) { return v.fit === "maybe"; });
+    var el = document.getElementById("verdict");
+    if (hasLikely) {
+      el.className = "verdict high";
+      el.innerHTML = "<h3>You're a likely fit for at least one visa category</h3>" +
+        "<p>See the list below. Verify with a sponsor or an immigration lawyer before banking on a specific visa.</p>";
+    } else if (hasMaybe) {
+      el.className = "verdict med";
+      el.innerHTML = "<h3>Possible fit, with caveats</h3>" +
+        "<p>You're in the grey zone for one or more visas. Tightening up one input (a degree, a job offer, a higher salary) usually closes the gap.</p>";
+    } else {
+      el.className = "verdict low";
+      el.innerHTML = "<h3>No likely category yet</h3>" +
+        "<p>Most common gap: no bachelor's degree and no 10+ years of experience. A working-holiday visa or upskilling are the typical alternative paths.</p>";
+    }
+  }
+
+  function renderList(result) {
+    var ul = document.getElementById("visa-list");
+    ul.innerHTML = result.list.map(function (v) {
+      return "<li>" +
+        '<span class="visa-name">' + escapeHtml(v.name) + '</span>' +
+        '<span class="visa-fit ' + v.fit + '">' +
+          (v.fit === "likely" ? "Likely" : v.fit === "maybe" ? "Maybe" : "Unlikely") +
+        "</span>" +
+        '<div class="visa-why">' + escapeHtml(v.why) + "</div>" +
+        "</li>";
+    }).join("");
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function refresh() {
+    var r = evaluate();
+    setVerdict(r);
+    renderList(r);
+  }
+
+  // Wire up inputs
+  document.querySelectorAll("#visa-form select, #visa-form input").forEach(function (el) {
+    el.addEventListener("change", refresh);
+    el.addEventListener("input", refresh);
+  });
+
+  refresh();
+  // Expose for testing
+  window._visaEvaluate = evaluate;
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,838 @@
+{% extends "base.html" %}
+{% block title %}English CV / Resume Builder, Gaijin Hunter{% endblock %}
+{% block meta_description %}Build a polished English CV (UK) or Resume (US) in the conservative consulting / finance style used by McKinsey, Goldman Sachs, and BCG candidates. Toggle between American and British formats. Free, browser-based, prints to A4 or US Letter.{% endblock %}
+{% block content %}
+<style>
+  .rr-page-h { padding: 8px 0 18px; }
+  .rr-page-h h1 { margin: 0 0 6px; font-size: 28px; }
+  .rr-page-h p  { margin: 0; color: var(--muted); }
+  .cv-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+  @media (max-width: 1100px) { .cv-layout { grid-template-columns: 1fr; } }
+
+  /* Form pane */
+  .form-pane { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+               padding: 0; overflow: hidden; }
+  .section { border-top: 1px solid var(--line); }
+  .section:first-child { border-top: none; }
+  .section .head { padding: 14px 22px; background: #f9fafb;
+                   display: flex; justify-content: space-between; align-items: center; }
+  .section .head h2 { margin: 0; font-size: 16px; }
+  .section .head .when { color: var(--muted); font-size: 11.5px; }
+  .section .when .pill { display: inline-block; padding: 2px 8px; border-radius: 999px;
+                        background: var(--accent-soft); color: var(--accent); font-weight: 600;
+                        font-size: 10.5px; }
+  .section .body { padding: 14px 22px 18px; }
+  .field-grid { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
+  .field-grid .span2 { grid-column: 1 / -1; }
+  .field-grid label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 3px; }
+  .field-grid input, .field-grid textarea, .field-grid select {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px;
+    font-size: 14px; font-family: inherit; background: #fff;
+  }
+  .field-grid textarea { resize: vertical; min-height: 70px; }
+  .hint { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  .row-list { display: flex; flex-direction: column; gap: 14px; margin-top: 6px; }
+  .entry { border: 1px solid var(--line); border-radius: 6px; padding: 12px;
+           background: #fafafa; position: relative; }
+  .entry .del { position: absolute; right: 10px; top: 8px; background: transparent;
+                color: #b91c1c; border: none; cursor: pointer; font-size: 16px; }
+  .entry .grid { display: grid; gap: 8px; grid-template-columns: 1fr 1fr; }
+  .entry .grid .span2 { grid-column: 1 / -1; }
+  .add-row { background: transparent; color: var(--accent); border: 1px dashed var(--accent);
+             padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px;
+             margin-top: 10px; }
+  .add-row:hover { background: var(--accent); color: #fff; }
+  .quick-actions { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .quick-actions button { background: #fff; border: 1px solid var(--line); padding: 7px 14px;
+                          border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--fg); }
+  .quick-actions button:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Preview pane */
+  .preview-pane { position: sticky; top: 90px; background: #e7ebf0; padding: 18px;
+                  border-radius: 10px; max-height: calc(100vh - 110px); overflow-y: auto; }
+  .preview-pane .toolbar { display: flex; gap: 8px; margin-bottom: 14px; align-items: center;
+                           flex-wrap: wrap; }
+  .preview-pane .toolbar button {
+    background: var(--accent); color: #fff; border: none; padding: 8px 14px;
+    border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px;
+  }
+  .preview-pane .toolbar button:hover { background: var(--accent-dark); }
+  .preview-pane .toolbar button.ghost {
+    background: #fff; color: var(--accent); border: 1px solid var(--accent); }
+
+  /* Format toggle */
+  .fmt-toggle { display: inline-flex; background: #fff; border: 1px solid var(--line);
+                border-radius: 8px; padding: 3px; gap: 2px; margin-right: auto; }
+  .fmt-toggle button {
+    background: transparent; color: var(--muted); border: none;
+    padding: 6px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer;
+    border-radius: 6px; transition: all 0.15s;
+  }
+  .fmt-toggle button.active {
+    background: var(--accent); color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  /* ============================================================
+     CV DOCUMENT — Conservative consulting/finance style
+     Two variants: data-format="american" (Letter) and "british" (A4)
+     ============================================================ */
+  .cv {
+    background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    color: #000; margin: 0 auto;
+    font-family: "Garamond", "EB Garamond", "Times New Roman", Times, serif;
+    font-size: 11pt; line-height: 1.32;
+  }
+
+  /* American Resume — US Letter, 1 page target */
+  .cv[data-format="american"] {
+    width: 8.5in; min-height: 11in;
+    padding: 0.55in 0.7in 0.6in;
+    font-size: 10.5pt;
+  }
+  /* British CV — A4, slightly more generous */
+  .cv[data-format="british"] {
+    width: 210mm; min-height: 297mm;
+    padding: 18mm 20mm 20mm;
+    font-size: 11pt;
+  }
+
+  /* Document header */
+  .cv .doc-h { text-align: center; margin-bottom: 14px; }
+  .cv[data-format="british"] .doc-h .title-tag {
+    font-family: "Garamond", "Times New Roman", serif;
+    font-size: 9.5pt; letter-spacing: 0.32em; color: #000;
+    text-transform: uppercase; margin-bottom: 6px;
+    font-weight: 400;
+  }
+  .cv .name {
+    font-weight: 700; font-size: 17pt; line-height: 1.05;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    margin: 0 0 6px;
+  }
+  .cv[data-format="american"] .name { font-size: 16pt; letter-spacing: 0.06em; }
+  .cv .contact {
+    font-size: 9.5pt; color: #000;
+    margin: 0 0 4px; line-height: 1.45;
+  }
+  .cv .contact .sep { margin: 0 6px; color: #666; }
+  .cv .contact a { color: #000; text-decoration: none; }
+
+  /* Section header — bold uppercase with bottom rule */
+  .cv h2 {
+    font-size: 10.5pt; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.15em; margin: 14px 0 6px;
+    padding-bottom: 1.5px; border-bottom: 0.7pt solid #000;
+  }
+  .cv[data-format="american"] h2 { font-size: 10pt; margin: 12px 0 5px; }
+
+  /* Item rows (experience / education) */
+  .cv .item { margin-bottom: 9px; page-break-inside: avoid; }
+  .cv .item:last-child { margin-bottom: 0; }
+  .cv .item .row1, .cv .item .row2 {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  }
+  .cv .item .org-name { font-weight: 700; font-size: 10.8pt; }
+  .cv .item .dates-r { font-size: 10pt; font-weight: 400; white-space: nowrap; }
+  .cv .item .role-t { font-style: italic; font-size: 10.5pt; }
+  .cv .item .loc-r { font-style: italic; font-size: 10pt; color: #000; white-space: nowrap; }
+  .cv .item ul {
+    margin: 3px 0 0; padding-left: 16px; list-style: disc;
+  }
+  .cv .item li {
+    font-size: 10.5pt; line-height: 1.36; margin-bottom: 1.5px;
+    text-align: justify; text-justify: inter-word;
+  }
+  .cv[data-format="american"] .item li { font-size: 10pt; text-align: left; }
+
+  /* Profile / summary block */
+  .cv .summary { font-size: 10.5pt; line-height: 1.45;
+                 text-align: justify; text-justify: inter-word; margin-top: 2px; }
+  .cv[data-format="american"] .summary { font-size: 10pt; text-align: left; }
+
+  /* Education sub-line */
+  .cv .item .ed-notes { font-size: 10pt; font-style: italic; margin-top: 1px; }
+
+  /* Skills — single column with bold category, then list */
+  .cv .skills-row { display: grid; grid-template-columns: 22% 78%; gap: 4px 10px;
+                    font-size: 10.5pt; margin-bottom: 2.5px; line-height: 1.42; }
+  .cv[data-format="american"] .skills-row { font-size: 10pt; }
+  .cv .skills-row b { font-weight: 700; }
+  .cv .skills-row .v { text-align: left; }
+
+  /* Languages line */
+  .cv .lang-row { display: flex; justify-content: space-between;
+                   font-size: 10.5pt; margin-bottom: 2px; align-items: baseline; }
+  .cv[data-format="american"] .lang-row { font-size: 10pt; }
+
+  /* Honors / certs / interests */
+  .cv .single { font-size: 10.5pt; line-height: 1.42; }
+  .cv[data-format="american"] .single { font-size: 10pt; }
+  .cv .single .row1 { display: flex; justify-content: space-between; }
+  .cv .single ul { margin: 2px 0 0; padding-left: 16px; }
+  .cv .single li { font-size: 10.5pt; line-height: 1.42; }
+  .cv[data-format="american"] .single li { font-size: 10pt; }
+
+  /* Refs (British) */
+  .cv .refs-line { font-style: italic; font-size: 10pt; }
+
+  /* Empty sections collapse cleanly */
+  .cv .empty { display: none; }
+
+  /* Scale preview so the page fits */
+  .scale-wrap { transform: scale(0.72); transform-origin: top left; margin: 0 auto;
+                width: 0; }  /* set via JS based on format */
+  @media (max-width: 1300px) { .scale-wrap { transform: scale(0.62); } }
+  @media (max-width: 1100px) {
+    .scale-wrap { transform: none; width: auto; height: auto; }
+  }
+
+  /* Print */
+  @media print {
+    @page { margin: 0; }
+    body { background: #fff; }
+    header, .breadcrumb, .rr-page-h, .resume-subnav, .form-pane,
+    .preview-pane .toolbar { display: none !important; }
+    .cv-layout { display: block; }
+    .preview-pane { position: static; background: #fff; padding: 0; max-height: none; overflow: visible; }
+    .scale-wrap { transform: none; width: auto; height: auto; }
+    .cv { box-shadow: none; margin: 0; }
+    .cv[data-format="american"] { width: 8.5in; min-height: 11in; }
+    .cv[data-format="british"] { width: 210mm; min-height: 297mm; }
+  }
+</style>
+
+<div class="rr-page-h">
+  <h1>Resume / CV Builder</h1>
+  <p>Build a polished English CV (British) or Resume (American) in the conservative
+     consulting / finance style. Toggle between formats, your data persists. Nothing
+     leaves your browser.</p>
+  {% include "_resume_subnav.html" %}
+</div>
+
+<div class="cv-layout">
+
+  <!-- FORM -->
+  <div class="form-pane">
+
+    <div class="section">
+      <div class="head">
+        <h2>1. Header</h2>
+        <span class="when"><span class="pill">Both formats</span></span>
+      </div>
+      <div class="body">
+        <div class="quick-actions">
+          <button type="button" id="prefill-from-profile">↻ Prefill from profile</button>
+          <button type="button" id="paste-sample">Paste sample (consulting)</button>
+          <button type="button" id="paste-sample-finance">Paste sample (finance)</button>
+          <button type="button" id="clear-cv">Clear</button>
+        </div>
+        <div class="field-grid">
+          <div><label>Full name</label><input data-f="name" placeholder="Jane Doe"></div>
+          <div><label>Target role / headline <span class="hint">(optional)</span></label>
+               <input data-f="headline" placeholder="Senior Associate, Strategy & Operations"></div>
+          <div><label>Email</label><input data-f="email" type="email"></div>
+          <div><label>Phone</label><input data-f="phone" placeholder="+81 90 1234 5678"></div>
+          <div><label>City / Location</label><input data-f="location" placeholder="Tokyo, Japan"></div>
+          <div><label>LinkedIn / portfolio</label><input data-f="url" placeholder="linkedin.com/in/janedoe"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="head">
+        <h2>2. Profile / Personal Statement</h2>
+        <span class="when"><span class="pill">UK preferred</span> Optional for US</span>
+      </div>
+      <div class="body">
+        <div class="field-grid">
+          <div class="span2">
+            <textarea data-f="summary" rows="4"
+              placeholder="3–4 sentences. Lead with your seniority, sector, signature achievement, and what you're seeking next. Active voice; quantified where possible."></textarea>
+            <div class="hint">
+              Convention: keep under 60 words. American CVs often skip this entirely in favour of letting the experience speak.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="head">
+        <h2>3. Education</h2>
+        <span class="when"><span class="pill">Both formats</span> Top for new grads; below experience for 5+ yrs</span>
+      </div>
+      <div class="body">
+        <div class="row-list" id="education"></div>
+        <button type="button" class="add-row" data-add="education">+ Add education</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="head">
+        <h2>4. Professional experience</h2>
+        <span class="when"><span class="pill">Both formats</span></span>
+      </div>
+      <div class="body">
+        <div class="row-list" id="experience"></div>
+        <button type="button" class="add-row" data-add="experience">+ Add experience</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="head">
+        <h2>5. Skills</h2>
+        <span class="when"><span class="pill">Both formats</span></span>
+      </div>
+      <div class="body">
+        <div class="field-grid">
+          <div class="span2">
+            <label>Skills, grouped by category. One line per category.</label>
+            <textarea data-f="skills" rows="5"
+              placeholder="Strategy: market entry, due diligence, financial modelling&#10;Technical: Excel, SQL, Tableau, Python&#10;Industry: financial services, retail, technology"></textarea>
+            <div class="hint">Category before the colon renders bold. Examples: <em>Languages</em>, <em>Technical</em>, <em>Frameworks</em>, <em>Industry</em>, <em>Tools</em>.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="head">
+        <h2>6. Languages</h2>
+        <span class="when"><span class="pill">Both formats</span></span>
+      </div>
+      <div class="body">
+        <div class="row-list" id="languages"></div>
+        <button type="button" class="add-row" data-add="languages">+ Add language</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="head">
+        <h2>7. Certifications &amp; honours</h2>
+        <span class="when"><span class="pill">Both formats</span></span>
+      </div>
+      <div class="body">
+        <div class="row-list" id="certs"></div>
+        <button type="button" class="add-row" data-add="certs">+ Add certification / honour</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="head">
+        <h2>8. Interests &amp; activities</h2>
+        <span class="when"><span class="pill">UK preferred</span> Often omitted in US</span>
+      </div>
+      <div class="body">
+        <div class="field-grid">
+          <div class="span2">
+            <label>3–5 specific interests, comma-separated.</label>
+            <input data-f="interests"
+              placeholder="Trail running (sub-3:30 marathon, 2024), kendo (1-dan), Japanese tea ceremony, conversational French">
+            <div class="hint">Conservative convention: 3–5 specific, hobby-as-narrative items rather than vague claims.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="head">
+        <h2>9. References</h2>
+        <span class="when"><span class="pill">UK preferred</span> Skipped in US</span>
+      </div>
+      <div class="body">
+        <div class="field-grid">
+          <div class="span2">
+            <label>Reference line (UK CV convention)</label>
+            <select data-f="refs">
+              <option value="on-request">References available upon request</option>
+              <option value="named">Named references (enter below)</option>
+              <option value="none">Omit references section</option>
+            </select>
+            <div class="hint">"Available upon request" is the boring, safe default. American resumes usually omit this section entirely.</div>
+          </div>
+          <div class="span2">
+            <label>If "Named references", enter as: <em>Name, Title, Company, email</em> (one per line; max 2)</label>
+            <textarea data-f="named_refs" rows="3"
+              placeholder="Mary Smith, Engagement Manager, McKinsey & Company, mary.smith@example.com&#10;James Tanaka, Director, Goldman Sachs Japan, james.tanaka@example.com"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="preview-pane">
+    <div class="toolbar">
+      <div class="fmt-toggle" role="tablist" aria-label="Format">
+        <button type="button" data-fmt="american" class="active">American Resume</button>
+        <button type="button" data-fmt="british">British CV</button>
+      </div>
+      <button id="print-btn">Print / Save as PDF</button>
+      <button class="ghost" id="save-btn">Save draft</button>
+    </div>
+    <div class="scale-wrap" id="scale-wrap">
+      <div class="cv" id="cv-doc" data-format="american">
+        <div class="doc-h">
+          <div class="title-tag" id="p-titletag" style="display:none;">Curriculum Vitae</div>
+          <div class="name" id="p-name">YOUR NAME</div>
+          <div class="contact" id="p-contact"></div>
+        </div>
+        <div id="p-section-summary" class="empty"></div>
+        <div id="p-section-education" class="empty"></div>
+        <div id="p-section-experience" class="empty"></div>
+        <div id="p-section-skills" class="empty"></div>
+        <div id="p-section-languages" class="empty"></div>
+        <div id="p-section-certs" class="empty"></div>
+        <div id="p-section-interests" class="empty"></div>
+        <div id="p-section-refs" class="empty"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var STORAGE_KEY = "gh-cv-draft-v2";
+
+  var template = {
+    format: "american",  // "american" or "british"
+    name: "", headline: "",
+    email: "", phone: "", location: "", url: "",
+    summary: "", skills: "", interests: "",
+    refs: "on-request", named_refs: "",
+    experience: [],
+    education: [],
+    languages: [],
+    certs: [],
+  };
+
+  function loadDraft() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      // Backward compat: read v1 draft if v2 missing
+      if (!raw) {
+        var v1 = localStorage.getItem("gh-cv-draft-v1");
+        if (v1) raw = v1;
+      }
+      if (!raw) return JSON.parse(JSON.stringify(template));
+      var s = JSON.parse(raw);
+      Object.keys(template).forEach(function (k) { if (s[k] === undefined) s[k] = template[k]; });
+      return s;
+    } catch (e) { return JSON.parse(JSON.stringify(template)); }
+  }
+  function saveDraft(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+
+  var state = loadDraft();
+
+  // ---- helpers ----
+  function esc(v) {
+    return String(v == null ? "" : v)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  function html(s) { return esc(s).replace(/\n/g, "<br>"); }
+  function ensureUrl(u) { if (!u) return ""; return /^https?:\/\//.test(u) ? u : "https://" + u; }
+
+  // ---- form rendering ----
+  function entryHtml(kind, idx, item) {
+    if (kind === "experience") {
+      return '<div class="grid">' +
+        '<div><label>Company</label><input data-k="company" value="' + esc(item.company) + '" placeholder="Goldman Sachs"></div>' +
+        '<div><label>Position / job title</label><input data-k="title" value="' + esc(item.title) + '" placeholder="Investment Banking Analyst"></div>' +
+        '<div><label>Location</label><input data-k="location" value="' + esc(item.location) + '" placeholder="Tokyo, Japan"></div>' +
+        '<div><label>Dates <span class="hint">(e.g. Jun 2022 – Present)</span></label><input data-k="dates" value="' + esc(item.dates) + '" placeholder="Jun 2022 – Present"></div>' +
+        '<div class="span2"><label>Achievements / bullet points — one per line. Start with a strong verb; quantify where possible.</label>' +
+        '<textarea data-k="bullets" rows="5">' + esc(item.bullets) + '</textarea>' +
+        '<div class="hint">Verbs that land: <em>Led, Built, Designed, Reduced, Generated, Negotiated, Drove, Owned</em>. Numbers beat adjectives.</div></div>' +
+        '</div>';
+    }
+    if (kind === "education") {
+      return '<div class="grid">' +
+        '<div><label>Institution</label><input data-k="school" value="' + esc(item.school) + '" placeholder="University of Cambridge"></div>' +
+        '<div><label>Degree</label><input data-k="degree" value="' + esc(item.degree) + '" placeholder="B.A. (Hons) Economics, First Class"></div>' +
+        '<div><label>Location</label><input data-k="location" value="' + esc(item.location) + '" placeholder="Cambridge, UK"></div>' +
+        '<div><label>Dates</label><input data-k="dates" value="' + esc(item.dates) + '" placeholder="Sep 2018 – Jun 2022"></div>' +
+        '<div class="span2"><label>Notes <span class="hint">(GPA, dean\'s list, thesis, honours — optional)</span></label><input data-k="notes" value="' + esc(item.notes) + '" placeholder="GPA 3.9/4.0 • Thesis on Japanese monetary policy under YCC"></div>' +
+        '</div>';
+    }
+    if (kind === "languages") {
+      return '<div class="grid">' +
+        '<div><label>Language</label><input data-k="lang" value="' + esc(item.lang) + '" placeholder="Japanese"></div>' +
+        '<div><label>Level</label><select data-k="level"><option value="">—</option>' +
+          ["Native","Bilingual","Fluent","Business","Professional working","Conversational","Beginner"].map(function (l) {
+            return '<option' + (item.level === l ? ' selected' : '') + '>' + l + '</option>';
+          }).join("") + '</select></div>' +
+        '<div class="span2"><label>Certification / test score (optional)</label><input data-k="cert" value="' + esc(item.cert) + '" placeholder="JLPT N2 (2024)"></div>' +
+        '</div>';
+    }
+    // certs
+    return '<div class="grid">' +
+      '<div class="span2"><label>Title</label><input data-k="title" value="' + esc(item.title) + '" placeholder="CFA Level III Candidate"></div>' +
+      '<div><label>Issuer / org</label><input data-k="org" value="' + esc(item.org) + '" placeholder="CFA Institute"></div>' +
+      '<div><label>Year</label><input data-k="year" value="' + esc(item.year) + '" placeholder="2024"></div>' +
+      '<div class="span2"><label>One-line description <span class="hint">(optional)</span></label><input data-k="desc" value="' + esc(item.desc) + '" placeholder="Passed Levels I & II on first attempt"></div>' +
+      '</div>';
+  }
+
+  function renderList(kind) {
+    var listEl = document.getElementById(kind);
+    listEl.innerHTML = "";
+    (state[kind] || []).forEach(function (item, idx) {
+      var w = document.createElement("div");
+      w.className = "entry"; w.setAttribute("data-idx", idx);
+      w.innerHTML = '<button type="button" class="del" data-del="' + kind + '" data-idx="' + idx + '" title="Remove">✕</button>' + entryHtml(kind, idx, item);
+      listEl.appendChild(w);
+    });
+  }
+
+  function fillSimpleFields() {
+    document.querySelectorAll('[data-f]').forEach(function (el) {
+      var k = el.getAttribute("data-f");
+      if (state[k] != null) el.value = state[k];
+    });
+  }
+
+  // ---- preview rendering ----
+  function sectionHtml(id, headerLabel, bodyHtml) {
+    return '<h2>' + esc(headerLabel) + '</h2>' + bodyHtml;
+  }
+
+  function renderPreview() {
+    var s = state;
+    var doc = document.getElementById("cv-doc");
+    doc.setAttribute("data-format", s.format || "american");
+
+    // Title tag (Curriculum Vitae) — British only
+    document.getElementById("p-titletag").style.display =
+      (s.format === "british") ? "" : "none";
+
+    // Name
+    document.getElementById("p-name").textContent =
+      (s.name || "Your Name").toUpperCase();
+
+    // Contact line — Address-style; ' | ' separator in finance/consulting standard
+    var c = [];
+    if (s.location) c.push(esc(s.location));
+    if (s.email) c.push(esc(s.email));
+    if (s.phone) c.push(esc(s.phone));
+    if (s.url)  c.push('<a href="' + esc(ensureUrl(s.url)) + '">' + esc(s.url) + '</a>');
+    document.getElementById("p-contact").innerHTML = c.join('<span class="sep">|</span>');
+
+    // ---- SUMMARY / PROFILE ----
+    var summaryHeader = (s.format === "british") ? "Profile" : "Summary";
+    var summaryHtml = "";
+    if (s.summary && s.summary.trim()) {
+      summaryHtml = sectionHtml("summary", summaryHeader,
+        '<div class="summary">' + html(s.summary) + '</div>');
+    }
+    setSection("p-section-summary", summaryHtml);
+
+    // ---- EDUCATION (British) or order depending on experience length ----
+    var eduHtml = (s.education || []).map(function (e) {
+      var titleLeft = '<span class="org-name">' + esc(e.school || '') + '</span>';
+      var dateRight = '<span class="dates-r">' + esc(e.dates || '') + '</span>';
+      var roleLeft = '<span class="role-t">' + esc(e.degree || '') + '</span>';
+      var locRight = e.location ? '<span class="loc-r">' + esc(e.location) + '</span>' : '';
+      var notes = e.notes ? '<div class="ed-notes">' + esc(e.notes) + '</div>' : '';
+      return '<div class="item">' +
+        '<div class="row1">' + titleLeft + dateRight + '</div>' +
+        '<div class="row2">' + roleLeft + locRight + '</div>' +
+        notes + '</div>';
+    }).join("");
+    setSection("p-section-education",
+      eduHtml ? sectionHtml("education", "Education", eduHtml) : "");
+
+    // ---- EXPERIENCE ----
+    var expHtml = (s.experience || []).map(function (e) {
+      var bullets = (e.bullets || "").split("\n").map(function (l) { return l.trim(); }).filter(Boolean);
+      var ul = bullets.length ? '<ul>' + bullets.map(function (b) { return '<li>' + esc(b) + '</li>'; }).join("") + '</ul>' : "";
+      var titleLeft = '<span class="org-name">' + esc(e.company || '') + '</span>';
+      var dateRight = '<span class="dates-r">' + esc(e.dates || '') + '</span>';
+      var roleLeft = '<span class="role-t">' + esc(e.title || '') + '</span>';
+      var locRight = e.location ? '<span class="loc-r">' + esc(e.location) + '</span>' : '';
+      return '<div class="item">' +
+        '<div class="row1">' + titleLeft + dateRight + '</div>' +
+        '<div class="row2">' + roleLeft + locRight + '</div>' +
+        ul + '</div>';
+    }).join("");
+    var expHeader = (s.format === "british") ? "Professional Experience" : "Experience";
+    setSection("p-section-experience",
+      expHtml ? sectionHtml("experience", expHeader, expHtml) : "");
+
+    // ---- SKILLS ----
+    var skillsHtml = (s.skills || "").split("\n").map(function (line) {
+      line = line.trim(); if (!line) return "";
+      var m = line.match(/^([^:]+):\s*(.+)$/);
+      if (m) return '<div class="skills-row"><b>' + esc(m[1]) + '</b><div class="v">' + esc(m[2]) + '</div></div>';
+      return '<div class="skills-row"><b></b><div class="v">' + esc(line) + '</div></div>';
+    }).join("");
+    setSection("p-section-skills",
+      skillsHtml ? sectionHtml("skills", "Skills", skillsHtml) : "");
+
+    // ---- LANGUAGES ----
+    var langHtml = (s.languages || []).map(function (l) {
+      var left = '<b>' + esc(l.lang || '') + '</b>';
+      var right = '';
+      if (l.level) right += esc(l.level);
+      if (l.cert)  right += (right ? '<span class="sep" style="margin:0 6px;">·</span>' : '') + esc(l.cert);
+      return '<div class="lang-row"><div>' + left + '</div><div>' + right + '</div></div>';
+    }).join("");
+    setSection("p-section-languages",
+      langHtml ? sectionHtml("languages", "Languages", langHtml) : "");
+
+    // ---- CERTIFICATIONS / HONOURS ----
+    var certs = s.certs || [];
+    var certHtml = certs.map(function (c) {
+      var title = esc(c.title || '');
+      var org = c.org ? ', ' + esc(c.org) : '';
+      var year = '<span class="dates-r">' + esc(c.year || '') + '</span>';
+      var desc = c.desc ? '<div class="ed-notes">' + esc(c.desc) + '</div>' : '';
+      return '<div class="item"><div class="row1"><div><b>' + title + '</b>' + org + '</div>' + year + '</div>' + desc + '</div>';
+    }).join("");
+    setSection("p-section-certs",
+      certHtml ? sectionHtml("certs", "Certifications & Honours", certHtml) : "");
+
+    // ---- INTERESTS (British more common) ----
+    var interestsHtml = "";
+    if (s.interests && s.interests.trim()) {
+      interestsHtml = sectionHtml("interests", "Interests",
+        '<div class="single">' + esc(s.interests) + '</div>');
+    }
+    setSection("p-section-interests", interestsHtml);
+
+    // ---- REFERENCES (British convention) ----
+    var refsHtml = "";
+    if (s.refs === "on-request") {
+      refsHtml = sectionHtml("refs", "References",
+        '<div class="refs-line">References available upon request.</div>');
+    } else if (s.refs === "named" && s.named_refs && s.named_refs.trim()) {
+      var lines = s.named_refs.split("\n").map(function (l) { return l.trim(); }).filter(Boolean);
+      var refsBody = lines.slice(0, 2).map(function (ln) {
+        var parts = ln.split(",").map(function (p) { return p.trim(); });
+        var name = parts[0] || "";
+        var role = parts.slice(1, 3).join(", ");
+        var email = parts[3] || parts[parts.length - 1] || "";
+        return '<div class="item">' +
+          '<div class="row1"><span class="org-name">' + esc(name) + '</span><span class="dates-r">' + esc(email) + '</span></div>' +
+          (role ? '<div class="row2"><span class="role-t">' + esc(role) + '</span></div>' : '') +
+          '</div>';
+      }).join("");
+      refsHtml = sectionHtml("refs", "References", refsBody);
+    }
+    setSection("p-section-refs", refsHtml);
+
+    // Adjust scale-wrap dimensions per format
+    var sw = document.getElementById("scale-wrap");
+    if (s.format === "american") {
+      sw.style.width = "calc(8.5in * 0.72)";
+      sw.style.height = "calc(11in * 0.72)";
+    } else {
+      sw.style.width = "calc(210mm * 0.72)";
+      sw.style.height = "calc(297mm * 0.72)";
+    }
+  }
+
+  function setSection(elId, content) {
+    var el = document.getElementById(elId);
+    el.innerHTML = content || "";
+    el.classList.toggle("empty", !content);
+  }
+
+  function refresh() { renderPreview(); saveDraft(state); }
+
+  // ---- form events ----
+  function bindFormHandlers() {
+    document.querySelectorAll('[data-f]').forEach(function (el) {
+      el.addEventListener("input", function () {
+        state[el.getAttribute("data-f")] = el.value; refresh();
+      });
+      el.addEventListener("change", function () {
+        state[el.getAttribute("data-f")] = el.value; refresh();
+      });
+    });
+    document.querySelectorAll('.add-row').forEach(function (b) {
+      b.addEventListener("click", function () {
+        var k = b.getAttribute("data-add");
+        var empty = k === "experience" ? { title: "", company: "", location: "", dates: "", bullets: "" }
+                  : k === "education"  ? { degree: "", school: "", location: "", dates: "", notes: "" }
+                  : k === "languages"  ? { lang: "", level: "", cert: "" }
+                  : { title: "", org: "", year: "", desc: "" };
+        state[k].push(empty);
+        renderList(k); bindEntryHandlers(k); refresh();
+      });
+    });
+    ["experience","education","languages","certs"].forEach(function (k) { renderList(k); bindEntryHandlers(k); });
+  }
+  function bindEntryHandlers(k) {
+    var listEl = document.getElementById(k);
+    listEl.querySelectorAll('.entry').forEach(function (entry) {
+      var idx = parseInt(entry.getAttribute("data-idx"), 10);
+      entry.querySelectorAll('[data-k]').forEach(function (input) {
+        input.addEventListener("input", function () {
+          state[k][idx][input.getAttribute("data-k")] = input.value; refresh();
+        });
+        input.addEventListener("change", function () {
+          state[k][idx][input.getAttribute("data-k")] = input.value; refresh();
+        });
+      });
+    });
+    listEl.querySelectorAll('[data-del]').forEach(function (b) {
+      b.addEventListener("click", function () {
+        var kind = b.getAttribute("data-del"), idx = parseInt(b.getAttribute("data-idx"), 10);
+        state[kind].splice(idx, 1); renderList(kind); bindEntryHandlers(kind); refresh();
+      });
+    });
+  }
+
+  // ---- format toggle ----
+  function setFormat(f) {
+    state.format = f;
+    document.querySelectorAll(".fmt-toggle button").forEach(function (b) {
+      b.classList.toggle("active", b.getAttribute("data-fmt") === f);
+    });
+    refresh();
+  }
+  document.querySelectorAll(".fmt-toggle button").forEach(function (b) {
+    b.addEventListener("click", function () { setFormat(b.getAttribute("data-fmt")); });
+  });
+
+  // ---- prefill / sample / clear / print ----
+  function prefillFromProfile() {
+    var p = window.GH ? GH.profile.get() : null;
+    if (!p) return;
+    if (p.name && !state.name) state.name = p.name;
+    if (p.email && !state.email) state.email = p.email;
+    if (p.currentLocation && !state.location) state.location = p.currentLocation;
+    if (p.targetRoleFamilies && p.targetRoleFamilies.length && !state.headline) {
+      state.headline = p.targetRoleFamilies[0];
+    }
+    if (p.japaneseLevel && (!state.languages || state.languages.length === 0)) {
+      state.languages = [
+        { lang: "English", level: p.englishLevel || "Native", cert: "" },
+        { lang: "Japanese", level: p.japaneseLevel.replace(" / Fluent","").replace(" / Professional",""), cert: "" },
+      ];
+    }
+    fillSimpleFields(); renderList("languages"); bindEntryHandlers("languages"); refresh();
+  }
+
+  // Sample template — consulting-style (Bain / McKinsey / BCG analog)
+  function pasteSampleConsulting() {
+    state = Object.assign({}, template, {
+      format: state.format || "american",
+      name: "Jane Eleanor Doe",
+      headline: "Senior Associate, Strategy & Operations",
+      email: "jane.doe@example.com",
+      phone: "+81 90 1234 5678",
+      location: "Tokyo, Japan",
+      url: "linkedin.com/in/janedoe",
+      summary: "Strategy consultant with seven years' experience advising Fortune 500 and JPX 100 clients on growth strategy, market entry, and operational transformation. Recently led a ¥40bn cost-out programme for a major Japanese conglomerate. Seeking a Senior Manager position with cross-border strategy responsibility.",
+      skills: "Strategy: market entry, due diligence, financial modelling, scenario analysis\nOperational: lean transformation, target operating model, organisational design\nIndustry: financial services, retail, consumer goods, technology\nTechnical: Excel, SQL, Tableau, Power BI, Python (intermediate)\nTools: Salesforce, McKinsey Solve, Statista, Capital IQ",
+      experience: [
+        { company: "Bain & Company", title: "Senior Associate, Strategy & Operations",
+          location: "Tokyo, Japan", dates: "Aug 2022 – Present",
+          bullets: "Led a ¥40bn cost reduction programme for a JPX 100 conglomerate, identifying 18% operating expense savings across 5 business units; presented findings to the Group CEO and Board.\nManaged 6-person team across due diligence engagements for two cross-border M&A transactions ($1.2bn and $850M).\nBuilt and validated five-year financial model and synergy thesis for a Japanese consumer brand acquiring a Southeast Asian competitor.\nCo-authored Bain's 2024 Japan Retail Industry Outlook, distributed to 200+ executive readers." },
+        { company: "Boston Consulting Group", title: "Associate / Senior Associate",
+          location: "Tokyo, Japan", dates: "Jul 2019 – Aug 2022",
+          bullets: "Designed and rolled out a digital-first sales operating model for a Japanese mega-bank, increasing branch productivity by 23% over 18 months.\nLed 4-person workstream supporting a $400M private equity bid; built operating model, identified value-creation levers, and ran management presentations.\nSelected for BCG's Tokyo–Singapore secondment; supported APAC consumer-goods strategy work for 6 months." },
+        { company: "Goldman Sachs Japan", title: "Investment Banking Analyst",
+          location: "Tokyo, Japan", dates: "Jul 2017 – Jun 2019",
+          bullets: "Executed four M&A and equity capital markets transactions totalling ¥350bn in deal value across technology and industrials sectors.\nBuilt comprehensive three-statement financial models and valuation analyses (DCF, comparable companies, precedent transactions) for live transactions.\nSelected as top-decile analyst; offered direct promotion to Associate." }
+      ],
+      education: [
+        { school: "University of Cambridge", degree: "B.A. (Hons) Economics, First Class",
+          location: "Cambridge, UK", dates: "Oct 2014 – Jun 2017",
+          notes: "Recipient of Trinity College Senior Scholarship. Thesis on Japan's Yield Curve Control policy graded First. Active in the Cambridge Union and rowing club." }
+      ],
+      languages: [
+        { lang: "English", level: "Native", cert: "" },
+        { lang: "Japanese", level: "Business", cert: "JLPT N2 (2023), BJT J2 (2024)" },
+        { lang: "Mandarin", level: "Conversational", cert: "HSK 4 (2019)" }
+      ],
+      certs: [
+        { title: "GMAT 760 (99th percentile)", org: "", year: "2023", desc: "" },
+        { title: "CFA Level II Candidate", org: "CFA Institute", year: "2024", desc: "Passed Level I on first attempt (Jan 2024)" }
+      ],
+      interests: "Trail running (sub-3:30 marathon, 2024), kendo (1-dan, 2018), Japanese tea ceremony (Urasenke school), conversational French",
+      refs: "on-request",
+      named_refs: "",
+    });
+    fillSimpleFields();
+    ["experience","education","languages","certs"].forEach(function (k) { renderList(k); bindEntryHandlers(k); });
+    refresh();
+  }
+
+  // Sample template — finance / banking
+  function pasteSampleFinance() {
+    state = Object.assign({}, template, {
+      format: state.format || "american",
+      name: "James Robert Tanaka",
+      headline: "Vice President — M&A Advisory, Technology & Telecommunications",
+      email: "james.tanaka@example.com",
+      phone: "+81 90 9876 5432",
+      location: "Tokyo, Japan",
+      url: "linkedin.com/in/jrtanaka",
+      summary: "Investment banker with eight years' M&A advisory experience at bulge-bracket firms. Lead deal execution and client coverage for technology, software, and telecommunications companies in Japan and APAC; executed over $14bn in announced transaction value. Seeking a Director-level role with named-account coverage responsibility.",
+      skills: "Deal execution: M&A buy- and sell-side advisory, restructuring, take-privates\nValuation: DCF, LBO, comparable companies, sum-of-the-parts, accretion/dilution\nFinancial modelling: three-statement, merger models, debt sizing\nSectors: software, telecom, semiconductors, hardware\nTools: FactSet, Capital IQ, Bloomberg, Dealogic, Excel, PowerPoint",
+      experience: [
+        { company: "Morgan Stanley MUFG Securities", title: "Vice President — Technology M&A",
+          location: "Tokyo, Japan", dates: "Aug 2022 – Present",
+          bullets: "Advised on the ¥850bn take-private of a JPX-listed software company by a US private equity sponsor; led model construction, due diligence coordination, and definitive agreement negotiation.\nOriginated and executed a ¥220bn carve-out and sale of a Japanese semiconductor business unit to a strategic Korean acquirer, generating $25M in fees.\nManage day-to-day relationship with three of Japan's largest software platforms (combined market cap ¥4.5tn); led client at Board level on capital allocation strategy and inorganic growth.\nMentored team of 4 Associates and 8 Analysts; selected as VP representative on the 2024 Japan recruiting committee." },
+        { company: "Goldman Sachs Japan", title: "Associate — TMT Investment Banking",
+          location: "Tokyo, Japan", dates: "Jul 2019 – Jul 2022",
+          bullets: "Executed 9 announced transactions totalling $6.4bn in TMT sector, including the $1.8bn cross-border sale of a Japanese telecommunications infrastructure business.\nLed the analyst team on three separate IPO and follow-on equity offerings for Japanese software issuers, generating $310M in proceeds.\nDirect-promoted to Vice President in 36 months (top quartile)." },
+        { company: "Goldman Sachs Japan", title: "Investment Banking Analyst — TMT",
+          location: "Tokyo, Japan", dates: "Jul 2017 – Jun 2019",
+          bullets: "Built three-statement, merger, and LBO models on live transactions; trained two incoming analyst classes on modelling techniques and presentation production." }
+      ],
+      education: [
+        { school: "London Business School", degree: "Master in Finance (Distinction)",
+          location: "London, UK", dates: "Sep 2016 – Jun 2017",
+          notes: "Ranked top 5% of cohort; awarded LBS Dean's List 2017. Capstone consulting project for a Japanese megabank on cross-border wealth management." },
+        { school: "Keio University", degree: "B.A. Economics, Magna Cum Laude",
+          location: "Tokyo, Japan", dates: "Apr 2012 – Mar 2016",
+          notes: "GPA 3.85/4.00. President of the Keio Investment Society; captain of the varsity sailing team." }
+      ],
+      languages: [
+        { lang: "English", level: "Native", cert: "" },
+        { lang: "Japanese", level: "Native", cert: "" },
+        { lang: "Mandarin", level: "Conversational", cert: "HSK 5 (2020)" }
+      ],
+      certs: [
+        { title: "CFA Charterholder", org: "CFA Institute", year: "2021", desc: "" },
+        { title: "Series 7 / Series 24 (US, lapsed)", org: "FINRA", year: "2018", desc: "" }
+      ],
+      interests: "Long-distance sailing (J/24 Eastern Japan champion 2023), Japanese rare-book collecting, classical piano (ABRSM Grade 8)",
+      refs: "on-request",
+      named_refs: "",
+    });
+    fillSimpleFields();
+    ["experience","education","languages","certs"].forEach(function (k) { renderList(k); bindEntryHandlers(k); });
+    refresh();
+  }
+
+  function clearAll() {
+    if (!confirm("Clear the entire CV draft? This cannot be undone.")) return;
+    state = JSON.parse(JSON.stringify(template));
+    state.format = "american";
+    fillSimpleFields();
+    setFormat(state.format);
+    ["experience","education","languages","certs"].forEach(function (k) { renderList(k); bindEntryHandlers(k); });
+    refresh();
+  }
+
+  document.getElementById("prefill-from-profile").addEventListener("click", prefillFromProfile);
+  document.getElementById("paste-sample").addEventListener("click", pasteSampleConsulting);
+  document.getElementById("paste-sample-finance").addEventListener("click", pasteSampleFinance);
+  document.getElementById("clear-cv").addEventListener("click", clearAll);
+  document.getElementById("print-btn").addEventListener("click", function () { window.print(); });
+  document.getElementById("save-btn").addEventListener("click", function () { saveDraft(state); alert("Draft saved."); });
+
+  // init
+  fillSimpleFields();
+  setFormat(state.format || "american");
+  bindFormHandlers();
+  refresh();
+})();
+</script>
+{% endblock %}

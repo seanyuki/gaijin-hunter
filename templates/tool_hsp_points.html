@@ -1,0 +1,372 @@
+{% extends "base.html" %}
+{% block title %}HSP Visa Points Calculator (Japan 2026), Free Tool · Gaijin Hunter{% endblock %}
+{% block meta_description %}Free HSP points calculator for Japan's Highly Skilled Professional visa. Estimate your score across academic background, career, salary, age, and bonus factors. Uses current 2026 Immigration Services Agency criteria. No signup, runs in your browser.{% endblock %}
+{% block meta_keywords %}HSP points calculator Japan, Highly Skilled Professional visa Japan, HSP 70 points, HSP 80 points, Japan visa calculator, HSP fast track permanent residence{% endblock %}
+{% block jsonld %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "HSP Visa Points Calculator",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Any (web-based)",
+  "description": "Free in-browser calculator for Japan's Highly Skilled Professional (HSP) visa points. Estimate your score across academic background, career, salary, age, and bonus factors using current Immigration Services Agency criteria.",
+  "url": "{{ base_url }}/tools/hsp-points",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "JPY"},
+  "creator": {"@type": "Organization", "name": "Gaijin Hunter"},
+  "audience": {"@type": "Audience", "audienceType": "Foreigners working in Japan"},
+  "featureList": [
+    "Calculate HSP visa points across all categories",
+    "Identify whether you qualify for 70-point or 80-point fast-track PR",
+    "See how your score breaks down by category",
+    "Updated for 2026 immigration criteria",
+    "Runs entirely in your browser — no data sent to servers"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ base_url }}/"},
+    {"@type": "ListItem", "position": 2, "name": "Tools", "item": "{{ base_url }}/tools"},
+    {"@type": "ListItem", "position": 3, "name": "HSP Points Calculator", "item": "{{ base_url }}/tools/hsp-points"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is Japan's HSP (Highly Skilled Professional) visa?",
+      "acceptedAnswer": {"@type": "Answer", "text": "Japan's Highly Skilled Professional (HSP) visa is a points-based work visa for highly qualified foreigners. Applicants earn points based on academic background, career experience, annual income, age, research achievements, and other factors. Achieving 70 points qualifies you for HSP status; 80 points qualifies for fast-track permanent residence after 1 year of residence."}
+    },
+    {
+      "@type": "Question",
+      "name": "How many points do I need for HSP visa?",
+      "acceptedAnswer": {"@type": "Answer", "text": "You need at least 70 points to qualify for HSP visa status. With 80 points and 1 year of HSP-status residence, you can apply for Permanent Residence on a fast track. With 70 points and 3 years of HSP-status residence, you can also apply for Permanent Residence."}
+    },
+    {
+      "@type": "Question",
+      "name": "What benefits does the HSP visa offer?",
+      "acceptedAnswer": {"@type": "Answer", "text": "HSP visa benefits include: 5-year initial period of stay, fast-track permanent residence (1 year at 80+ points, 3 years at 70+ points), spouse can work full-time without separate authorization, ability to bring parents under certain conditions, simplified procedures for hiring household help, and faster immigration processing."}
+    },
+    {
+      "@type": "Question",
+      "name": "Is this HSP points calculator accurate?",
+      "acceptedAnswer": {"@type": "Answer", "text": "Our HSP calculator uses the official point criteria published by Japan's Immigration Services Agency (ISA). It produces an accurate estimate, but the final point determination is made by ISA when you apply. Documentation requirements vary — confirm with ISA or an immigration lawyer for a formal application."}
+    }
+  ]
+}
+</script>
+{% endblock %}
+{% block content %}
+<style>
+  .tool-h { padding: 14px 0 18px; }
+  .tool-h .crumb { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .tool-h .crumb a { color: var(--muted); text-decoration: none; }
+  .tool-h .crumb a:hover { color: var(--accent); }
+  .tool-h h1 { margin: 0 0 4px; font-size: 28px; }
+  .tool-h .lede { color: var(--muted); margin: 0; max-width: 720px; }
+
+  .layout { display: grid; grid-template-columns: 1.1fr 1fr; gap: 22px; align-items: start; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+           padding: 22px 24px; margin-bottom: 14px; }
+  .panel h2 { margin: 0 0 6px; font-size: 16px; }
+  .panel .panel-help { color: var(--muted); font-size: 12px; margin: 0 0 12px; }
+
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 12px; color: #6b7280;
+                 text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .field select, .field input {
+    width: 100%; padding: 8px 11px; border: 1px solid var(--line); border-radius: 6px;
+    font-size: 14px; background: #fff; font-family: inherit;
+  }
+  .checkbox-row label { display: flex; align-items: center; gap: 8px; font-size: 13px;
+                        color: #374151; margin: 0 0 6px; text-transform: none;
+                        letter-spacing: 0; font-weight: 400; }
+  .checkbox-row input { width: auto; margin: 0; }
+  .points-tag { color: var(--accent); font-weight: 700; font-size: 12px; }
+
+  /* Result */
+  .result { position: sticky; top: 90px; align-self: start; }
+  .score-card { background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+                border: 1px solid var(--line); border-radius: 12px;
+                padding: 26px 28px; text-align: center; }
+  .score-num { font-size: 64px; font-weight: 800; line-height: 1; margin: 0;
+               color: var(--accent); letter-spacing: -0.02em; }
+  .score-status { margin-top: 8px; font-size: 16px; font-weight: 700; }
+  .score-status.go { color: #166534; }
+  .score-status.maybe { color: #92400e; }
+  .score-status.no { color: #7f1d1d; }
+  .score-explain { margin: 10px 0 0; font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .threshold-line { display: flex; justify-content: space-between; align-items: center;
+                    font-size: 12px; color: #555; padding: 8px 14px;
+                    background: #f9fafb; border-radius: 6px; margin-top: 14px; }
+  .threshold-line strong { color: var(--accent); }
+
+  .breakdown { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+               padding: 18px 22px; margin-top: 14px; }
+  .breakdown h3 { margin: 0 0 10px; font-size: 13px; color: var(--muted);
+                  text-transform: uppercase; letter-spacing: 0.06em; }
+  .breakdown-row { display: flex; justify-content: space-between; padding: 6px 0;
+                   border-bottom: 1px solid #f3f4f6; font-size: 13px; }
+  .breakdown-row:last-child { border-bottom: none; }
+  .breakdown-row.total { font-weight: 700; font-size: 14px; margin-top: 6px;
+                         border-top: 2px solid var(--line); padding-top: 10px; }
+  .breakdown-row .pts { color: var(--accent); font-weight: 600; }
+
+  .disclaimer { font-size: 11px; color: var(--muted); margin-top: 14px;
+                font-style: italic; line-height: 1.55; }
+</style>
+
+<div class="tool-h">
+  <div class="crumb"><a href="/tools">← All tools</a></div>
+  <h1>HSP visa points calculator</h1>
+  <p class="lede">Highly Skilled Professional Type 1(b), for tech / business specialists. Reach 70
+     for the 5-year visa with PR eligibility in 3 years. Reach 80 and PR drops to 1 year.</p>
+</div>
+
+<div class="layout">
+  <form id="hsp-form" onsubmit="return false;">
+    <div class="panel">
+      <h2>1. Education</h2>
+      <p class="panel-help">Highest degree completed.</p>
+      <div class="field">
+        <label for="h-edu">Degree</label>
+        <select id="h-edu">
+          <option value="0">None / High school</option>
+          <option value="10">Bachelor's degree (10 pts)</option>
+          <option value="20">Master's / professional / MBA (20 pts)</option>
+          <option value="30">Doctorate / PhD (30 pts)</option>
+        </select>
+      </div>
+      <div class="checkbox-row">
+        <label><input type="checkbox" id="h-multi-degree"> Multiple degrees in different fields <span class="points-tag">+5</span></label>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>2. Career years</h2>
+      <p class="panel-help">Years of practical experience related to your Japan position.</p>
+      <div class="field">
+        <label for="h-years">Years</label>
+        <select id="h-years">
+          <option value="0">Under 3</option>
+          <option value="5">3–4 years (5 pts)</option>
+          <option value="10">5–6 years (10 pts)</option>
+          <option value="15">7–9 years (15 pts)</option>
+          <option value="20">10+ years (20 pts)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>3. Annual salary & age</h2>
+      <p class="panel-help">Salary points depend on your age. Below ¥3M base salary, HSP is not
+        an option regardless of points.</p>
+      <div class="field">
+        <label for="h-age">Age</label>
+        <select id="h-age">
+          <option value="29">Under 30</option>
+          <option value="33">30–34</option>
+          <option value="38">35–39</option>
+          <option value="45">40+</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="h-salary">Annual salary (¥)</label>
+        <select id="h-salary">
+          <option value="2500000">Under ¥3M (ineligible)</option>
+          <option value="3500000">¥3M – ¥4M</option>
+          <option value="4500000">¥4M – ¥5M</option>
+          <option value="5500000">¥5M – ¥6M</option>
+          <option value="6500000">¥6M – ¥7M</option>
+          <option value="7500000">¥7M – ¥8M</option>
+          <option value="8500000">¥8M – ¥9M</option>
+          <option value="9500000">¥9M – ¥10M</option>
+          <option value="12000000">¥10M+</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>4. Bonus points</h2>
+      <p class="panel-help">Optional bonuses that can push you over the 70 / 80 thresholds.</p>
+      <div class="checkbox-row">
+        <label><input type="checkbox" id="b-japan-degree"> Degree obtained in Japan <span class="points-tag">+10</span></label>
+        <label><input type="checkbox" id="b-jlpt-n1"> JLPT N1 or BJT 480+ <span class="points-tag">+15</span></label>
+        <label><input type="checkbox" id="b-jlpt-n2"> JLPT N2 or BJT 400+ (skip if N1) <span class="points-tag">+10</span></label>
+        <label><input type="checkbox" id="b-mext-uni"> Top-ranked global uni / MEXT-designated <span class="points-tag">+10</span></label>
+        <label><input type="checkbox" id="b-mext-grad"> Completed MEXT-funded program <span class="points-tag">+5</span></label>
+        <label><input type="checkbox" id="b-research"> Research achievements (3+ patents / publications) <span class="points-tag">+25</span></label>
+        <label><input type="checkbox" id="b-growth-co"> Working at a Japan growth-field / innovation-promoting company <span class="points-tag">+10</span></label>
+        <label><input type="checkbox" id="b-sme"> Working at a Japanese SME <span class="points-tag">+10</span></label>
+        <label><input type="checkbox" id="b-it-cert"> IT certifications (specified high-level certs) <span class="points-tag">+5</span></label>
+        <label><input type="checkbox" id="b-investor"> Position involves managing investments <span class="points-tag">+5</span></label>
+      </div>
+    </div>
+  </form>
+
+  <aside class="result">
+    <div class="score-card">
+      <p class="score-num" id="score-num">0</p>
+      <div class="score-status no" id="score-status">Not yet eligible</div>
+      <p class="score-explain" id="score-explain">Fill in the form to score.</p>
+      <div class="threshold-line">
+        <span>70 = HSP visa, PR in 3 yrs</span>
+        <span>80 = PR in <strong>1 year</strong></span>
+      </div>
+    </div>
+
+    <div class="breakdown" id="breakdown">
+      <h3>Score breakdown</h3>
+      <div id="breakdown-rows"></div>
+    </div>
+
+    <p class="disclaimer">
+      Based on the Ministry of Justice's published Type 1(b) point sheet. This calculator
+      covers the most common categories, niche bonuses (special licences, position-specific
+      bonuses, age-specific salary tables for under-30s) may apply additionally. Verify with
+      the Immigration Services Agency or an immigration lawyer before applying.
+    </p>
+  </aside>
+</div>
+
+<script>
+(function () {
+  function val(id) {
+    var el = document.getElementById(id);
+    if (!el) return "";
+    if (el.type === "checkbox") return el.checked;
+    return el.value;
+  }
+  function num(id) { var v = val(id); return v === "" ? 0 : parseInt(v, 10) || 0; }
+
+  // Salary points table: 2D — by age band × salary.
+  // Returns {points, label}.
+  function salaryPoints(age, salary) {
+    if (salary < 3000000) return { points: 0, label: "Salary <¥3M — INELIGIBLE for HSP" };
+    var p = 0;
+    if (age < 30) {
+      if (salary >= 10000000) p = 40;
+      else if (salary >= 9000000) p = 35;
+      else if (salary >= 8000000) p = 30;
+      else if (salary >= 7000000) p = 25;
+      else if (salary >= 6000000) p = 20;
+      else if (salary >= 5000000) p = 15;
+      else if (salary >= 4000000) p = 10;
+    } else if (age < 35) {
+      if (salary >= 10000000) p = 40;
+      else if (salary >= 9000000) p = 35;
+      else if (salary >= 8000000) p = 30;
+      else if (salary >= 7000000) p = 25;
+      else if (salary >= 6000000) p = 20;
+      else if (salary >= 5000000) p = 15;
+    } else if (age < 40) {
+      if (salary >= 10000000) p = 40;
+      else if (salary >= 9000000) p = 35;
+      else if (salary >= 8000000) p = 30;
+      else if (salary >= 7000000) p = 25;
+    } else {
+      if (salary >= 10000000) p = 40;
+      else if (salary >= 9000000) p = 35;
+      else if (salary >= 8000000) p = 30;
+    }
+    return { points: p, label: "Salary ¥" + (salary/1e6).toFixed(1) + "M @ age "
+      + (age < 30 ? "<30" : age < 35 ? "30–34" : age < 40 ? "35–39" : "40+") };
+  }
+
+  function agePoints(age) {
+    if (age < 30) return { points: 15, label: "Age under 30" };
+    if (age < 35) return { points: 10, label: "Age 30–34" };
+    if (age < 40) return { points: 5,  label: "Age 35–39" };
+    return { points: 0, label: "Age 40+ (no points)" };
+  }
+
+  function compute() {
+    var edu = num("h-edu");
+    var years = num("h-years");
+    var age = num("h-age");
+    var salary = num("h-salary");
+
+    var rows = [];
+    if (edu > 0) rows.push({ label: "Education", pts: edu });
+    if (val("h-multi-degree") && edu > 0) rows.push({ label: "Multiple degrees", pts: 5 });
+    if (years > 0) rows.push({ label: "Career years", pts: years });
+
+    var sp = salaryPoints(age, salary);
+    if (sp.points > 0 || sp.label.indexOf("INELIGIBLE") !== -1) {
+      rows.push({ label: sp.label, pts: sp.points });
+    }
+
+    var ap = agePoints(age);
+    if (ap.points > 0) rows.push({ label: ap.label, pts: ap.points });
+
+    if (val("b-japan-degree")) rows.push({ label: "Degree from Japan", pts: 10 });
+    if (val("b-jlpt-n1"))      rows.push({ label: "JLPT N1 / BJT 480+", pts: 15 });
+    else if (val("b-jlpt-n2")) rows.push({ label: "JLPT N2 / BJT 400+", pts: 10 });
+    if (val("b-mext-uni"))     rows.push({ label: "Top-ranked / MEXT uni", pts: 10 });
+    if (val("b-mext-grad"))    rows.push({ label: "MEXT-funded program", pts: 5 });
+    if (val("b-research"))     rows.push({ label: "Research achievements", pts: 25 });
+    if (val("b-growth-co"))    rows.push({ label: "Growth-field company", pts: 10 });
+    if (val("b-sme"))          rows.push({ label: "Japanese SME", pts: 10 });
+    if (val("b-it-cert"))      rows.push({ label: "IT certifications", pts: 5 });
+    if (val("b-investor"))     rows.push({ label: "Manages investments", pts: 5 });
+
+    var total = rows.reduce(function (s, r) { return s + r.pts; }, 0);
+    var ineligible = salary < 3000000;
+    return { rows: rows, total: total, ineligible: ineligible };
+  }
+
+  function render() {
+    var r = compute();
+    document.getElementById("score-num").textContent = r.ineligible ? "—" : r.total;
+    var status = document.getElementById("score-status");
+    var explain = document.getElementById("score-explain");
+    if (r.ineligible) {
+      status.className = "score-status no";
+      status.textContent = "Ineligible";
+      explain.textContent = "Annual salary must be at least ¥3M to apply for HSP, regardless of other points.";
+    } else if (r.total >= 80) {
+      status.className = "score-status go";
+      status.textContent = "Strong — 80+ qualifies for fast-track PR (1 year)";
+      explain.textContent = "Apply for HSP with confidence. Most legal documentation is straightforward — get a lawyer for the PR-fast-track package.";
+    } else if (r.total >= 70) {
+      status.className = "score-status go";
+      status.textContent = "Eligible — 70 unlocks the 5-year HSP visa";
+      explain.textContent = "Solid score. PR eligibility in 3 years. Look for ways to push past 80 if you want the 1-year PR fast-track.";
+    } else if (r.total >= 55) {
+      status.className = "score-status maybe";
+      status.textContent = "Close — push for 70";
+      explain.textContent = "You're " + (70 - r.total) + " point" + (70 - r.total === 1 ? "" : "s") + " away. Look at JLPT certification, top-uni bonus, or a slightly higher salary.";
+    } else {
+      status.className = "score-status no";
+      status.textContent = "Not yet eligible";
+      explain.textContent = "You need 70+ to qualify for HSP. Most common path: higher salary + JLPT N2/N1 + a Japan-issued degree.";
+    }
+
+    var rowsEl = document.getElementById("breakdown-rows");
+    rowsEl.innerHTML = r.rows.map(function (row) {
+      return '<div class="breakdown-row"><span>' + row.label + '</span>' +
+        '<span class="pts">' + (row.pts >= 0 ? "+" : "") + row.pts + '</span></div>';
+    }).join("") +
+    '<div class="breakdown-row total"><span>Total</span>' +
+      '<span class="pts">' + r.total + ' / 100+</span></div>';
+  }
+
+  document.querySelectorAll("#hsp-form select, #hsp-form input").forEach(function (el) {
+    el.addEventListener("change", render);
+  });
+  render();
+  // Expose for testing
+  window._hspCompute = compute;
+})();
+</script>
+{% endblock %}

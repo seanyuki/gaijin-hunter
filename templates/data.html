@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block title %}Your data, Export &amp; import, Gaijin Hunter{% endblock %}
+{% block meta_description %}Back up or move everything Gaijin Hunter stores in your browser, profile, saved jobs, application tracker, and resume drafts, as a single JSON file.{% endblock %}
+{% block meta_robots %}noindex{% endblock %}
+{% block content %}
+<style>
+  .panel { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:22px; margin-bottom:18px; }
+  .panel h2 { margin:0 0 4px; font-size:17px; }
+  .panel .lede { color:var(--muted); font-size:13px; margin:0 0 16px; }
+  .btn { display:inline-flex; align-items:center; gap:7px; padding:10px 18px; border:1px solid transparent;
+    background:var(--accent); color:#fff; border-radius:9px; cursor:pointer; font-weight:700; font-size:14px; }
+  .btn:hover { background:var(--accent-dark); }
+  .btn.secondary { background:#fff; color:var(--accent); border-color:#dfe3ec; }
+  .btn.secondary:hover { background:var(--accent-tint); }
+  .btn.ghost { background:transparent; color:var(--fg-soft); border-color:var(--line); }
+  .btn.danger { background:#fff; color:#b91c1c; border-color:#fca5a5; }
+  .warn { background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:14px 16px;
+    font-size:13.5px; color:#92400e; line-height:1.6; }
+  .incl { list-style:none; padding:0; margin:0; }
+  .incl li { display:flex; justify-content:space-between; align-items:center; padding:9px 0;
+    border-bottom:1px solid var(--line-soft); font-size:14px; }
+  .incl li:last-child { border-bottom:none; }
+  .incl .n { color:var(--accent); font-weight:700; }
+  textarea.io { width:100%; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px;
+    line-height:1.5; border:1px solid var(--line); border-radius:8px; padding:10px; }
+  .toast { position:fixed; bottom:24px; right:24px; background:var(--good); color:#fff; padding:12px 20px;
+    border-radius:10px; font-size:14px; opacity:0; transition:opacity .25s; pointer-events:none;
+    box-shadow:0 8px 22px rgba(0,0,0,.2); z-index:100; }
+  .toast.show { opacity:1; } .toast.error { background:#b91c1c; }
+</style>
+
+<div class="breadcrumb"><a href="/profile">Profile</a> / Your data</div>
+
+<h1 style="margin:0 0 4px;">Your data</h1>
+<p style="color:var(--muted); font-size:14.5px; max-width:720px; margin:0 0 22px; line-height:1.6;">
+  Everything Gaijin Hunter knows about you lives in this browser. Use this page to back it up before
+  clearing browser storage, or to move it to another browser or device.
+</p>
+
+<div class="panel">
+  <h2>What's included</h2>
+  <p class="lede">One JSON file captures all of it.</p>
+  <ul class="incl" id="incl-list">
+    <li><span>Profile &amp; preferences</span><span class="n" id="i-profile">–</span></li>
+    <li><span>Saved jobs</span><span class="n" id="i-saved">0</span></li>
+    <li><span>Application tracker</span><span class="n" id="i-tracker">0</span></li>
+    <li><span>Hidden jobs</span><span class="n" id="i-hidden">0</span></li>
+    <li><span>Saved searches</span><span class="n" id="i-searches">0</span></li>
+    <li><span>English resume draft</span><span class="n" id="i-cv">–</span></li>
+    <li><span>職務経歴書 (shokumu) draft</span><span class="n" id="i-shokumu">–</span></li>
+  </ul>
+</div>
+
+<div class="panel">
+  <h2>Export</h2>
+  <p class="lede">Download a complete backup, or copy it to your clipboard.</p>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <button class="btn" id="export-btn">⬇ Download backup JSON</button>
+    <button class="btn secondary" id="copy-btn">Copy to clipboard</button>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Import</h2>
+  <p class="lede">Restore from a backup file, or paste exported JSON below.</p>
+  <div class="warn" style="margin-bottom:14px;">
+    ⚠ <strong>Importing replaces your current browser data</strong> for any section present in the file
+    (profile, saved jobs, tracker, resume drafts). Export a backup first if you want to keep what you have now.
+  </div>
+  <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; align-items:center;">
+    <input type="file" id="file-input" accept="application/json,.json" style="font-size:13px;">
+    <span style="color:var(--muted); font-size:12px;">or paste below ↓</span>
+  </div>
+  <textarea id="io-area" class="io" rows="7" placeholder="Paste exported JSON here…"></textarea>
+  <div style="margin-top:12px;">
+    <button class="btn" id="import-btn">Import &amp; restore</button>
+  </div>
+</div>
+
+<div class="panel">
+  <h2 style="color:#b91c1c;">Danger zone</h2>
+  <p class="lede">Permanently delete everything stored in this browser. Cannot be undone.</p>
+  <button class="btn danger" id="wipe-btn">Erase all Gaijin Hunter data</button>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+(function () {
+  if (!window.GH) return;
+  // Extra builder keys that live outside the GH state bucket.
+  var EXTRA_KEYS = ["gh-cv-draft-v2", "gh-cv-draft-v1", "gaijin-hunter-shokumu-v1", "gh-quiz-state"];
+
+  function toast(msg, isErr) {
+    if (window.ghToast) { ghToast(msg, isErr ? "error" : "ok"); return; }
+    var t = document.getElementById("toast");
+    t.textContent = msg; t.className = "toast show" + (isErr ? " error" : "");
+    setTimeout(function () { t.className = "toast" + (isErr ? " error" : ""); }, 2000);
+  }
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
+
+  function buildBundle() {
+    var state = GH.getState();
+    var extras = {};
+    EXTRA_KEYS.forEach(function (k) { var v = lsGet(k); if (v != null) extras[k] = v; });
+    return {
+      _app: "gaijin-hunter",
+      _kind: "full-backup",
+      _exportedAt: new Date().toISOString(),
+      state: state,
+      extras: extras,
+    };
+  }
+
+  function refresh() {
+    var st = GH.getState();
+    function set(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; }
+    set("i-profile", GH.profile.isConfigured() ? "Set" : "Empty");
+    set("i-saved", st.saved.length);
+    set("i-tracker", Object.keys(st.tracker).length);
+    set("i-hidden", st.hidden.length);
+    set("i-searches", st.savedSearches.length);
+    set("i-cv", (lsGet("gh-cv-draft-v2") || lsGet("gh-cv-draft-v1")) ? "Saved" : "Empty");
+    set("i-shokumu", lsGet("gaijin-hunter-shokumu-v1") ? "Saved" : "Empty");
+  }
+
+  document.getElementById("export-btn").addEventListener("click", function () {
+    var blob = new Blob([JSON.stringify(buildBundle(), null, 2)], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "gaijin-hunter-backup-" + new Date().toISOString().slice(0,10) + ".json";
+    document.body.appendChild(a); a.click(); a.remove();
+    toast("Backup downloaded");
+  });
+  document.getElementById("copy-btn").addEventListener("click", function () {
+    navigator.clipboard.writeText(JSON.stringify(buildBundle(), null, 2)).then(
+      function () { toast("Copied to clipboard"); },
+      function () { toast("Copy blocked by browser", true); }
+    );
+  });
+
+  function doImport(text) {
+    var parsed;
+    try { parsed = JSON.parse(text); } catch (e) { toast("That isn't valid JSON", true); return; }
+    // GH state may be at .state (full backup or GH export) or be the bare state object.
+    var ok = GH.import(parsed.state ? { state: parsed.state } : parsed);
+    if (!ok) { toast("Couldn't read the profile/tracker data", true); return; }
+    if (parsed.extras && typeof parsed.extras === "object") {
+      EXTRA_KEYS.forEach(function (k) { if (parsed.extras[k] != null) lsSet(k, parsed.extras[k]); });
+    }
+    refresh();
+    toast("Data restored");
+  }
+  document.getElementById("import-btn").addEventListener("click", function () {
+    var txt = document.getElementById("io-area").value.trim();
+    if (!txt) { toast("Paste JSON or choose a file first", true); return; }
+    doImport(txt);
+  });
+  document.getElementById("file-input").addEventListener("change", function (e) {
+    var f = e.target.files && e.target.files[0]; if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function () { document.getElementById("io-area").value = reader.result; doImport(reader.result); };
+    reader.readAsText(f);
+  });
+  document.getElementById("wipe-btn").addEventListener("click", function () {
+    if (!confirm("Permanently erase your profile, saved jobs, application tracker, saved searches, and resume drafts in this browser? Export a backup first if you want to keep it.")) return;
+    GH._reset();
+    EXTRA_KEYS.forEach(function (k) { lsSet(k, null); });
+    refresh();
+    toast("All data erased");
+  });
+
+  refresh();
+})();
+</script>
+{% endblock %}

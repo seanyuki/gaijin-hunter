@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% block title %}Interview prep, Gaijin Hunter{% endblock %}
+{% block content %}
+<style>
+  .hero { padding: 24px 20px 14px; text-align: center; max-width: 800px; margin: 0 auto; }
+  .hero h1 { margin: 0 0 6px; font-size: 30px; letter-spacing: -0.02em; }
+  .hero p  { color: var(--muted); margin: 0; font-size: 15px; line-height: 1.55; }
+
+  .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
+  @media (max-width: 1000px) { .layout { grid-template-columns: 1fr; } }
+
+  .family-picker { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0; }
+  .family-picker button { background: #fff; border: 1px solid var(--line);
+                           padding: 6px 12px; border-radius: 999px; cursor: pointer;
+                           font-size: 12px; color: var(--fg); }
+  .family-picker button:hover { border-color: var(--accent); color: var(--accent); }
+  .family-picker button.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+
+  .q-card { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+             padding: 16px 20px; margin-bottom: 10px; }
+  .q-card .q { font-weight: 600; font-size: 15px; color: var(--fg); margin: 0 0 6px; }
+  .q-card .watch { font-size: 12px; color: #6b7280; margin: 0 0 4px; line-height: 1.5; }
+  .q-card .watch b { color: var(--accent); }
+  .q-card .jp-tip { font-size: 12px; color: #92400e; background: #fef3c7;
+                      padding: 6px 10px; border-radius: 4px; margin-top: 6px; }
+  .q-card .jp-tip b { color: #92400e; }
+
+  /* STAR builder */
+  .star-card { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+                padding: 22px 24px; position: sticky; top: 90px; }
+  .star-card h2 { margin: 0 0 4px; font-size: 17px; }
+  .star-card .sub { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+
+  .star-section { margin-bottom: 12px; }
+  .star-section .label { font-size: 12px; color: var(--accent); font-weight: 700;
+                          text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .star-section .hint { font-size: 11px; color: var(--muted); margin: 0 0 6px; line-height: 1.5; }
+  .star-section textarea {
+    width: 100%; padding: 9px 11px; border: 1px solid var(--line); border-radius: 6px;
+    font-size: 13px; font-family: inherit; resize: vertical; min-height: 60px;
+  }
+
+  .star-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .star-actions button { padding: 8px 16px; border: none; border-radius: 6px;
+                          font-weight: 600; font-size: 13px; cursor: pointer; }
+  .star-actions .save { background: var(--accent); color: #fff; }
+  .star-actions .copy { background: #fff; color: var(--accent); border: 1px solid var(--accent); }
+
+  .saved-list { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--line); }
+  .saved-list h3 { font-size: 12px; color: var(--muted); text-transform: uppercase;
+                    letter-spacing: 0.05em; margin: 0 0 8px; }
+  .saved-item { background: #f9fafb; padding: 8px 10px; border-radius: 6px;
+                font-size: 12px; margin-bottom: 6px; display: flex; justify-content: space-between;
+                align-items: center; }
+  .saved-item a { color: var(--accent); cursor: pointer; }
+  .saved-item .del { color: #b91c1c; cursor: pointer; padding: 0 4px; }
+</style>
+
+<div class="hero">
+  <h1>Interview prep</h1>
+  <p>Role-specific questions, what interviewers actually look for, and tips that are specific
+     to Japanese hiring culture. Plus a STAR/CAR answer builder that saves drafts in your browser.</p>
+</div>
+
+<div class="family-picker" id="family-picker">
+  {% for fam in question_banks.keys() %}
+    <button data-fam="{{ fam }}" {% if loop.first %}class="active"{% endif %}>{{ fam }}</button>
+  {% endfor %}
+</div>
+
+<div class="layout">
+
+  <div>
+    {% for fam, qs in question_banks.items() %}
+      <div class="q-bank" data-fam="{{ fam }}" {% if not loop.first %}style="display:none;"{% endif %}>
+        {% for q in qs %}
+          <div class="q-card">
+            <p class="q">Q: {{ q.q }}</p>
+            <p class="watch"><b>What to deliver:</b> {{ q.watch_for }}</p>
+            <div class="jp-tip"><b>Japan tip:</b> {{ q.jp_tip }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <aside>
+    <div class="star-card">
+      <h2>STAR answer builder</h2>
+      <p class="sub">Behavioral answers are stronger when they follow Situation → Task → Action → Result.
+         Drafts auto-save locally; nothing leaves your browser.</p>
+
+      <div class="field" style="margin-bottom:10px;">
+        <label for="star-title" style="font-size:12px; color:var(--muted);
+               text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:4px;">
+          Answer name (for your reference)</label>
+        <input id="star-title" type="text" placeholder="e.g. Conflict with PM at last role"
+               style="width:100%; padding:8px 11px; border:1px solid var(--line); border-radius:6px; font-size:13px;">
+      </div>
+
+      {% for label, hint in star_prompts.items() %}
+        <div class="star-section">
+          <div class="label">{{ label }}</div>
+          <p class="hint">{{ hint }}</p>
+          <textarea id="star-{{ label.lower() }}" rows="3"></textarea>
+        </div>
+      {% endfor %}
+
+      <div class="star-actions">
+        <button class="save" id="star-save">Save draft</button>
+        <button class="copy" id="star-copy">Copy as text</button>
+      </div>
+
+      <div class="saved-list" id="saved-list">
+        <h3>Saved answers</h3>
+        <div id="saved-items"></div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script>
+(function () {
+  // Family switcher
+  document.querySelectorAll("#family-picker button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var fam = b.getAttribute("data-fam");
+      document.querySelectorAll("#family-picker button").forEach(function (x) { x.classList.remove("active"); });
+      b.classList.add("active");
+      document.querySelectorAll(".q-bank").forEach(function (bank) {
+        bank.style.display = bank.getAttribute("data-fam") === fam ? "" : "none";
+      });
+    });
+  });
+
+  // STAR builder
+  var STORAGE_KEY = "gh-star-drafts-v1";
+  function loadAll() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch (e) { return []; }
+  }
+  function saveAll(arr) { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+
+  function form() {
+    return {
+      title: document.getElementById("star-title").value.trim(),
+      situation: document.getElementById("star-situation").value.trim(),
+      task:      document.getElementById("star-task").value.trim(),
+      action:    document.getElementById("star-action").value.trim(),
+      result:    document.getElementById("star-result").value.trim(),
+    };
+  }
+  function fillForm(d) {
+    document.getElementById("star-title").value = d.title || "";
+    document.getElementById("star-situation").value = d.situation || "";
+    document.getElementById("star-task").value      = d.task || "";
+    document.getElementById("star-action").value    = d.action || "";
+    document.getElementById("star-result").value    = d.result || "";
+  }
+  function clearForm() { fillForm({}); }
+
+  function plainText(d) {
+    return "STAR answer: " + (d.title || "(untitled)") + "\n\n" +
+      "Situation:\n" + d.situation + "\n\n" +
+      "Task:\n" + d.task + "\n\n" +
+      "Action:\n" + d.action + "\n\n" +
+      "Result:\n" + d.result;
+  }
+  function renderSavedList() {
+    var all = loadAll();
+    var el = document.getElementById("saved-items");
+    if (!all.length) { el.innerHTML = '<div style="font-size:12px; color:var(--muted); font-style:italic;">No drafts yet</div>'; return; }
+    el.innerHTML = all.map(function (d, i) {
+      return '<div class="saved-item">' +
+        '<a data-idx="' + i + '" class="load-draft">' + (d.title || "(untitled)") + '</a>' +
+        '<span class="del" data-idx="' + i + '">✕</span></div>';
+    }).join("");
+    el.querySelectorAll(".load-draft").forEach(function (a) {
+      a.addEventListener("click", function () { fillForm(all[+a.getAttribute("data-idx")]); });
+    });
+    el.querySelectorAll(".del").forEach(function (d) {
+      d.addEventListener("click", function () {
+        if (!confirm("Delete this draft?")) return;
+        all.splice(+d.getAttribute("data-idx"), 1); saveAll(all); renderSavedList();
+      });
+    });
+  }
+
+  document.getElementById("star-save").addEventListener("click", function () {
+    var d = form();
+    if (!d.title) { alert("Add a name for this answer."); return; }
+    if (!d.situation && !d.task && !d.action && !d.result) { alert("Fill in at least one section."); return; }
+    var all = loadAll();
+    // Replace if same title exists
+    var idx = all.findIndex(function (x) { return x.title === d.title; });
+    if (idx >= 0) all[idx] = d; else all.unshift(d);
+    saveAll(all); renderSavedList();
+  });
+  document.getElementById("star-copy").addEventListener("click", function () {
+    navigator.clipboard.writeText(plainText(form())).then(
+      function () { alert("Copied as plain text"); },
+      function () { alert("Copy failed — try selecting and copying manually"); }
+    );
+  });
+
+  renderSavedList();
+})();
+</script>
+{% endblock %}

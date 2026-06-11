@@ -1,0 +1,32 @@
+<nav class="resume-subnav">
+  <a href="/resume" class="{% if resume_tool == 'rirekisho' %}active{% endif %}">
+    履歴書 <span class="en">Rirekisho</span>
+  </a>
+  <a href="/resume/shokumu" class="{% if resume_tool == 'shokumu' %}active{% endif %}">
+    職務経歴書 <span class="en">Shokumu</span>
+  </a>
+  <a href="/resume/cv" class="{% if resume_tool == 'cv' %}active{% endif %}">
+    English CV <span class="en">Western format</span>
+  </a>
+  <a href="/resume/cover-letter" class="{% if resume_tool == 'cover_letter' %}active{% endif %}">
+    Cover Letter <span class="en">English / Japanese</span>
+  </a>
+  <a href="/resume/bullets" class="{% if resume_tool == 'bullets' %}active{% endif %}">
+    Bullet Improver <span class="en">Rewrite weak bullets</span>
+  </a>
+</nav>
+
+<style>
+  .resume-subnav { display: flex; gap: 4px; border-bottom: 2px solid var(--line);
+                   margin-bottom: 20px; flex-wrap: wrap; }
+  .resume-subnav a { padding: 10px 18px; text-decoration: none; color: var(--muted);
+                     border-bottom: 2px solid transparent; margin-bottom: -2px;
+                     font-size: 15px; font-weight: 500; }
+  .resume-subnav a:hover { color: var(--accent); }
+  .resume-subnav a.active { color: var(--accent); border-bottom-color: var(--accent);
+                            font-weight: 600; }
+  .resume-subnav a .en { font-size: 12px; color: var(--muted); margin-left: 4px;
+                         font-weight: 400; }
+  .resume-subnav a.active .en { color: var(--accent); }
+  @media print { .resume-subnav { display: none !important; } }
+</style>

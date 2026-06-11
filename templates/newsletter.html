@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block title %}Newsletter, Gaijin Hunter{% endblock %}
+{% block content %}
+<style>
+  .nl-hero { text-align: center; padding: 30px 20px 22px; }
+  .nl-hero h1 { margin: 0 0 8px; font-size: 32px; }
+  .nl-hero .sub { color: var(--muted); margin: 0 auto 18px; max-width: 580px; font-size: 16px;
+                  line-height: 1.55; }
+  .nl-hero .stat { display: inline-block; background: #eff6ff; color: #1e3a8a;
+                   border: 1px solid #bfdbfe; border-radius: 999px; padding: 5px 14px;
+                   font-size: 13px; font-weight: 600; }
+
+  .layout { display: grid; grid-template-columns: 1.1fr 1fr; gap: 22px; margin-top: 18px;
+            align-items: start; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+  .form-pane { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+               padding: 24px 26px; }
+  .form-pane h2 { margin: 0 0 8px; font-size: 18px; }
+  .form-pane .lede { color: var(--muted); margin: 0 0 16px; font-size: 13px; }
+
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; color: var(--muted);
+                  text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .field input, .field select {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px;
+    font-size: 14px; font-family: inherit; background: #fff;
+  }
+  .field .help { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  .multi-check { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 12px; }
+  .multi-check label { display: inline-flex; align-items: center; gap: 6px;
+                       font-size: 13px; color: #374151; text-transform: none;
+                       letter-spacing: 0; margin-bottom: 0; font-weight: 400; }
+  .multi-check input { width: auto; margin: 0; }
+
+  button.subscribe {
+    background: var(--accent); color: #fff; border: none; padding: 12px 26px;
+    border-radius: 6px; font-weight: 700; font-size: 15px; cursor: pointer;
+    width: 100%;
+  }
+  button.subscribe:hover { background: var(--accent-dark); }
+  button.subscribe:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .info-card { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px;
+               padding: 24px 26px; }
+  .info-card h3 { margin: 0 0 10px; font-size: 16px; color: #0c4a6e; }
+  .info-card ul { margin: 0; padding-left: 18px; }
+  .info-card li { font-size: 14px; color: #075985; line-height: 1.7; margin-bottom: 4px; }
+  .info-card .small { font-size: 12px; color: #0c4a6e; margin-top: 12px; font-style: italic; }
+
+  .success { background: #ecfdf5; border: 1px solid #86efac; color: #166534;
+             padding: 18px 22px; border-radius: 10px; display: none; margin-top: 14px; }
+  .success.show { display: block; }
+  .success a { color: #064e3b; font-weight: 600; }
+  .error { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b;
+           padding: 12px 16px; border-radius: 8px; display: none; margin-top: 12px; }
+  .error.show { display: block; }
+</style>
+
+<div class="nl-hero">
+  <h1>Newsletter</h1>
+  <p class="sub">A weekly digest of the newest foreigner-friendly jobs in Japan, plus one
+     in-depth piece on visas / salary / negotiation / culture. No spam, no shared lists.</p>
+  {% if stats.active > 0 %}
+    <span class="stat">{{ stats.active }} subscribers</span>
+  {% endif %}
+</div>
+
+<div class="layout">
+  <div class="form-pane">
+    <h2>Sign up</h2>
+    <p class="lede">Tell us a little about what you're looking for and we'll tailor each
+       week's digest. All preferences optional, just email is required.</p>
+
+    <form id="nl-form" onsubmit="return false;">
+      <div class="field">
+        <label for="nl-email">Your email *</label>
+        <input id="nl-email" type="email" required placeholder="you@example.com" autocomplete="email">
+      </div>
+
+      <div class="field">
+        <label>Role families you care about (optional)</label>
+        <div class="multi-check" id="nl-roles"></div>
+        <div class="help">Pick any number. Empty = all role families.</div>
+      </div>
+
+      <div class="field">
+        <label for="nl-salary">Minimum salary you want to see (¥/yr, optional)</label>
+        <select id="nl-salary">
+          <option value="">No minimum</option>
+          <option value="4000000">¥4M+</option>
+          <option value="6000000">¥6M+</option>
+          <option value="8000000">¥8M+</option>
+          <option value="10000000">¥10M+</option>
+          <option value="14000000">¥14M+</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="nl-locations">Preferred locations (optional, comma-separated)</label>
+        <input id="nl-locations" placeholder="Tokyo, Yokohama, Osaka, Remote">
+      </div>
+
+      <button class="subscribe" id="nl-submit" type="submit">Subscribe</button>
+      <div id="nl-success" class="success"></div>
+      <div id="nl-error" class="error"></div>
+      <p style="font-size:11px; color:var(--muted); margin-top:10px;">
+        We store only the email + your preferences. No selling, no third-party sharing.
+        Unsubscribe link in every email and on every signup confirmation.
+      </p>
+    </form>
+  </div>
+
+  <aside class="info-card">
+    <h3>What you'll get each week</h3>
+    <ul>
+      <li><strong>10–15 new high-fit jobs</strong> matched to your role/salary/location preferences.</li>
+      <li><strong>A short essay</strong>, visa rule changes, salary surveys, cultural notes from interviews, things that don't fit on the job board itself.</li>
+      <li><strong>One company spotlight</strong>, what they pay, how they hire, what foreigners say about working there.</li>
+      <li><strong>Reader Q&amp;A.</strong> Reply to the digest with a question; the best ones get answered (anonymized) next week.</li>
+    </ul>
+    <p class="small">Sent every Wednesday. Skip a week if there's nothing new to say.</p>
+  </aside>
+</div>
+
+<script>
+(function () {
+  var ROLE_FAMILIES = [
+    "Software Engineering","Data / AI","Product Management","Design",
+    "Marketing","Sales / BD","Finance / Accounting","Consulting",
+    "Operations","HR / Recruiting","Customer Support",
+    "Teaching / Education","Translation / Localization",
+    "Hospitality / Tourism","Legal / Compliance",
+  ];
+  var rolesDiv = document.getElementById("nl-roles");
+  ROLE_FAMILIES.forEach(function (r) {
+    var l = document.createElement("label");
+    l.innerHTML = '<input type="checkbox" value="' + r + '"> ' + r;
+    rolesDiv.appendChild(l);
+  });
+
+  // Prefill from profile, if filled in
+  if (window.GH) {
+    var p = GH.profile.get();
+    if (p.email) document.getElementById("nl-email").value = p.email;
+    if (p.minSalary) document.getElementById("nl-salary").value = String(p.minSalary);
+    if (p.preferredLocations && p.preferredLocations.length) {
+      document.getElementById("nl-locations").value = p.preferredLocations.join(", ");
+    }
+    if (p.targetRoleFamilies && p.targetRoleFamilies.length) {
+      rolesDiv.querySelectorAll('input').forEach(function (cb) {
+        cb.checked = p.targetRoleFamilies.indexOf(cb.value) !== -1;
+      });
+    }
+  }
+
+  function showError(msg) {
+    var e = document.getElementById("nl-error");
+    e.textContent = msg; e.classList.add("show");
+    document.getElementById("nl-success").classList.remove("show");
+  }
+  function showSuccess(payload) {
+    var s = document.getElementById("nl-success");
+    s.innerHTML = "✅ <strong>You're subscribed.</strong> Look for the first digest next Wednesday.<br>" +
+      "<small>Change your mind? <a href='" + payload.unsubscribe_url + "'>Unsubscribe</a>.</small>";
+    s.classList.add("show");
+    document.getElementById("nl-error").classList.remove("show");
+  }
+
+  document.getElementById("nl-submit").addEventListener("click", function () {
+    var btn = this;
+    var email = document.getElementById("nl-email").value.trim();
+    if (!email || email.indexOf("@") === -1) {
+      showError("Please enter a valid email address.");
+      return;
+    }
+    var roles = [];
+    rolesDiv.querySelectorAll('input:checked').forEach(function (cb) { roles.push(cb.value); });
+    var payload = {
+      email: email,
+      role_families: roles.join(","),
+      salary_min: document.getElementById("nl-salary").value,
+      preferred_locations: document.getElementById("nl-locations").value.trim(),
+    };
+    btn.disabled = true; btn.textContent = "Subscribing…";
+    fetch("/api/newsletter/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+    .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+    .then(function (res) {
+      btn.disabled = false; btn.textContent = "Subscribe";
+      if (res.ok && res.data.ok) showSuccess(res.data);
+      else showError(res.data.error || "Something went wrong. Please try again.");
+    })
+    .catch(function () {
+      btn.disabled = false; btn.textContent = "Subscribe";
+      showError("Network error. Please try again.");
+    });
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+{% block title %}Cover Letter Builder, Gaijin Hunter{% endblock %}
+{% block content %}
+<style>
+  .rr-page-h { padding: 8px 0 18px; }
+  .rr-page-h h1 { margin: 0 0 6px; font-size: 28px; }
+  .rr-page-h p  { margin: 0; color: var(--muted); }
+  .cl-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+  @media (max-width: 1100px) { .cl-layout { grid-template-columns: 1fr; } }
+
+  .form-pane { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
+  .form-pane h2 { font-size: 16px; margin: 18px 0 8px; }
+  .form-pane h2:first-child { margin-top: 0; }
+  .form-pane label { display: block; font-size: 12px; color: #6b7280; margin: 8px 0 3px; }
+  .form-pane input, .form-pane select, .form-pane textarea {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px;
+    font-size: 14px; font-family: inherit; background: #fff;
+  }
+  .form-pane textarea { resize: vertical; min-height: 90px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .form-grid .span2 { grid-column: 1 / -1; }
+
+  .tpl-picker { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 14px; }
+  .tpl-picker button { padding: 6px 12px; background: #fff; color: var(--accent);
+    border: 1px solid var(--line); border-radius: 999px; font-size: 12px; cursor: pointer; }
+  .tpl-picker button:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .tpl-picker button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .quick-actions { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .quick-actions button { background: #fff; border: 1px solid var(--line); padding: 7px 14px;
+    border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--fg); }
+  .quick-actions button:hover { border-color: var(--accent); color: var(--accent); }
+
+  .hint { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .ph { background: #fef3c7; color: #92400e; padding: 1px 5px; border-radius: 3px;
+        font-size: 11px; font-weight: 600; }
+
+  .preview-pane { position: sticky; top: 90px; background: #e7ebf0; padding: 18px;
+    border-radius: 10px; max-height: calc(100vh - 110px); overflow-y: auto; }
+  .preview-pane .toolbar { display: flex; gap: 8px; margin-bottom: 14px; align-items: center; flex-wrap: wrap; }
+  .preview-pane .toolbar button {
+    background: var(--accent); color: #fff; border: none; padding: 8px 14px;
+    border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; }
+  .preview-pane .toolbar button.ghost { background: #fff; color: var(--accent); border: 1px solid var(--accent); }
+
+  .letter {
+    background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    width: 210mm; min-height: 297mm; padding: 24mm 22mm; margin: 0 auto;
+    font-family: Georgia, "Times New Roman", serif; font-size: 11pt; color: #111; line-height: 1.65;
+  }
+  .letter .meta { color: #444; font-size: 10pt; line-height: 1.45; margin-bottom: 24px;
+    white-space: pre-wrap; }
+  .letter .recipient { color: #111; margin-bottom: 24px; white-space: pre-wrap; }
+  .letter .greeting { margin-bottom: 12px; }
+  .letter p { margin: 0 0 12px; }
+  .letter .sig { margin-top: 24px; white-space: pre-wrap; }
+
+  .scale-wrap { transform: scale(0.72); transform-origin: top left;
+    width: calc(210mm * 0.72); height: calc(297mm * 0.72); margin: 0 auto; }
+  @media (max-width: 1300px) {
+    .scale-wrap { transform: scale(0.62); width: calc(210mm * 0.62); height: calc(297mm * 0.62); }
+  }
+  @media (max-width: 1100px) { .scale-wrap { transform: none; width: auto; height: auto; } }
+
+  @media print {
+    @page { size: A4 portrait; margin: 0; }
+    body { background: #fff; }
+    header, .breadcrumb, .rr-page-h, .resume-subnav, .form-pane,
+    .preview-pane .toolbar { display: none !important; }
+    .cl-layout { display: block; }
+    .preview-pane { position: static; background: #fff; padding: 0; max-height: none; overflow: visible; }
+    .scale-wrap { transform: none; width: auto; height: auto; }
+    .letter { box-shadow: none; margin: 0; }
+  }
+</style>
+
+<div class="rr-page-h">
+  <h1>Resume Builder</h1>
+  <p>Cover letters that pass the first read, short, specific, free of clichés.</p>
+  {% include "_resume_subnav.html" %}
+</div>
+
+<div class="cl-layout">
+
+  <div class="form-pane">
+    <div class="quick-actions">
+      <button type="button" id="prefill-profile">↻ Prefill from profile</button>
+      <button type="button" id="copy-text">Copy as plain text</button>
+      <button type="button" id="clear-cl">Clear</button>
+    </div>
+
+    <h2>1. Pick a template</h2>
+    <div class="tpl-picker" id="tpls">
+      <button type="button" data-tpl="standard" class="active">Standard application</button>
+      <button type="button" data-tpl="referral">Referral</button>
+      <button type="button" data-tpl="cold">Cold outreach</button>
+      <button type="button" data-tpl="japan-formal">Japan-formal (English)</button>
+    </div>
+
+    <h2>2. Your details</h2>
+    <div class="form-grid">
+      <div><label>Your name</label><input data-f="name" placeholder="Jane Doe"></div>
+      <div><label>Your email</label><input data-f="email" type="email"></div>
+      <div><label>Your phone</label><input data-f="phone"></div>
+      <div><label>Today's date</label><input data-f="date" type="date"></div>
+    </div>
+
+    <h2>3. Job details</h2>
+    <div class="form-grid">
+      <div><label>Company</label><input data-f="company" placeholder="Mercari"></div>
+      <div><label>Role / position</label><input data-f="role" placeholder="Senior Backend Engineer"></div>
+      <div><label>Hiring manager name (optional)</label><input data-f="hiringManager" placeholder="Tanaka-san"></div>
+      <div><label>Referral source (referral template)</label><input data-f="referralName" placeholder="Yamada Hiroshi"></div>
+    </div>
+
+    <h2>4. Your hook</h2>
+    <label>One-sentence opening, why this company, in your own words.</label>
+    <textarea data-f="hook" rows="2"
+      placeholder="I've been a daily user of Mercari since 2019 and have admired your move from C2C marketplace into fintech."></textarea>
+
+    <h2>5. Why you'll succeed (2–3 sentences)</h2>
+    <textarea data-f="why" rows="4"
+      placeholder="In my current role at PayPay I led the team that rebuilt our settlement service to handle 12 M tx/day, cutting p99 from 480 ms to 90 ms. That experience, running mission-critical payments infrastructure on a tight ops budget, maps directly to the challenges your platform team is hiring for."></textarea>
+
+    <h2>6. What you want next (1–2 sentences)</h2>
+    <textarea data-f="closing" rows="3"
+      placeholder="I'd love a chance to talk about how I could contribute to your platform engineering team. I'm based in Tokyo and available for an interview at your convenience."></textarea>
+
+    <div class="hint" style="margin-top:12px;">
+      Tips: <strong>Length</strong>, fits on one page. <strong>Tone</strong>, friendly but
+      not casual. <strong>Specificity</strong>, name a product, a number, or a person.
+      Avoid "I am a passionate / hard-working / detail-oriented / team player."
+    </div>
+  </div>
+
+  <div class="preview-pane">
+    <div class="toolbar">
+      <button id="print-btn">Print / Save as PDF</button>
+      <button class="ghost" id="copy-btn">Copy</button>
+    </div>
+    <div class="scale-wrap">
+      <div class="letter" id="letter-doc">
+        <div class="meta" id="p-meta"></div>
+        <div class="recipient" id="p-recipient"></div>
+        <div class="greeting" id="p-greeting"></div>
+        <div id="p-body"></div>
+        <div class="sig" id="p-sig"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var STORAGE_KEY = "gh-cover-letter-draft-v1";
+
+  var qs = new URLSearchParams(window.location.search);
+  var template = {
+    name: "", email: "", phone: "", date: "",
+    company: qs.get("company") || {{ prefill_company | tojson }},
+    role: qs.get("role") || {{ prefill_role | tojson }},
+    hiringManager: "",
+    referralName: "",
+    hook: "", why: "", closing: "",
+    tpl: "standard",
+  };
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      var s = raw ? JSON.parse(raw) : null;
+      if (!s) return JSON.parse(JSON.stringify(template));
+      Object.keys(template).forEach(function (k) { if (s[k] === undefined) s[k] = template[k]; });
+      // URL prefill always wins for company/role if present.
+      if (qs.get("company")) s.company = qs.get("company");
+      if (qs.get("role"))    s.role    = qs.get("role");
+      return s;
+    } catch (e) { return JSON.parse(JSON.stringify(template)); }
+  }
+  function save(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+  var state = load();
+
+  // Templates: each is a function returning { greeting, paragraphs[] }.
+  // Placeholders fall back to gentle defaults when blank so the preview
+  // never breaks mid-render.
+  function tplStandard(s) {
+    var greeting = s.hiringManager
+      ? "Dear " + s.hiringManager + ","
+      : "Dear " + (s.company || "Hiring Team") + " Hiring Team,";
+    var paras = [
+      "I'm writing to apply for the " + (s.role || "[Role]") +
+      " position at " + (s.company || "[Company]") + ".",
+      s.hook || "(Add a one-sentence hook above to lead with why this company specifically.)",
+      s.why || "(Add 2–3 sentences above on the experience that makes you a strong fit.)",
+      s.closing || "(Add a closing sentence above with your next-step ask.)",
+    ];
+    return { greeting: greeting, paragraphs: paras };
+  }
+  function tplReferral(s) {
+    var greeting = s.hiringManager
+      ? "Dear " + s.hiringManager + ","
+      : "Dear " + (s.company || "Hiring Team") + " Hiring Team,";
+    var intro = (s.referralName ? s.referralName + " suggested I reach out about " : "I'm writing about ")
+      + "the " + (s.role || "[Role]") + " role at " + (s.company || "[Company]") + ".";
+    var paras = [intro];
+    if (s.hook) paras.push(s.hook);
+    if (s.why) paras.push(s.why);
+    if (s.closing) paras.push(s.closing);
+    return { greeting: greeting, paragraphs: paras };
+  }
+  function tplCold(s) {
+    var greeting = s.hiringManager
+      ? "Dear " + s.hiringManager + ","
+      : "Hi " + (s.company || "[Company]") + " team,";
+    var paras = [
+      "I'm reaching out because " + (s.hook || (s.company || "your company") + " is doing exactly the kind of work I want to contribute to.") ,
+      s.why || "(Add your strongest 2–3 sentences above on the value you'd bring.)",
+      s.closing || "Would you be open to a 20-minute call this week or next? I'm flexible around your schedule.",
+    ];
+    return { greeting: greeting, paragraphs: paras };
+  }
+  function tplJapanFormal(s) {
+    var greeting = s.hiringManager
+      ? "Dear " + s.hiringManager + ","
+      : "To the " + (s.company || "[Company]") + " Hiring Team,";
+    var paras = [
+      "I would like to apply for the " + (s.role || "[Role]") + " position at " + (s.company || "[Company]") + ".",
+      s.hook || "I have followed your work for some time and am drawn to (specific aspect of the company).",
+      s.why || "(2–3 sentences here on relevant experience, in a slightly more formal English register.)",
+      "If invited to interview, I would be happy to elaborate further on how my experience aligns with the role.",
+      s.closing || "Thank you very much for your consideration. I look forward to hearing from you.",
+    ];
+    return { greeting: greeting, paragraphs: paras };
+  }
+  var TEMPLATES = { standard: tplStandard, referral: tplReferral, cold: tplCold, "japan-formal": tplJapanFormal };
+
+  function esc(v) { return String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+  function fmtDate(iso) {
+    if (!iso) return new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+    var d = new Date(iso);
+    return isNaN(d) ? iso : d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  }
+
+  function render() {
+    save(state);
+    var s = state;
+    document.getElementById("p-meta").textContent =
+      [s.name, s.email, s.phone, fmtDate(s.date)].filter(Boolean).join("\n");
+    document.getElementById("p-recipient").textContent = s.company
+      ? (s.hiringManager ? s.hiringManager + "\n" : "") + s.company
+      : "";
+    var fn = TEMPLATES[s.tpl] || TEMPLATES.standard;
+    var out = fn(s);
+    document.getElementById("p-greeting").textContent = out.greeting;
+    document.getElementById("p-body").innerHTML = out.paragraphs.map(function (p) {
+      return "<p>" + esc(p).replace(/\n/g, "<br>") + "</p>";
+    }).join("");
+    document.getElementById("p-sig").textContent = "Sincerely,\n\n" + (s.name || "[Your name]");
+
+    // Sync template-picker active state
+    document.querySelectorAll(".tpl-picker button").forEach(function (b) {
+      b.classList.toggle("active", b.getAttribute("data-tpl") === s.tpl);
+    });
+  }
+
+  function fillForm() {
+    document.querySelectorAll('[data-f]').forEach(function (el) {
+      var k = el.getAttribute("data-f");
+      if (state[k] != null) el.value = state[k];
+    });
+  }
+
+  function bindForm() {
+    document.querySelectorAll('[data-f]').forEach(function (el) {
+      el.addEventListener("input", function () { state[el.getAttribute("data-f")] = el.value; render(); });
+    });
+    document.querySelectorAll(".tpl-picker button").forEach(function (b) {
+      b.addEventListener("click", function () {
+        state.tpl = b.getAttribute("data-tpl"); render();
+      });
+    });
+  }
+
+  function plainText() {
+    var s = state;
+    var fn = TEMPLATES[s.tpl] || TEMPLATES.standard;
+    var out = fn(s);
+    return [
+      [s.name, s.email, s.phone, fmtDate(s.date)].filter(Boolean).join("\n"),
+      "",
+      s.company ? ((s.hiringManager ? s.hiringManager + "\n" : "") + s.company) : "",
+      "",
+      out.greeting,
+      "",
+      out.paragraphs.join("\n\n"),
+      "",
+      "Sincerely,",
+      "",
+      (s.name || "[Your name]"),
+    ].join("\n");
+  }
+
+  document.getElementById("copy-btn").addEventListener("click", function () {
+    navigator.clipboard.writeText(plainText()).then(
+      function () { alert("Copied as plain text."); },
+      function () { alert("Copy blocked — select the preview and copy manually."); }
+    );
+  });
+  document.getElementById("copy-text").addEventListener("click", function () {
+    navigator.clipboard.writeText(plainText()).then(
+      function () { alert("Copied as plain text."); },
+      function () { alert("Copy blocked — select the preview and copy manually."); }
+    );
+  });
+  document.getElementById("print-btn").addEventListener("click", function () { window.print(); });
+  document.getElementById("prefill-profile").addEventListener("click", function () {
+    var p = window.GH ? GH.profile.get() : null;
+    if (!p) return;
+    if (p.name && !state.name)   state.name   = p.name;
+    if (p.email && !state.email) state.email  = p.email;
+    fillForm(); render();
+  });
+  document.getElementById("clear-cl").addEventListener("click", function () {
+    if (!confirm("Clear the cover letter draft?")) return;
+    state = JSON.parse(JSON.stringify(template));
+    fillForm(); render();
+  });
+
+  fillForm(); bindForm(); render();
+})();
+</script>
+{% endblock %}

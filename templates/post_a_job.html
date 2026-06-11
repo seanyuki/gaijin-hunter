@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Post a Job, Reach Foreign Professionals in Japan · Gaijin Hunter{% endblock %}
+{% block meta_description %}Post a job directly to Gaijin Hunter and reach foreign professionals looking for work in Japan. Private beta: free during launch, listings run {{ duration_days }} days, no signup, managed through a unique URL.{% endblock %}
+{% block jsonld %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Post a Job to Gaijin Hunter",
+  "description": "Reach foreign professionals looking for work in Japan. Post your role directly; it stays live for {{ duration_days }} days.",
+  "url": "{{ base_url }}/post-a-job"
+}
+</script>
+{% endblock %}
+{% block content %}
+<style>
+  .paj-hero { text-align: center; padding: 36px 20px 20px; max-width: 720px; margin: 0 auto; }
+  .paj-hero h1 { margin: 0 0 12px; font-size: 36px; letter-spacing: -0.025em; }
+  .paj-hero p  { color: var(--muted); font-size: 16px; line-height: 1.55; margin: 0; }
+
+  .paj-perks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+               max-width: 760px; margin: 22px auto 0; }
+  @media (max-width: 720px) { .paj-perks { grid-template-columns: 1fr; } }
+  .paj-perk { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+              padding: 18px 20px; display: flex; gap: 12px; align-items: flex-start; }
+  .paj-perk .icw {
+    width: 36px; height: 36px; border-radius: 9px; flex-shrink: 0;
+    background: var(--accent-soft); color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .paj-perk h3 { margin: 0 0 4px; font-size: 14px; color: var(--fg); }
+  .paj-perk p  { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+
+  form.paj-form { max-width: 760px; margin: 32px auto 0;
+                  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+                  padding: 28px 32px; }
+  @media (max-width: 600px) { form.paj-form { padding: 22px 18px; } }
+  .paj-section { margin-bottom: 28px; }
+  .paj-section:last-child { margin-bottom: 0; }
+  .paj-section h2 { margin: 0 0 4px; font-size: 14px; color: var(--muted);
+                    text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
+  .paj-section .sub { margin: 0 0 16px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+  .paj-grid { display: grid; gap: 14px; }
+  .paj-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  @media (max-width: 600px) { .paj-grid.cols-2 { grid-template-columns: 1fr; } }
+
+  .paj-field { display: flex; flex-direction: column; }
+  .paj-field label { font-size: 12.5px; color: var(--fg-soft); font-weight: 600;
+                     margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .paj-field label .req { color: var(--danger); }
+  .paj-field .hint { color: var(--muted); font-weight: 400; font-size: 11.5px; margin-left: 2px; }
+  .paj-field input[type=text], .paj-field input[type=email], .paj-field input[type=url],
+  .paj-field input[type=number], .paj-field select, .paj-field textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--line);
+    border-radius: 8px; font-size: 14px; font-family: inherit; color: var(--fg);
+    background: #fff; transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .paj-field input:focus, .paj-field select:focus, .paj-field textarea:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.10);
+  }
+  .paj-field.error input, .paj-field.error select, .paj-field.error textarea {
+    border-color: var(--danger);
+  }
+  .paj-field .err-msg { color: var(--danger); font-size: 11.5px; margin-top: 4px; }
+  .paj-field textarea { resize: vertical; min-height: 120px; }
+  .paj-field textarea.large { min-height: 180px; }
+
+  .paj-checks { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 600px) { .paj-checks { grid-template-columns: 1fr; } }
+  .paj-check { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px;
+               background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+               cursor: pointer; }
+  .paj-check input { margin-top: 2px; flex-shrink: 0; cursor: pointer; }
+  .paj-check .pc-label { font-size: 13px; font-weight: 600; color: var(--fg); }
+  .paj-check .pc-desc { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
+
+  .paj-submit { display: flex; gap: 14px; align-items: center; justify-content: space-between;
+                margin-top: 8px; padding-top: 18px; border-top: 1px solid var(--line-soft);
+                flex-wrap: wrap; }
+  .paj-submit .legal { color: var(--muted); font-size: 12px; line-height: 1.45;
+                       max-width: 340px; }
+  .paj-submit .legal a { color: var(--accent); text-decoration: none; }
+  .paj-submit button {
+    background: var(--accent); color: #fff; border: none; padding: 12px 26px;
+    border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .paj-submit button:hover { background: var(--accent-dark); }
+
+  /* Honeypot — hidden from real users, present for bots */
+  .paj-hp { position: absolute; left: -9999px; width: 1px; height: 1px;
+            overflow: hidden; opacity: 0; }
+</style>
+
+<div class="paj-hero">
+  <h1>Post a job</h1>
+  <p style="display:inline-flex; align-items:center; gap:8px; background:var(--warn-tint);
+     border:1px solid #f0dcc0; color:var(--warn); border-radius:999px; padding:5px 14px;
+     font-size:12.5px; font-weight:600; margin:0 0 12px;">
+    Private beta — direct employer posting is being trialled
+  </p>
+  <p>Reach foreign professionals already looking for work in Japan. Posting is
+     <strong>free during the beta</strong>; listings run for <strong>{{ duration_days }} days</strong>
+     and you manage them through a private link (no account). We may review posts during the beta,
+     so a listing can take a short while to appear. This is not a paid or self-serve product yet.</p>
+</div>
+
+<div class="paj-perks">
+  <div class="paj-perk">
+    <span class="icw">{{ icon('users', size=18) }}</span>
+    <div>
+      <h3>Targeted audience</h3>
+      <p>Foreign professionals in Japan and overseas applicants searching for visa-friendly roles.</p>
+    </div>
+  </div>
+  <div class="paj-perk">
+    <span class="icw">{{ icon('calendar', size=18) }}</span>
+    <div>
+      <h3>{{ duration_days }}-day listing</h3>
+      <p>Live immediately; auto-expires after {{ duration_days }} days. Withdraw or extend any time.</p>
+    </div>
+  </div>
+  <div class="paj-perk">
+    <span class="icw">{{ icon('badge', size=18) }}</span>
+    <div>
+      <h3>Verified badge</h3>
+      <p>Your post is flagged "Direct from employer" so candidates trust the source.</p>
+    </div>
+  </div>
+</div>
+
+<form method="POST" action="/post-a-job" class="paj-form" novalidate>
+  {# Honeypot field, bots fill anything; humans never see this. #}
+  <div class="paj-hp" aria-hidden="true">
+    <label>Website (leave empty):
+      <input type="text" name="website" tabindex="-1" autocomplete="off">
+    </label>
+  </div>
+
+  <div class="paj-section">
+    <h2>About the role</h2>
+    <p class="sub">The basics, what the role is and where it sits.</p>
+    <div class="paj-grid">
+      <div class="paj-field {% if errors and errors.title %}error{% endif %}">
+        <label>Job title <span class="req">*</span></label>
+        <input type="text" name="title" value="{{ form.title if form else '' }}"
+               placeholder="e.g. Senior Backend Engineer" maxlength="200" required>
+        {% if errors and errors.title %}<div class="err-msg">{{ errors.title }}</div>{% endif %}
+      </div>
+      <div class="paj-grid cols-2">
+        <div class="paj-field {% if errors and errors.location %}error{% endif %}">
+          <label>Location <span class="req">*</span></label>
+          <input type="text" name="location" value="{{ form.location if form else '' }}"
+                 placeholder="Tokyo, Shibuya / Remote / Hybrid" required>
+          {% if errors and errors.location %}<div class="err-msg">{{ errors.location }}</div>{% endif %}
+        </div>
+        <div class="paj-field">
+          <label>Role area</label>
+          <select name="role_family">
+            <option value="">Select…</option>
+            {% for r in role_families %}
+              <option value="{{ r }}" {% if form and form.role_family == r %}selected{% endif %}>{{ r }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="paj-grid cols-2">
+        <div class="paj-field">
+          <label>Employment type</label>
+          <select name="employment_terms">
+            {% for t in employment_terms %}
+              <option value="{{ t }}" {% if form and form.employment_terms == t %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="paj-field">
+          <label>Industries <span class="hint">comma-separated</span></label>
+          <input type="text" name="industries" value="{{ form.industries if form else '' }}"
+                 placeholder="e.g. SaaS, Fintech">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="paj-section">
+    <h2>Compensation</h2>
+    <p class="sub">Salary ranges materially improve applicant quality. Listings with explicit salaries get 60–80% more clicks.</p>
+    <div class="paj-grid cols-2">
+      <div class="paj-field">
+        <label>Min annual salary (JPY) <span class="hint">e.g. 8000000</span></label>
+        <input type="number" name="salary_min" value="{{ form.salary_min if form else '' }}"
+               min="0" step="100000" placeholder="8000000">
+      </div>
+      <div class="paj-field">
+        <label>Max annual salary (JPY) <span class="hint">optional</span></label>
+        <input type="number" name="salary_max" value="{{ form.salary_max if form else '' }}"
+               min="0" step="100000" placeholder="12000000">
+      </div>
+    </div>
+    <div class="paj-field" style="margin-top: 14px;">
+      <label>Or describe the package <span class="hint">free text, bonus, RSUs, allowances</span></label>
+      <input type="text" name="salary" value="{{ form.salary if form else '' }}"
+             placeholder="¥8M–12M base + RSUs + signing bonus">
+    </div>
+  </div>
+
+  <div class="paj-section">
+    <h2>Language &amp; flexibility</h2>
+    <p class="sub">Help foreigners self-select. Honest language requirements save everyone time.</p>
+    <div class="paj-grid cols-2">
+      <div class="paj-field">
+        <label>Japanese level</label>
+        <select name="japanese_level">
+          <option value="">Select…</option>
+          {% for j in japanese_levels %}
+            <option value="{{ j }}" {% if form and form.japanese_level == j %}selected{% endif %}>{{ j }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="paj-field">
+        <label>English level</label>
+        <select name="english_level">
+          <option value="">Select…</option>
+          {% for e in english_levels %}
+            <option value="{{ e }}" {% if form and form.english_level == e %}selected{% endif %}>{{ e }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="paj-checks" style="margin-top: 14px;">
+      <label class="paj-check">
+        <input type="checkbox" name="remote_work_ok" value="1"
+               {% if form and form.remote_work_ok %}checked{% endif %}>
+        <div>
+          <div class="pc-label">Remote / hybrid OK</div>
+          <div class="pc-desc">Candidate doesn't need to be in office full-time.</div>
+        </div>
+      </label>
+      <label class="paj-check">
+        <input type="checkbox" name="visa_sponsorship" value="1"
+               {% if form and form.visa_sponsorship %}checked{% endif %}>
+        <div>
+          <div class="pc-label">Visa sponsorship offered</div>
+          <div class="pc-desc">You'll sponsor a work visa for the right candidate.</div>
+        </div>
+      </label>
+      <label class="paj-check">
+        <input type="checkbox" name="overseas_application_ok" value="1"
+               {% if form and form.overseas_application_ok %}checked{% endif %}>
+        <div>
+          <div class="pc-label">Open to overseas applicants</div>
+          <div class="pc-desc">Candidates not yet in Japan can apply.</div>
+        </div>
+      </label>
+    </div>
+  </div>
+
+  <div class="paj-section">
+    <h2>Description &amp; requirements</h2>
+    <p class="sub">Use plain text or basic Markdown. Be specific, vague descriptions get vague applicants.</p>
+    <div class="paj-field {% if errors and errors.description %}error{% endif %}" style="margin-bottom: 14px;">
+      <label>Job description <span class="req">*</span></label>
+      <textarea name="description" class="large" maxlength="20000" required
+                placeholder="What the role does. Day-to-day responsibilities. Team you'll join. Why someone should care.">{{ form.description if form else '' }}</textarea>
+      {% if errors and errors.description %}<div class="err-msg">{{ errors.description }}</div>{% endif %}
+    </div>
+    <div class="paj-field">
+      <label>Requirements <span class="hint">optional, one per line</span></label>
+      <textarea name="requirements"
+                placeholder="• 5+ years experience with Go or Rust&#10;• Comfort with distributed systems&#10;• Bilingual JP/EN preferred">{{ form.requirements if form else '' }}</textarea>
+    </div>
+  </div>
+
+  <div class="paj-section">
+    <h2>Company</h2>
+    <p class="sub">How you'll appear to candidates.</p>
+    <div class="paj-grid cols-2">
+      <div class="paj-field {% if errors and errors.company_name %}error{% endif %}">
+        <label>Company name <span class="req">*</span></label>
+        <input type="text" name="company_name" value="{{ form.company_name if form else '' }}"
+               placeholder="Mercari, Inc." required>
+        {% if errors and errors.company_name %}<div class="err-msg">{{ errors.company_name }}</div>{% endif %}
+      </div>
+      <div class="paj-field">
+        <label>Company name (JP) <span class="hint">optional</span></label>
+        <input type="text" name="company_name_jp" value="{{ form.company_name_jp if form else '' }}"
+               placeholder="株式会社メルカリ">
+      </div>
+    </div>
+  </div>
+
+  <div class="paj-section">
+    <h2>How to apply</h2>
+    <p class="sub">Where candidates should send their application. Provide at least one of these.</p>
+    <div class="paj-grid cols-2">
+      <div class="paj-field {% if errors and errors.application_url %}error{% endif %}">
+        <label>Application URL</label>
+        <input type="url" name="application_url" value="{{ form.application_url if form else '' }}"
+               maxlength="2000" placeholder="https://careers.example.com/job/123">
+        {% if errors and errors.application_url %}<div class="err-msg">{{ errors.application_url }}</div>{% endif %}
+      </div>
+      <div class="paj-field">
+        <label>Application email</label>
+        <input type="email" name="application_email" value="{{ form.application_email if form else '' }}"
+               placeholder="careers@example.com">
+      </div>
+    </div>
+  </div>
+
+  <div class="paj-section">
+    <h2>Your contact (private)</h2>
+    <p class="sub">We don't display this publicly. It's used to send you the management link for editing/withdrawing your post.</p>
+    <div class="paj-grid cols-2">
+      <div class="paj-field {% if errors and errors.employer_contact_name %}error{% endif %}">
+        <label>Your name <span class="req">*</span></label>
+        <input type="text" name="employer_contact_name" value="{{ form.employer_contact_name if form else '' }}" required>
+        {% if errors and errors.employer_contact_name %}<div class="err-msg">{{ errors.employer_contact_name }}</div>{% endif %}
+      </div>
+      <div class="paj-field {% if errors and errors.employer_contact_email %}error{% endif %}">
+        <label>Your email <span class="req">*</span></label>
+        <input type="email" name="employer_contact_email" value="{{ form.employer_contact_email if form else '' }}" required>
+        {% if errors and errors.employer_contact_email %}<div class="err-msg">{{ errors.employer_contact_email }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="paj-submit">
+    <div class="legal">
+      By posting, you confirm the role is real, accurately described, and that you are
+      authorised to recruit for it. <a href="/community">Need help?</a>
+    </div>
+    <button type="submit">Publish for {{ duration_days }} days</button>
+  </div>
+</form>
+{% endblock %}

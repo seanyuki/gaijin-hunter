@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Manage your job posting, Gaijin Hunter{% endblock %}
+{% block meta_robots %}noindex, follow{% endblock %}
+{% block content %}
+<style>
+  .em-wrap { max-width: 780px; margin: 0 auto; }
+  .em-hero { text-align: center; padding: 24px 20px 18px; }
+  .em-hero h1 { margin: 0 0 8px; font-size: 28px; letter-spacing: -0.02em; }
+  .em-hero p  { color: var(--muted); margin: 0; font-size: 14px; }
+
+  .em-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+             padding: 22px 24px; margin-top: 18px; }
+  .em-card h2 { margin: 0 0 6px; font-size: 14px; color: var(--muted);
+                text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
+  .em-card .meta-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+                       color: var(--muted); font-size: 13px; }
+
+  .em-status { display: inline-flex; align-items: center; gap: 6px;
+               padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+  .em-status.active   { background: #d1fae5; color: #065f46; }
+  .em-status.expired  { background: #f3f4f6; color: #6b7280; }
+  .em-status.withdrawn{ background: #fef3c7; color: #92400e; }
+
+  .em-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+  .em-actions form { display: inline; }
+  .em-actions button, .em-actions a {
+    padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    text-decoration: none; border: 1px solid var(--line); background: #fff;
+    color: var(--fg); cursor: pointer; transition: all 0.15s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .em-actions button:hover, .em-actions a:hover { background: var(--line-soft); }
+  .em-actions .danger { color: var(--danger); border-color: #fca5a5; }
+  .em-actions .danger:hover { background: #fef2f2; }
+  .em-actions .primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .em-actions .primary:hover { background: var(--accent-dark); }
+
+  .em-banner {
+    background: var(--accent-soft); border: 1px solid var(--accent); color: var(--accent-dark);
+    padding: 12px 16px; border-radius: 10px; margin-bottom: 18px; font-size: 13px;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .em-banner.warn { background: #fffbeb; border-color: #d97706; color: #78350f; }
+  .em-banner.success { background: #d1fae5; border-color: #047857; color: #065f46; }
+
+  .em-link-box { background: var(--bg); border: 1px dashed var(--line); border-radius: 10px;
+                 padding: 12px 16px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+                 font-size: 12.5px; color: var(--fg); word-break: break-all; }
+  .em-copy-btn { background: var(--accent); color: #fff; border: none;
+                 padding: 6px 12px; border-radius: 6px; font-size: 11.5px;
+                 cursor: pointer; font-weight: 600; margin-left: 6px; }
+  .em-copy-btn:hover { background: var(--accent-dark); }
+
+  .em-edit-form { display: grid; gap: 12px; margin-top: 16px; }
+  .em-edit-form .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 600px) { .em-edit-form .row { grid-template-columns: 1fr; } }
+  .em-edit-form label { font-size: 12px; color: var(--fg-soft); font-weight: 600;
+                        display: block; margin-bottom: 4px; }
+  .em-edit-form input, .em-edit-form select, .em-edit-form textarea {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--line);
+    border-radius: 6px; font-size: 13.5px; font-family: inherit;
+  }
+  .em-edit-form textarea { resize: vertical; min-height: 90px; }
+  .em-edit-form textarea.large { min-height: 140px; }
+  .em-edit-form .check-row { display: flex; gap: 16px; flex-wrap: wrap; }
+  .em-edit-form .check-row label { display: inline-flex; align-items: center; gap: 6px;
+                                   font-weight: 500; }
+  details summary { cursor: pointer; font-weight: 600; padding: 6px 0; color: var(--accent); }
+</style>
+
+<div class="em-wrap">
+  <div class="em-hero">
+    <h1>Manage your posting</h1>
+    <p>Bookmark this page, it's the only way to edit, withdraw, or extend your post.</p>
+  </div>
+
+  {% if request.args.get('msg') == 'updated' %}
+    <div class="em-banner success">{{ icon('check', size=16) }} Your posting was updated.</div>
+  {% elif request.args.get('msg') == 'withdrawn' %}
+    <div class="em-banner warn">{{ icon('archive', size=16) }} Your posting was withdrawn and is no longer visible publicly.</div>
+  {% elif request.args.get('msg') == 'reactivated' %}
+    <div class="em-banner success">{{ icon('check', size=16) }} Your posting was reactivated.</div>
+  {% elif request.args.get('msg') == 'extended' %}
+    <div class="em-banner success">{{ icon('check', size=16) }} Your posting's expiry was extended by {{ duration_days }} days.</div>
+  {% elif request.args.get('msg') == 'created' %}
+    <div class="em-banner">{{ icon('sparkle', size=16) }} Your posting is now live and will appear in search.</div>
+  {% endif %}
+
+  <div class="em-card">
+    <h2>Your management link</h2>
+    <p style="font-size: 13px; color: var(--muted); margin: 0 0 12px;">
+      Save this URL. We do not send emails, losing it means losing the ability to manage this posting.
+    </p>
+    <div class="em-link-box" id="manage-link">{{ base_url }}/employer/manage/{{ token }}</div>
+    <div style="margin-top: 8px;">
+      <button class="em-copy-btn" id="copy-link-btn" type="button">Copy to clipboard</button>
+      <a href="/jobs?q={{ post.title|urlencode }}" target="_blank" rel="noopener noreferrer"
+         style="margin-left: 12px; font-size: 12.5px; color: var(--accent); text-decoration: none;">
+         View your posting on /jobs ↗</a>
+    </div>
+  </div>
+
+  <div class="em-card">
+    <h2>Posting status</h2>
+    {% set status = post.employer_post_status or 'active' %}
+    {% set is_expired = post.expires_at and post.expires_at < (now_iso if now_iso else '9999') %}
+    <div class="meta-row" style="margin-bottom: 10px;">
+      <span class="em-status {{ status }}">
+        {% if status == 'active' %}{{ icon('check', size=12) }} Live{% endif %}
+        {% if status == 'withdrawn' %}{{ icon('archive', size=12) }} Withdrawn{% endif %}
+        {% if status == 'expired' %}{{ icon('archive', size=12) }} Expired{% endif %}
+      </span>
+      <span>Expires: <strong>{{ post.expires_at[:10] }}</strong></span>
+      <span>Posted: {{ post.scraped_at[:10] }}</span>
+    </div>
+    <div class="meta-row">
+      <strong style="color: var(--fg);">{{ post.title }}</strong>
+      <span>, {{ post.company_name }}</span>
+      {% if post.location %}<span>· {{ post.location }}</span>{% endif %}
+    </div>
+
+    <div class="em-actions">
+      {% if status == 'active' %}
+        <form method="POST" action="/employer/manage/{{ token }}/extend">
+          <button type="submit" class="primary">{{ icon('calendar', size=14) }} Extend +{{ duration_days }} days</button>
+        </form>
+        <form method="POST" action="/employer/manage/{{ token }}/withdraw"
+              onsubmit="return confirm('Withdraw this posting? Candidates won\\'t see it any more. You can reactivate it later if it hasn\\'t expired.');">
+          <button type="submit" class="danger">{{ icon('archive', size=14) }} Withdraw posting</button>
+        </form>
+      {% elif status == 'withdrawn' %}
+        <form method="POST" action="/employer/manage/{{ token }}/reactivate">
+          <button type="submit" class="primary">{{ icon('check', size=14) }} Reactivate</button>
+        </form>
+      {% elif status == 'expired' %}
+        <form method="POST" action="/employer/manage/{{ token }}/extend">
+          <button type="submit" class="primary">{{ icon('calendar', size=14) }} Reactivate (+{{ duration_days }} days)</button>
+        </form>
+      {% endif %}
+      <a href="/post-a-job">{{ icon('edit', size=14) }} Post a new role</a>
+    </div>
+  </div>
+
+  <div class="em-card">
+    <h2>Edit your posting</h2>
+    <details>
+      <summary>Click to edit fields</summary>
+      <form method="POST" action="/employer/manage/{{ token }}/edit" class="em-edit-form">
+        <div>
+          <label>Title</label>
+          <input type="text" name="title" value="{{ post.title or '' }}" maxlength="200">
+        </div>
+        <div>
+          <label>Location</label>
+          <input type="text" name="location" value="{{ post.location or '' }}">
+        </div>
+        <div class="row">
+          <div>
+            <label>Employment type</label>
+            <select name="employment_terms">
+              {% for t in employment_terms %}
+                <option value="{{ t }}" {% if post.employment_terms == t %}selected{% endif %}>{{ t }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label>Role area</label>
+            <select name="role_family">
+              <option value="">Select…</option>
+              {% for r in role_families %}
+                <option value="{{ r }}" {% if post.role_family == r %}selected{% endif %}>{{ r }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Japanese level</label>
+            <select name="japanese_level">
+              <option value="">Select…</option>
+              {% for j in japanese_levels %}
+                <option value="{{ j }}" {% if post.japanese_level == j %}selected{% endif %}>{{ j }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label>English level</label>
+            <select name="english_level">
+              <option value="">Select…</option>
+              {% for e in english_levels %}
+                <option value="{{ e }}" {% if post.english_level == e %}selected{% endif %}>{{ e }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Min salary (JPY/yr)</label>
+            <input type="number" name="salary_min" value="{{ post.salary_min_annual_jpy or '' }}" step="100000">
+          </div>
+          <div>
+            <label>Max salary (JPY/yr)</label>
+            <input type="number" name="salary_max" value="{{ post.salary_max_annual_jpy or '' }}" step="100000">
+          </div>
+        </div>
+        <div>
+          <label>Salary description (free text)</label>
+          <input type="text" name="salary" value="{{ post.salary or '' }}">
+        </div>
+        <div class="check-row">
+          <label><input type="checkbox" name="remote_work_ok" value="1" {% if post.remote_work_ok %}checked{% endif %}> Remote / hybrid OK</label>
+          <label><input type="checkbox" name="visa_sponsorship" value="1" {% if post.visa_sponsorship_mentioned %}checked{% endif %}> Visa sponsorship offered</label>
+        </div>
+        <div>
+          <label>Description</label>
+          <textarea name="description" class="large" maxlength="20000">{{ post.description or '' }}</textarea>
+        </div>
+        <div>
+          <label>Requirements</label>
+          <textarea name="requirements">{{ post.requirements or '' }}</textarea>
+        </div>
+        <div class="row">
+          <div>
+            <label>Application URL</label>
+            <input type="url" name="application_url" value="{{ post.application_url or '' }}">
+          </div>
+          <div>
+            <label>Application email</label>
+            <input type="email" name="application_email" value="{{ post.application_email or '' }}">
+          </div>
+        </div>
+        <div style="margin-top: 6px;">
+          <button type="submit" class="em-copy-btn" style="padding: 9px 18px; font-size: 13px;">Save changes</button>
+        </div>
+      </form>
+    </details>
+  </div>
+</div>
+
+<script>
+(function () {
+  var btn = document.getElementById('copy-link-btn');
+  var box = document.getElementById('manage-link');
+  if (btn && box) {
+    btn.addEventListener('click', function () {
+      navigator.clipboard.writeText(box.textContent.trim()).then(function () {
+        var oldText = btn.textContent;
+        btn.textContent = 'Copied ✓';
+        setTimeout(function () { btn.textContent = oldText; }, 1800);
+      });
+    });
+  }
+})();
+</script>
+{% endblock %}

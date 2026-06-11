@@ -1,0 +1,54 @@
+# Render.com blueprint for gaijinhunterjp.com.
+#
+# SQLite lives on a persistent disk mounted at /var/data — WITHOUT this disk
+# the database is wiped on every deploy. Scrapers run via a Render cron job
+# or manually from the service shell (see DEPLOYMENT.md).
+#
+# After the first deploy:
+#   1. Settings -> Custom Domains -> add gaijinhunterjp.com AND
+#      www.gaijinhunterjp.com (Render then shows the DNS records to create
+#      in Squarespace — see DOMAIN_SETUP.md).
+#   2. Confirm BASE_URL below matches the canonical domain (apex).
+services:
+  - type: web
+    name: gaijin-hunter
+    runtime: python
+    plan: starter            # starter or above — free tier has no persistent disk
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 60
+    healthCheckPath: /healthz
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: BASE_URL
+        value: https://gaijinhunterjp.com
+      - key: JAPAN_JOBS_DB
+        value: /var/data/jobs.db
+    disk:
+      name: data
+      mountPath: /var/data
+      sizeGB: 1
+
+# ---------------------------------------------------------------------------
+# Scheduled scraper refresh — DISABLED until the first MANUAL production scrape
+# succeeds (see CRON_SETUP.md and DEPLOYMENT.md "First refresh" runbook).
+#
+# Do NOT uncomment this until you've run the bounded manual refreshes from the
+# service shell and confirmed source + fit-score distributions look sane.
+# Cron jobs need their own access to the same persistent disk.
+#
+# cronJobs:
+#   - name: gaijin-hunter-refresh
+#     runtime: python
+#     schedule: "0 18 * * *"        # daily 18:00 UTC (~03:00 JST); use "0 6,18 * * *" for twice daily
+#     buildCommand: pip install -r requirements.txt
+#     startCommand: python update.py && python backfill.py --apply
+#     envVars:
+#       - key: JAPAN_JOBS_DB
+#         value: /var/data/jobs.db
+#     disk:
+#       name: data                  # MUST be the same disk as the web service
+#       mountPath: /var/data
+#       sizeGB: 1

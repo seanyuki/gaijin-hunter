@@ -1,0 +1,486 @@
+{% extends "base.html" %}
+{% block title %}Job Description Match Analyzer, Free CV vs JD Tool · Gaijin Hunter{% endblock %}
+{% block meta_description %}Paste a job description and your CV. Get an instant match score with explanation, keyword coverage, missing skills, and tailored recommendations. Free, runs in your browser.{% endblock %}
+{% block jsonld %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "JD Match Analyzer",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Any (web-based)",
+  "description": "Free CV-to-job-description match analyzer. Compares keyword coverage, identifies missing skills, and suggests improvements. Runs entirely in browser.",
+  "url": "{{ base_url }}/tools/jd-match",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "JPY"},
+  "creator": {"@type": "Organization", "name": "Gaijin Hunter"}
+}
+</script>
+{% endblock %}
+{% block content %}
+<style>
+  .tool-h { padding: 14px 0 18px; }
+  .tool-h .crumb { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .tool-h .crumb a { color: var(--muted); text-decoration: none; }
+  .tool-h h1 { margin: 0 0 4px; font-size: 28px; }
+  .tool-h .lede { color: var(--muted); margin: 0; max-width: 740px; line-height: 1.55; }
+
+  .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+  @media (max-width: 1000px) { .layout { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+           padding: 22px 24px; }
+  .panel h2 { margin: 0 0 12px; font-size: 17px; }
+  .panel .help { font-size: 12px; color: var(--muted); margin: 0 0 10px; }
+
+  textarea.jd { width: 100%; padding: 12px 14px; border: 1px solid var(--line);
+                border-radius: 8px; font-family: inherit; font-size: 14px;
+                line-height: 1.55; resize: vertical; min-height: 220px; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 12px; color: var(--muted);
+                  text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .field input, .field select {
+    width: 100%; padding: 9px 11px; border: 1px solid var(--line); border-radius: 6px;
+    font-size: 14px; background: #fff;
+  }
+  .actions { display: flex; gap: 8px; margin-top: 12px; }
+  .actions .btn { background: var(--accent); color: #fff; border: none;
+                   padding: 10px 20px; border-radius: 6px; cursor: pointer;
+                   font-size: 14px; font-weight: 600; }
+  .actions .btn.ghost { background: #fff; color: #374151; border: 1px solid var(--line); }
+
+  /* Results */
+  .score-circle { width: 110px; height: 110px; border-radius: 50%;
+                   display: flex; align-items: center; justify-content: center;
+                   color: #fff; font-weight: 800; font-size: 36px; margin: 0 auto 10px; }
+  .score-circle.high { background: linear-gradient(135deg, #10b981, #059669); }
+  .score-circle.mid  { background: linear-gradient(135deg, #f59e0b, #d97706); }
+  .score-circle.low  { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+  .score-card { text-align: center; padding: 22px; }
+  .score-card .label { font-size: 14px; font-weight: 600; }
+  .score-card .label.high { color: #166534; }
+  .score-card .label.mid  { color: #92400e; }
+  .score-card .label.low  { color: #991b1b; }
+  .score-card .explain { font-size: 13px; color: var(--muted); margin-top: 8px;
+                          line-height: 1.55; }
+
+  .breakdown-list { display: flex; flex-direction: column; gap: 8px; }
+  .pill-row { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px;
+              background: #f9fafb; border-radius: 8px; border-left: 4px solid var(--line); }
+  .pill-row.ok    { border-color: #10b981; background: #ecfdf5; }
+  .pill-row.warn  { border-color: #f59e0b; background: #fffbeb; }
+  .pill-row.miss  { border-color: #ef4444; background: #fef2f2; }
+  .pill-row .ic   { font-size: 16px; line-height: 1.4; flex-shrink: 0; }
+  .pill-row .text { font-size: 13px; line-height: 1.55; color: var(--fg); }
+  .pill-row .text b { color: inherit; }
+
+  .ask-list, .talk-list { padding-left: 22px; margin: 6px 0; }
+  .ask-list li, .talk-list li { font-size: 13px; line-height: 1.6; color: #374151;
+                                  margin-bottom: 6px; }
+  .ask-list li::marker { color: var(--accent); }
+
+  .empty { color: var(--muted); font-size: 14px; padding: 30px 0; text-align: center;
+           font-style: italic; }
+</style>
+
+<div class="tool-h">
+  <div class="crumb"><a href="/tools">← All tools</a></div>
+  <h1>Job description match analyzer</h1>
+  <p class="lede">Paste any Japan job description; we'll score it against your profile, surface
+     skill matches and gaps, flag salary / language requirements, and suggest specific
+     talking-points and interview questions you can ask. Everything runs in your browser.</p>
+</div>
+
+<div class="layout">
+
+  <!-- LEFT: input -->
+  <div>
+    <div class="panel">
+      <h2>1. Paste the job description</h2>
+      <p class="help">Copy the entire posting, title, requirements, responsibilities, perks.
+        The more raw text we have, the better the analysis.</p>
+      <textarea id="jd" class="jd" placeholder="Paste the full job description here…"></textarea>
+      <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button type="button" class="btn ghost" id="sample-btn"
+                style="background:#f3f4f6; color:#374151; border:1px solid var(--line);
+                padding:5px 12px; border-radius:6px; font-size:12px; cursor:pointer;">
+          Paste a sample JD
+        </button>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:14px;">
+      <h2>2. Confirm your context</h2>
+      <p class="help">Pre-filled from your profile (you can override).</p>
+      <div class="field">
+        <label>Your years of experience</label>
+        <input type="number" id="user-years" min="0" max="40" placeholder="e.g. 7">
+      </div>
+      <div class="field">
+        <label>Your Japanese level</label>
+        <select id="user-jp">
+          <option value="">Select…</option>
+          <option>Not Required</option>
+          <option>Basic / Beginner</option>
+          <option>Conversational</option>
+          <option>Business / Professional</option>
+          <option>Native / Fluent</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Your salary floor (¥/yr)</label>
+        <input type="number" id="user-salary" min="0" step="100000" placeholder="e.g. 8000000">
+      </div>
+      <div class="field">
+        <label>Your visa status</label>
+        <select id="user-visa">
+          <option value="">Select…</option>
+          <option value="need">I need sponsorship</option>
+          <option value="have">I already have a visa</option>
+          <option value="pr">I have PR / spouse</option>
+        </select>
+      </div>
+      <div class="actions">
+        <button class="btn" id="analyze-btn">Analyze →</button>
+        <button class="btn ghost" id="clear-btn">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: results -->
+  <aside>
+    <div class="panel" id="results-panel">
+      <div class="empty" id="empty-state">
+        Paste a job description on the left and click <b>Analyze</b>. Results appear here.
+      </div>
+
+      <div id="results" style="display:none;">
+        <div class="score-card">
+          <div class="score-circle" id="score-ring">0</div>
+          <div class="label" id="score-label">Match score</div>
+          <div class="explain" id="score-explain"></div>
+        </div>
+
+        <h2 style="margin-top: 18px;">What we found</h2>
+        <div class="breakdown-list" id="findings"></div>
+
+        <h2 style="margin-top: 18px;">Talking points for your application</h2>
+        <ul class="talk-list" id="talking-points"></ul>
+
+        <h2 style="margin-top: 18px;">Questions to ask in the interview</h2>
+        <ul class="ask-list" id="ask-list"></ul>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script>
+(function () {
+  // ---------- Heuristic extraction ----------
+  var TECH_KEYWORDS = [
+    "python","javascript","typescript","go","golang","rust","kotlin","java","c++","c#","ruby","php","swift",
+    "react","vue","angular","next.js","nuxt","django","flask","fastapi","spring","gin","echo","rails",
+    "node","express","graphql","grpc","rest","sql","postgresql","postgres","mysql","mongodb","redis",
+    "kafka","rabbitmq","sqs","sns","aws","gcp","azure","kubernetes","k8s","docker","terraform","ansible",
+    "datadog","prometheus","grafana","opentelemetry","ci/cd","jenkins","github actions","circleci",
+    "tensorflow","pytorch","scikit","pandas","numpy","spark","airflow","dbt","snowflake","bigquery","redshift",
+    "figma","sketch","adobe","photoshop","illustrator","sketch","invision","framer",
+  ];
+  var LANG_SIGNALS = {
+    "Native / Fluent": /\b(native\s+japanese|fluent\s+japanese|japanese\s+native|n1\b)/i,
+    "Business / Professional": /\b(business\s+japanese|professional\s+japanese|n2\b)/i,
+    "Conversational": /\b(conversational\s+japanese|n3\b|intermediate\s+japanese)/i,
+    "Basic / Beginner": /\b(basic\s+japanese|beginner\s+japanese|n4\b|n5\b)/i,
+    "Not Required": /\b(no\s+japanese|japanese\s+not\s+required|english[- ]?only|english\s+is\s+enough)/i,
+  };
+  var YEARS_RE = /(\d{1,2})\s*[\+]?\s*(?:years?|yrs?|y)\b/i;
+  var SALARY_RE = /(¥|jpy|yen)\s*([\d,]+)\s*(?:m|million|万)?/i;
+
+  function tokenize(text) {
+    return (text || "").toLowerCase()
+      .replace(/[^a-z0-9+#./ \-]/g, " ")
+      .split(/\s+/).filter(Boolean);
+  }
+  function findKeywords(text, keywords) {
+    var t = " " + tokenize(text).join(" ") + " ";
+    var hits = [];
+    keywords.forEach(function (k) {
+      var pat = new RegExp("(^|[^a-z0-9])" + k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "([^a-z0-9]|$)", "i");
+      if (pat.test(t)) hits.push(k);
+    });
+    return hits;
+  }
+  function detectYears(text) {
+    var m = (text || "").match(YEARS_RE);
+    return m ? parseInt(m[1], 10) : null;
+  }
+  function detectSalary(text) {
+    var m = (text || "").match(/(?:¥|jpy|yen)\s*([\d,]+)\s*[mM]/i);
+    if (m) return parseInt(m[1].replace(/,/g, ""), 10) * 1000000;
+    m = (text || "").match(/([\d,]+)\s*(?:万円|man)/i);
+    if (m) return parseInt(m[1].replace(/,/g, ""), 10) * 10000;
+    m = (text || "").match(/(?:¥|jpy|yen)\s*([\d,]{4,})/i);
+    if (m) return parseInt(m[1].replace(/,/g, ""), 10);
+    return null;
+  }
+  function detectJpLevel(text) {
+    for (var lvl in LANG_SIGNALS) {
+      if (LANG_SIGNALS[lvl].test(text)) return lvl;
+    }
+    return null;
+  }
+  function detectVisaSupport(text) {
+    if (/no\s+visa\s+sponsorship|cannot\s+sponsor|will\s+not\s+sponsor/i.test(text)) return false;
+    if (/visa\s+sponsorship|will\s+sponsor|sponsor\s+(?:your\s+)?visa|relocation\s+(?:support|package|provided)/i.test(text)) return true;
+    return null;
+  }
+  function detectRemote(text) {
+    if (/(fully\s+remote|remote[- ]first|work\s+from\s+home|wfh)/i.test(text)) return "remote";
+    if (/(hybrid)/i.test(text)) return "hybrid";
+    if (/(on[- ]?site\s+only|in[- ]?office\s+only)/i.test(text)) return "onsite";
+    return null;
+  }
+
+  // ---------- Scoring ----------
+  var JP_RANK = { "Not Required": 0, "Basic / Beginner": 1, "Conversational": 2, "Business / Professional": 3, "Native / Fluent": 4 };
+
+  function analyze(jdText) {
+    var skills = findKeywords(jdText, TECH_KEYWORDS);
+    var yearsReq = detectYears(jdText);
+    var salary = detectSalary(jdText);
+    var jpLevel = detectJpLevel(jdText);
+    var visa = detectVisaSupport(jdText);
+    var remote = detectRemote(jdText);
+
+    var userYears = parseInt(document.getElementById("user-years").value, 10) || 0;
+    var userJp = document.getElementById("user-jp").value;
+    var userSalary = parseInt(document.getElementById("user-salary").value, 10) || 0;
+    var userVisa = document.getElementById("user-visa").value;
+    // Pull profile preferences for skills (we use targetRoleFamilies as proxy)
+    var profileRoles = (window.GH && GH.profile.get().targetRoleFamilies) || [];
+
+    var findings = [];
+    var score = 60;  // start at neutral
+
+    // Years experience
+    if (yearsReq && userYears) {
+      if (userYears >= yearsReq) {
+        score += 10;
+        findings.push({ cls: "ok", icon: "✅",
+          html: "<b>Experience:</b> You have " + userYears + " yrs; they want " + yearsReq + "+. Strong match." });
+      } else {
+        score -= 12;
+        findings.push({ cls: "miss", icon: "⚠️",
+          html: "<b>Experience gap:</b> They want " + yearsReq + "+ yrs; you have " + userYears +
+                ". Apply anyway — interview process often flexible." });
+      }
+    }
+
+    // Japanese
+    if (jpLevel) {
+      if (userJp && JP_RANK[userJp] >= JP_RANK[jpLevel]) {
+        score += 12;
+        findings.push({ cls: "ok", icon: "",
+          html: "<b>Japanese:</b> Requires " + jpLevel + "; you have " + userJp + ". Match." });
+      } else if (userJp) {
+        score -= 18;
+        findings.push({ cls: "miss", icon: "",
+          html: "<b>Japanese gap:</b> Requires " + jpLevel + "; you have " + userJp + ". " +
+                "Major risk — only apply if you're already studying or have a referral." });
+      }
+    } else {
+      findings.push({ cls: "warn", icon: "",
+        html: "<b>Japanese requirement unclear.</b> Couldn't detect a specific level. Ask in the first round." });
+    }
+
+    // Salary
+    if (salary && userSalary) {
+      if (salary >= userSalary) {
+        score += 8;
+        findings.push({ cls: "ok", icon: "",
+          html: "<b>Salary:</b> Posting mentions ~¥" + (salary / 1e6).toFixed(1) + "M; meets your floor of ¥" +
+                (userSalary / 1e6).toFixed(1) + "M." });
+      } else {
+        score -= 10;
+        findings.push({ cls: "warn", icon: "",
+          html: "<b>Salary below your floor:</b> Posting hints ¥" + (salary / 1e6).toFixed(1) +
+                "M; you said ¥" + (userSalary / 1e6).toFixed(1) + "M. May be negotiable." });
+      }
+    } else if (!salary) {
+      findings.push({ cls: "warn", icon: "",
+        html: "<b>Salary not listed in the posting.</b> Ask in your first call — never assume." });
+    }
+
+    // Visa
+    if (userVisa === "need") {
+      if (visa === true) {
+        score += 8;
+        findings.push({ cls: "ok", icon: "",
+          html: "<b>Visa sponsorship mentioned.</b> Confirm scope (work visa only? relocation help?) in your first call." });
+      } else if (visa === false) {
+        score -= 25;
+        findings.push({ cls: "miss", icon: "",
+          html: "<b>Posting explicitly says NO visa sponsorship.</b> Skip unless you can switch your situation." });
+      } else {
+        findings.push({ cls: "warn", icon: "",
+          html: "<b>Visa sponsorship not mentioned.</b> Ask explicitly in the first email — it's a deal-breaker if missing." });
+      }
+    } else if (userVisa === "have" || userVisa === "pr") {
+      score += 5;
+      findings.push({ cls: "ok", icon: "",
+        html: "<b>Visa: no concern.</b> You already have work authorization." });
+    }
+
+    // Remote / location
+    if (remote === "remote") {
+      findings.push({ cls: "ok", icon: "🏠",
+        html: "<b>Remote-first / WFH OK.</b> Confirm time-zone overlap expectations." });
+    } else if (remote === "hybrid") {
+      findings.push({ cls: "warn", icon: "🏢",
+        html: "<b>Hybrid:</b> Confirm the in-office days/week ratio." });
+    } else if (remote === "onsite") {
+      findings.push({ cls: "warn", icon: "🏢",
+        html: "<b>Onsite only.</b> Make sure you're prepared to commute daily." });
+    }
+
+    // Skills
+    if (skills.length > 0) {
+      findings.push({ cls: "ok", icon: "🛠",
+        html: "<b>Tech detected:</b> " + skills.slice(0, 12).map(function (s) {
+          return "<code style='background:#fff; padding:1px 5px; border-radius:3px; font-size:12px;'>" + s + "</code>";
+        }).join(" ") +
+        (skills.length > 12 ? " +" + (skills.length - 12) + " more" : "") });
+    }
+
+    // Foreign-cap / English-language detection
+    var foreignFriendlyMatch = jdText.match(/\b(mercari|smartnews|paypay|line yahoo|indeed|google|amazon|microsoft|meta|facebook|stripe|tokyo dev|rakuten)\b/i);
+    if (foreignFriendlyMatch) {
+      score += 8;
+      findings.push({ cls: "ok", icon: "🌐",
+        html: "<b>Company is known to hire foreigners:</b> " + foreignFriendlyMatch[0] + ". " +
+              "These companies typically have English-language interview tracks." });
+    }
+
+    // ---------- Talking points ----------
+    var talking = [];
+    if (skills.length > 0) {
+      talking.push("Lead your cover letter with the 2-3 of these skills you have the strongest stories about: " +
+        skills.slice(0, 5).map(function (s) { return "<b>" + s + "</b>"; }).join(", ") + ".");
+    }
+    if (yearsReq && userYears && userYears >= yearsReq + 2) {
+      talking.push("You're meaningfully more senior than the posting requires — pitch a level higher in your cover letter.");
+    }
+    if (yearsReq && userYears && userYears < yearsReq) {
+      talking.push("Don't apologize for the experience gap. Open with the strongest project you've shipped that's relevant to this role.");
+    }
+    if (foreignFriendlyMatch) {
+      talking.push("Reference a specific product / news event from " + foreignFriendlyMatch[0] +
+        " in your opening — these companies see hundreds of generic applications.");
+    }
+    if (jpLevel && userJp && JP_RANK[userJp] < JP_RANK[jpLevel]) {
+      talking.push("Acknowledge the Japanese gap head-on, then explain your study plan. Hiring managers respect honesty over inflation.");
+    }
+    if (salary && userSalary && salary < userSalary) {
+      talking.push("Don't lead with salary. Ask the recruiter what the total comp range is — often base understates the actual offer.");
+    }
+    if (talking.length === 0) {
+      talking.push("Lead the cover letter with a specific reason for picking THIS company. Avoid 'I'm passionate about Japan'.");
+      talking.push("Quantify your most recent achievement in your opening paragraph — a number anchors credibility.");
+    }
+
+    // ---------- Questions to ask ----------
+    var ask = [
+      "How is performance reviewed? What does a strong year look like?",
+      "What does the engineering ladder / promotion path look like at my level?",
+    ];
+    if (visa !== true && userVisa === "need") {
+      ask.push("What does the visa sponsorship process look like, and how long does it typically take?");
+    }
+    if (!salary) {
+      ask.push("Can you share the salary range for this role at my experience level?");
+    }
+    if (!jpLevel) {
+      ask.push("What Japanese level is genuinely required vs. nice-to-have?");
+    }
+    if (remote === "hybrid") {
+      ask.push("How many days in-office per week? Is that consistent across the team?");
+    }
+    ask.push("Why is this role open — is it backfill or growth?");
+    ask.push("What does onboarding look like for foreigners specifically?");
+    if (foreignFriendlyMatch) {
+      ask.push("How is the English/Japanese mix in day-to-day team operations?");
+    }
+
+    score = Math.max(0, Math.min(100, score));
+    return { score: score, findings: findings, talking: talking, ask: ask };
+  }
+
+  function render(r) {
+    document.getElementById("empty-state").style.display = "none";
+    document.getElementById("results").style.display = "";
+    var ring = document.getElementById("score-ring");
+    var label = document.getElementById("score-label");
+    var explain = document.getElementById("score-explain");
+    var cls = r.score >= 75 ? "high" : r.score >= 55 ? "mid" : "low";
+    ring.className = "score-circle " + cls;
+    label.className = "label " + cls;
+    ring.textContent = r.score;
+    label.textContent = r.score >= 75 ? "Strong match — apply with confidence"
+                     : r.score >= 55 ? "Worth applying — gaps are bridgeable"
+                                      : "Risky — apply only with a strong angle";
+    explain.textContent = "Profile-aware match between this JD and your background. " +
+      "Higher = more likely to make it past initial screening.";
+
+    document.getElementById("findings").innerHTML = r.findings.map(function (f) {
+      return '<div class="pill-row ' + f.cls + '"><div class="ic">' + f.icon + '</div>' +
+        '<div class="text">' + f.html + '</div></div>';
+    }).join("");
+
+    document.getElementById("talking-points").innerHTML =
+      r.talking.map(function (t) { return "<li>" + t + "</li>"; }).join("");
+    document.getElementById("ask-list").innerHTML =
+      r.ask.map(function (a) { return "<li>" + a + "</li>"; }).join("");
+  }
+
+  // ---------- Events ----------
+  document.getElementById("analyze-btn").addEventListener("click", function () {
+    var jd = document.getElementById("jd").value.trim();
+    if (jd.length < 50) {
+      alert("Paste a longer job description (at least 50 characters).");
+      return;
+    }
+    render(analyze(jd));
+    window.scrollTo({ top: document.getElementById("results-panel").offsetTop - 60, behavior: "smooth" });
+  });
+  document.getElementById("clear-btn").addEventListener("click", function () {
+    document.getElementById("jd").value = "";
+    document.getElementById("results").style.display = "none";
+    document.getElementById("empty-state").style.display = "";
+  });
+  document.getElementById("sample-btn").addEventListener("click", function () {
+    document.getElementById("jd").value =
+      "Senior Backend Engineer — Tokyo\n\n" +
+      "We are seeking a Senior Backend Engineer with 5+ years of experience to join our payments " +
+      "platform team. You'll design and operate the core authorization service handling 12M tx/day.\n\n" +
+      "Requirements:\n" +
+      "- 5+ years of backend engineering experience in Go, Python, or Java\n" +
+      "- Production experience with PostgreSQL, Redis, Kafka\n" +
+      "- Familiarity with AWS (ECS, RDS) and observability tools (Datadog, Prometheus)\n" +
+      "- Conversational Japanese (JLPT N3+) preferred but not required\n" +
+      "- We sponsor visa applications for qualified candidates\n\n" +
+      "Compensation: ¥10M-¥14M annual base + bonus + RSUs. Hybrid (3 days in-office). " +
+      "Located in Roppongi.";
+  });
+
+  // Prefill from GH profile if available
+  if (window.GH) {
+    var p = GH.profile.get();
+    if (p.yearsExperience) document.getElementById("user-years").value = p.yearsExperience;
+    if (p.japaneseLevel)   document.getElementById("user-jp").value = p.japaneseLevel;
+    if (p.minSalary)       document.getElementById("user-salary").value = p.minSalary;
+    if (p.visaStatus === "need") document.getElementById("user-visa").value = "need";
+    else if (p.visaStatus === "have") document.getElementById("user-visa").value = "have";
+    else if (p.visaStatus === "citizen") document.getElementById("user-visa").value = "pr";
+  }
+})();
+</script>
+{% endblock %}

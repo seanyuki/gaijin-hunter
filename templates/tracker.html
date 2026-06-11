@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+{% block title %}Application Tracker, Gaijin Hunter{% endblock %}
+{% block meta_description %}Track every Japan job application through a private pipeline, saved, applied, interviewing, offer. Kanban and table views, follow-up reminders. All in your browser.{% endblock %}
+{% block meta_robots %}noindex{% endblock %}
+{% block content %}
+<style>
+  .tk-head { display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; margin-bottom:6px; }
+  .tk-head h1 { margin:0; }
+  .view-toggle { display:inline-flex; border:1px solid var(--line); border-radius:9px; overflow:hidden; }
+  .view-toggle button { border:none; background:#fff; color:var(--fg-soft); font-size:13px; font-weight:600;
+    padding:8px 16px; cursor:pointer; }
+  .view-toggle button.active { background:var(--accent); color:#fff; }
+
+  .followup-banner { background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:12px 16px;
+    margin:14px 0; color:#92400e; font-size:14px; display:none; align-items:center; gap:10px; }
+  .followup-banner a { color:#92400e; font-weight:700; }
+
+  .tk-stats { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 20px; }
+  .stat-chip { background:var(--card); border:1px solid var(--line); border-radius:999px; padding:6px 14px;
+    font-size:13px; color:var(--fg-soft); }
+  .stat-chip strong { color:var(--accent); }
+
+  /* Kanban */
+  .kanban { display:grid; grid-template-columns:repeat(5, 1fr); gap:12px; }
+  @media (max-width:1000px){ .kanban { grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:560px){ .kanban { grid-template-columns:1fr; } }
+  .col { background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:11px; min-height:140px; }
+  .col h3 { margin:0 0 10px; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em;
+    display:flex; justify-content:space-between; align-items:center; }
+  .col h3 .count { background:#fff; color:var(--accent); border:1px solid var(--line); border-radius:999px; padding:1px 8px; font-size:11px; }
+  .app-card { background:var(--card); border:1px solid var(--line); border-radius:9px; padding:11px; margin-bottom:9px; }
+  .app-card.overdue { border-color:#fbbf24; box-shadow:0 0 0 2px #fef3c7; }
+  .app-card h4 { margin:0 0 3px; font-size:13.5px; line-height:1.35; }
+  .app-card h4 a { color:var(--fg); text-decoration:none; }
+  .app-card h4 a:hover { color:var(--accent); }
+  .app-card .meta { color:var(--muted); font-size:11.5px; margin-bottom:7px; }
+  .app-card .row2 { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:7px; }
+  .pill { font-size:10.5px; border-radius:999px; padding:2px 8px; font-weight:600; }
+  .pill.due { background:#fef3c7; color:#92400e; }
+  .pill.sal { background:#ecfdf5; color:#065f46; }
+  .pill.note { background:var(--line-soft); color:var(--fg-soft); }
+  .app-card select.st { width:100%; font-size:12px; font-weight:600; color:var(--accent);
+    border:1px solid var(--line); border-radius:6px; padding:5px 7px; background:#fff; cursor:pointer; }
+  .app-card .links { display:flex; gap:10px; margin-top:7px; font-size:11.5px; }
+  .app-card .links a { color:var(--muted); text-decoration:none; }
+  .app-card .links a:hover { color:var(--accent); }
+
+  /* Table */
+  .tk-filters { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; align-items:center; }
+  .tk-filters select, .tk-filters input { padding:7px 10px; border:1px solid var(--line); border-radius:8px;
+    font-size:13px; background:#fff; color:var(--fg); }
+  .tk-table { width:100%; border-collapse:collapse; font-size:13.5px; }
+  .tk-table th { text-align:left; padding:9px 10px; border-bottom:2px solid var(--line); color:var(--muted);
+    font-size:11.5px; text-transform:uppercase; letter-spacing:.03em; }
+  .tk-table td { padding:9px 10px; border-bottom:1px solid var(--line-soft); vertical-align:top; }
+  .tk-table tr.overdue td { background:#fffbeb; }
+  .tk-table td a { color:var(--accent); text-decoration:none; }
+  .tk-table select.st { font-size:12.5px; font-weight:600; color:var(--accent); border:1px solid var(--line);
+    border-radius:6px; padding:4px 6px; background:#fff; }
+  .tk-table .rm { color:#b91c1c; cursor:pointer; font-size:12px; background:none; border:none; }
+
+  .empty-tracker { text-align:center; padding:50px 20px; color:var(--muted); background:var(--card);
+    border:1px dashed var(--line); border-radius:14px; }
+  .empty-tracker h3 { color:var(--fg); margin:0 0 8px; }
+  .empty-tracker .btn { display:inline-block; margin-top:14px; background:var(--accent); color:#fff;
+    padding:10px 20px; border-radius:9px; text-decoration:none; font-weight:700; }
+  .hidden { display:none !important; }
+</style>
+
+<div class="breadcrumb"><a href="/jobs">Jobs</a> / Application tracker</div>
+
+<div class="tk-head">
+  <div>
+    <h1>Application tracker</h1>
+    <p style="color:var(--muted); font-size:14px; margin:4px 0 0;">Every job you save or apply to, in one private pipeline. Stored in your browser only.</p>
+  </div>
+  <div class="view-toggle" role="tablist">
+    <button id="btn-kanban" class="active" type="button">Kanban</button>
+    <button id="btn-table" type="button">Table</button>
+  </div>
+</div>
+
+<div class="followup-banner gh-followup-banner" id="tk-followup-banner">
+  {{ icon('bell', size=15) }} <span><span class="gh-followup-text">applications need follow-up</span>. <a href="/tracker?filter=followup_due">Show them</a></span>
+</div>
+
+<div class="tk-stats" id="tk-stats"></div>
+
+<!-- KANBAN VIEW -->
+<div id="view-kanban">
+  <div class="kanban" id="kanban"></div>
+</div>
+
+<!-- TABLE VIEW -->
+<div id="view-table" class="hidden">
+  <div class="tk-filters">
+    <select id="f-status"><option value="">All statuses</option></select>
+    <select id="f-source"><option value="">All sources</option></select>
+    <select id="f-followup">
+      <option value="">Any follow-up</option>
+      <option value="due">Follow-up due / overdue</option>
+      <option value="set">Has follow-up date</option>
+      <option value="none">No follow-up set</option>
+    </select>
+    <input type="search" id="f-search" placeholder="Search title / company / notes…" style="min-width:200px;">
+  </div>
+  <div style="overflow-x:auto;">
+    <table class="tk-table">
+      <thead><tr>
+        <th>Job</th><th>Company</th><th>Status</th><th>Applied</th><th>Follow-up</th><th>Salary</th><th>Source</th><th></th>
+      </tr></thead>
+      <tbody id="tk-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="empty-tracker hidden" id="tk-empty">
+  <h3>No tracked applications yet</h3>
+  <p>Save a job or mark one as applied, and it'll appear here so you can manage every stage from saved to offer.</p>
+  <a class="btn" href="/jobs">Browse jobs →</a>
+</div>
+
+<script>
+(function () {
+  if (!window.GH) return;
+  var KANBAN = GH.KANBAN;
+  var byId = {};   // jobId -> hydrated job row
+
+  function qs() { return new URLSearchParams(window.location.search); }
+  function fmtDate(v) { if (!v) return ""; var d = new Date(v); return isNaN(d) ? "" : d.toISOString().slice(0,10); }
+  function esc(s){ var d=document.createElement("div"); d.textContent=(s==null?"":s); return d.innerHTML; }
+  function yen(n){ n=Number(n)||0; if(n>=1e6) return "¥"+(n/1e6).toFixed(1).replace(/\.0$/,"")+"M"; if(n>=1e3) return "¥"+Math.round(n/1e3)+"K"; return n?("¥"+n):""; }
+  function isOverdue(e){
+    if (!e.followUpAt) return false;
+    var d = new Date(e.followUpAt); var t = new Date(); t.setHours(23,59,59,999);
+    return !isNaN(d) && d <= t && ["Rejected","Withdrawn","Archived","Offer"].indexOf(e.status) === -1;
+  }
+  function jobMeta(id){ return byId[id] || {}; }
+  function sourceOf(e){ var j=jobMeta(e.jobId); return j.source || (e.sourceUrl ? "External" : "—"); }
+
+  function setStatus(id, status) { GH.tracker.setStatus(id, status); if (window.ghToast) ghToast("Moved to " + status); render(); }
+  function removeApp(id) { GH.tracker.remove(id); if (window.ghToast) ghToast("Removed from tracker"); render(); }
+
+  // ---- KANBAN ----
+  function renderKanban(entries) {
+    var wrap = document.getElementById("kanban");
+    wrap.innerHTML = "";
+    KANBAN.forEach(function (colDef) {
+      var col = document.createElement("div"); col.className = "col";
+      var items = entries.filter(function (e) { return GH.tracker.columnFor(e.status) === colDef.key; });
+      col.innerHTML = '<h3>' + esc(colDef.label) + ' <span class="count">' + items.length + '</span></h3>';
+      items.forEach(function (e) {
+        var j = jobMeta(e.jobId);
+        var card = document.createElement("div");
+        card.className = "app-card" + (isOverdue(e) ? " overdue" : "");
+        var title = esc(j.title || ("Job #" + e.jobId));
+        var company = esc(j.company_name || "");
+        var loc = esc(j.location || "");
+        var html = '<h4><a href="/job/' + e.jobId + '">' + title + '</a></h4>';
+        html += '<div class="meta">' + company + (loc ? ' · ' + loc : '') + '</div>';
+        html += '<div class="row2">';
+        if (isOverdue(e)) html += '<span class="pill due">Follow up — due ' + fmtDate(e.followUpAt) + '</span>';
+        else if (e.followUpAt) html += '<span class="pill note">Follow-up ' + fmtDate(e.followUpAt) + '</span>';
+        else if (["Applied","Phone Screen","Interview"].indexOf(e.status) !== -1)
+          html += '<a class="pill due" style="text-decoration:none;" href="/job/' + e.jobId + '#gh-tracker-panel">Set a follow-up date</a>';
+        var sal = e.salaryDiscussed || (j.salary_min_annual_jpy ? yen(j.salary_min_annual_jpy) : "");
+        if (sal) html += '<span class="pill sal">' + esc(sal) + '</span>';
+        if (e.notes) html += '<span class="pill note" title="' + esc(e.notes) + '">Notes</span>';
+        html += '</div>';
+        html += '<select class="st" data-id="' + e.jobId + '">' +
+          GH.STATUSES.map(function (s){ return '<option' + (s===e.status?' selected':'') + '>' + s + '</option>'; }).join("") + '</select>';
+        html += '<div class="links"><a href="/job/' + e.jobId + '">Open</a>';
+        var src = j.url || e.sourceUrl;
+        if (src) html += '<a href="' + esc(src) + '" target="_blank" rel="noopener">Source ↗</a>';
+        html += '<a href="#" class="rm" data-id="' + e.jobId + '">Remove</a></div>';
+        card.innerHTML = html;
+        col.appendChild(card);
+      });
+      if (!items.length) col.innerHTML += '<div style="font-size:12px; color:var(--muted-soft); text-align:center; padding:10px 0;">—</div>';
+      wrap.appendChild(col);
+    });
+    wrap.querySelectorAll("select.st").forEach(function (sel) {
+      sel.addEventListener("change", function () { setStatus(parseInt(sel.getAttribute("data-id"),10), sel.value); });
+    });
+    wrap.querySelectorAll("a.rm").forEach(function (a) {
+      a.addEventListener("click", function (e) { e.preventDefault(); removeApp(parseInt(a.getAttribute("data-id"),10)); });
+    });
+  }
+
+  // ---- TABLE ----
+  function populateFilters(entries) {
+    var fs = document.getElementById("f-status");
+    if (fs.options.length <= 1) GH.STATUSES.forEach(function (s){ var o=document.createElement("option"); o.value=s; o.textContent=s; fs.appendChild(o); });
+    var fsrc = document.getElementById("f-source");
+    var sources = {};
+    entries.forEach(function (e){ sources[sourceOf(e)] = 1; });
+    var cur = fsrc.value;
+    fsrc.innerHTML = '<option value="">All sources</option>';
+    Object.keys(sources).sort().forEach(function (s){ var o=document.createElement("option"); o.value=s; o.textContent=s; fsrc.appendChild(o); });
+    fsrc.value = cur;
+  }
+  function renderTable(entries) {
+    var tbody = document.getElementById("tk-tbody");
+    var fStatus = document.getElementById("f-status").value;
+    var fSource = document.getElementById("f-source").value;
+    var fFollow = document.getElementById("f-followup").value;
+    var fSearch = (document.getElementById("f-search").value || "").toLowerCase();
+    var urlFilter = qs().get("filter");
+    tbody.innerHTML = "";
+    var rows = entries.filter(function (e) {
+      var j = jobMeta(e.jobId);
+      if (fStatus && e.status !== fStatus) return false;
+      if (fSource && sourceOf(e) !== fSource) return false;
+      if ((fFollow === "due" || urlFilter === "followup_due" || urlFilter === "overdue") && !isOverdue(e)) return false;
+      if (fFollow === "set" && !e.followUpAt) return false;
+      if (fFollow === "none" && e.followUpAt) return false;
+      if (fSearch) {
+        var hay = ((j.title||"") + " " + (j.company_name||"") + " " + (e.notes||"")).toLowerCase();
+        if (hay.indexOf(fSearch) === -1) return false;
+      }
+      return true;
+    });
+    rows.sort(function (a,b){ return (b.updatedAt||"").localeCompare(a.updatedAt||""); });
+    rows.forEach(function (e) {
+      var j = jobMeta(e.jobId);
+      var tr = document.createElement("tr");
+      if (isOverdue(e)) tr.className = "overdue";
+      var src = j.url || e.sourceUrl;
+      tr.innerHTML =
+        '<td><a href="/job/' + e.jobId + '">' + esc(j.title || ("Job #"+e.jobId)) + '</a></td>' +
+        '<td>' + esc(j.company_name || "—") + '</td>' +
+        '<td><select class="st" data-id="' + e.jobId + '">' +
+          GH.STATUSES.map(function (s){ return '<option' + (s===e.status?' selected':'') + '>'+s+'</option>'; }).join("") + '</select></td>' +
+        '<td>' + (fmtDate(e.appliedAt) || "—") + '</td>' +
+        '<td>' + (e.followUpAt ? (isOverdue(e) ? '<b style="color:#b45309;">'+fmtDate(e.followUpAt)+'</b>' : fmtDate(e.followUpAt)) : "—") + '</td>' +
+        '<td>' + esc(e.salaryDiscussed || (j.salary_min_annual_jpy ? yen(j.salary_min_annual_jpy) : "—")) + '</td>' +
+        '<td>' + (src ? '<a href="'+esc(src)+'" target="_blank" rel="noopener">'+esc(sourceOf(e))+' ↗</a>' : esc(sourceOf(e))) + '</td>' +
+        '<td><button class="rm" data-id="' + e.jobId + '">Remove</button></td>';
+      tbody.appendChild(tr);
+    });
+    if (!rows.length) tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--muted); padding:24px;">No applications match these filters.</td></tr>';
+    tbody.querySelectorAll("select.st").forEach(function (sel){
+      sel.addEventListener("change", function (){ setStatus(parseInt(sel.getAttribute("data-id"),10), sel.value); });
+    });
+    tbody.querySelectorAll("button.rm").forEach(function (b){
+      b.addEventListener("click", function (){ removeApp(parseInt(b.getAttribute("data-id"),10)); });
+    });
+  }
+
+  function renderStats(entries) {
+    var counts = GH.tracker.statusCounts();
+    var overdue = GH.tracker.overdueFollowUps().length;
+    var el = document.getElementById("tk-stats");
+    var chips = [['Total', entries.length]];
+    KANBAN.forEach(function (c){
+      var n = entries.filter(function (e){ return GH.tracker.columnFor(e.status) === c.key; }).length;
+      if (n) chips.push([c.label, n]);
+    });
+    if (overdue) chips.push(['Follow-up due', overdue]);
+    el.innerHTML = chips.map(function (c){ return '<span class="stat-chip">' + esc(c[0]) + ' <strong>' + c[1] + '</strong></span>'; }).join("");
+  }
+
+  var currentEntries = [];
+  function render() {
+    currentEntries = GH.tracker.list();
+    var empty = !currentEntries.length;
+    document.getElementById("tk-empty").classList.toggle("hidden", !empty);
+    document.getElementById("view-kanban").classList.toggle("hidden", empty || currentView !== "kanban");
+    document.getElementById("view-table").classList.toggle("hidden", empty || currentView !== "table");
+    document.getElementById("tk-stats").style.display = empty ? "none" : "";
+    if (empty) return;
+    renderStats(currentEntries);
+    populateFilters(currentEntries);
+    if (currentView === "kanban") renderKanban(currentEntries);
+    else renderTable(currentEntries);
+    GH.refreshUi();
+  }
+
+  // On phones a 1-column kanban is an endless scroll; the table (with its own
+  // horizontal scroll) is the better default there.
+  var currentView = (window.matchMedia && window.matchMedia("(max-width: 700px)").matches)
+    ? "table" : "kanban";
+  if (currentView === "table") {
+    document.getElementById("btn-kanban").classList.remove("active");
+    document.getElementById("btn-table").classList.add("active");
+  }
+  function setView(v) {
+    currentView = v;
+    document.getElementById("btn-kanban").classList.toggle("active", v === "kanban");
+    document.getElementById("btn-table").classList.toggle("active", v === "table");
+    render();
+  }
+  document.getElementById("btn-kanban").addEventListener("click", function (){ setView("kanban"); });
+  document.getElementById("btn-table").addEventListener("click", function (){ setView("table"); });
+  ["f-status","f-source","f-followup","f-search"].forEach(function (id){
+    document.getElementById(id).addEventListener("input", function (){ if (currentView==="table") renderTable(currentEntries); });
+  });
+
+  // Deep-link: ?filter=followup_due|overdue opens the table pre-filtered.
+  var urlFilter = qs().get("filter");
+  if (urlFilter === "followup_due" || urlFilter === "overdue") {
+    currentView = "table";
+    document.getElementById("btn-kanban").classList.remove("active");
+    document.getElementById("btn-table").classList.add("active");
+    var ff = document.getElementById("f-followup"); if (ff) ff.value = "due";
+  }
+
+  // Skeleton shown only if hydration is slow (>160ms) so fast loads don't flash.
+  function showSkeleton(n) {
+    var wrap = document.getElementById("kanban"); if (!wrap) return;
+    document.getElementById("view-kanban").classList.remove("hidden");
+    document.getElementById("tk-empty").classList.add("hidden");
+    var cards = "";
+    for (var i = 0; i < Math.min(n, 3); i++) {
+      cards += '<div class="app-card"><div class="gh-skel" style="height:13px;width:70%;margin-bottom:8px;"></div>' +
+               '<div class="gh-skel" style="height:11px;width:50%;margin-bottom:10px;"></div>' +
+               '<div class="gh-skel" style="height:28px;width:100%;"></div></div>';
+    }
+    wrap.innerHTML = KANBAN.map(function (c, idx) {
+      return '<div class="col"><h3>' + c.label + '</h3>' + (idx === 0 ? cards : '') + '</div>';
+    }).join("");
+  }
+
+  // Hydrate job rows from the server, then render.
+  function start() {
+    var ids = GH.tracker.ids();
+    if (!ids.length) { render(); return; }
+    var pending = true;
+    var skelTimer = setTimeout(function () { if (pending) showSkeleton(ids.length); }, 160);
+    fetch("/api/jobs_by_ids?ids=" + ids.join(","))
+      .then(function (r){ return r.json(); })
+      .then(function (data){ (data.jobs||[]).forEach(function (j){ byId[j.id] = j; }); })
+      .catch(function (){})
+      .then(function () { pending = false; clearTimeout(skelTimer); render(); });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
+  else start();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}{{ company.name }}, Open positions, Gaijin Hunter{% endblock %}
+{% block content %}
+<style>
+  .co-h { padding: 18px 0 20px; }
+  .co-h .crumb { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .co-h .crumb a { color: var(--muted); text-decoration: none; }
+  .co-h .crumb a:hover { color: var(--accent); }
+
+  .header-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+                  padding: 24px 28px; }
+  .header-card h1 { margin: 0 0 4px; font-size: 28px; }
+  .header-card .name-jp { color: var(--muted); font-size: 16px; margin-bottom: 12px; }
+  .header-card .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 14px; }
+  @media (max-width: 700px) { .header-card .stats { grid-template-columns: repeat(2, 1fr); } }
+  .header-card .stat { background: #f9fafb; border: 1px solid var(--line);
+                       border-radius: 8px; padding: 12px 14px; }
+  .header-card .stat .label { font-size: 11px; color: var(--muted);
+                              text-transform: uppercase; letter-spacing: 0.05em; }
+  .header-card .stat .val { font-size: 18px; font-weight: 700; margin-top: 3px; }
+  .header-card .stat .val.fit { color: var(--accent); }
+  .header-card .filter-cta { margin-top: 14px; }
+  .header-card .filter-cta a { display: inline-block; background: var(--accent); color: #fff;
+                                padding: 8px 14px; border-radius: 6px; text-decoration: none;
+                                font-weight: 600; font-size: 13px; }
+  .header-card .filter-cta a:hover { background: var(--accent-dark); }
+
+  .jobs-list { margin-top: 18px; }
+  .jobs-list h2 { margin: 0 0 14px; font-size: 17px; }
+
+  .j { display: flex; justify-content: space-between; align-items: flex-start;
+       gap: 14px; background: var(--card); border: 1px solid var(--line);
+       border-radius: 8px; padding: 14px 18px; margin-bottom: 10px;
+       text-decoration: none; color: inherit; transition: all 0.15s; }
+  .j:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .j h3 { margin: 0 0 3px; font-size: 15px; color: var(--fg); }
+  .j .meta { color: var(--muted); font-size: 12px; }
+  .j .meta span { margin-right: 10px; }
+  .j .right { flex-shrink: 0; text-align: right; }
+  .j .fit { background: #dcfce7; color: #166534; padding: 2px 9px;
+            border-radius: 999px; font-weight: 700; font-size: 12px; }
+  .j .fit.warn { background: #fef3c7; color: #92400e; }
+  .j .fit.low  { background: #fee2e2; color: #991b1b; }
+  .j .src { font-size: 11px; color: var(--muted); margin-top: 3px; }
+</style>
+
+<div class="co-h">
+  <div class="crumb"><a href="/companies">← All companies</a></div>
+
+  <div class="header-card">
+    <h1>{{ company.name }}</h1>
+    {% if company.name_jp %}<div class="name-jp">{{ company.name_jp }}</div>{% endif %}
+
+    <div class="stats">
+      <div class="stat">
+        <div class="label">Open roles</div>
+        <div class="val">{{ company.n_jobs }}</div>
+      </div>
+      <div class="stat">
+        <div class="label">Avg Foreigner Fit</div>
+        <div class="val fit">{{ company.avg_fit }}</div>
+      </div>
+      {% if company.company_size %}
+      <div class="stat">
+        <div class="label">Employees</div>
+        <div class="val">{{ company.company_size }}</div>
+      </div>
+      {% endif %}
+      {% if company.company_year_founded %}
+      <div class="stat">
+        <div class="label">Founded</div>
+        <div class="val">{{ company.company_year_founded }}</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="filter-cta">
+      <a href="/jobs?q={{ company.name | urlencode }}">See all {{ company.n_jobs }} roles on the job board →</a>
+    </div>
+  </div>
+</div>
+
+<div class="jobs-list">
+  <h2>Open positions</h2>
+  {% for j in company.jobs %}
+    {% set fit_class = 'fit' if j.foreigner_fit_score and j.foreigner_fit_score >= 75 else 'fit warn' if j.foreigner_fit_score and j.foreigner_fit_score >= 60 else 'fit low' %}
+    <a class="j" href="/job/{{ j.id }}">
+      <div>
+        <h3>{{ j.title }}</h3>
+        <div class="meta">
+          {% if j.location %}<span>{{ j.location }}</span>{% endif %}
+          {% if j.salary %}<span>{{ j.salary }}</span>
+          {% elif j.salary_min_annual_jpy %}<span>{{ j.salary_min_annual_jpy | yen_short }}{% if j.salary_max_annual_jpy and j.salary_max_annual_jpy != j.salary_min_annual_jpy %} ~ {{ j.salary_max_annual_jpy | yen_short }}{% endif %}</span>{% endif %}
+          {% if j.japanese_level %}<span>{{ j.japanese_level }}</span>{% endif %}
+          {% if j.role_family %}<span>{{ j.role_family }}</span>{% endif %}
+        </div>
+      </div>
+      <div class="right">
+        {% if j.foreigner_fit_score is not none %}
+          <span class="{{ fit_class }}">Fit {{ j.foreigner_fit_score }}</span>
+        {% endif %}
+        <div class="src">via {{ j.source }}</div>
+      </div>
+    </a>
+  {% endfor %}
+</div>
+{% endblock %}

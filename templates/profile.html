@@ -1,0 +1,510 @@
+{% extends "base.html" %}
+{% block title %}Your Profile, Gaijin Hunter{% endblock %}
+{% block meta_description %}Set your job-search profile to unlock a personalized Match Score on every job. Everything stays in your browser, no account, no server.{% endblock %}
+{% block meta_robots %}noindex{% endblock %}
+{% block content %}
+<style>
+  .profile-grid { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+  @media (max-width: 920px) { .profile-grid { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+           padding: 22px; margin-bottom: 18px; }
+  .panel > h2 { margin: 0 0 3px; font-size: 17px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
+  .panel .sec-n { width: 22px; height: 22px; border-radius: 6px; background: var(--accent-soft);
+                  color: var(--accent); font-size: 12px; font-weight: 800; display: inline-flex;
+                  align-items: center; justify-content: center; }
+  .panel .lede { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-grid .full { grid-column: 1 / -1; }
+  @media (max-width: 560px) { .form-grid { grid-template-columns: 1fr; } }
+  .form-grid label.fl { display: block; font-size: 11.5px; color: var(--muted);
+                     text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 5px; font-weight: 600; }
+  .form-grid input[type=text], .form-grid input[type=email], .form-grid input[type=number],
+  .form-grid input[type=url], .form-grid select, .form-grid textarea {
+    width: 100%; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px;
+    font-size: 14px; font-family: inherit; background: #fff; color: var(--fg);
+  }
+  .form-grid input:focus, .form-grid select:focus, .form-grid textarea:focus {
+    outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint);
+  }
+  .form-grid textarea { resize: vertical; }
+  .form-grid .help { font-size: 11px; color: var(--muted); margin-top: 5px; }
+
+  .multi-check { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px 14px; padding: 4px 0; }
+  @media (max-width: 560px) { .multi-check { grid-template-columns: 1fr; } }
+  .multi-check label, .check-row label { display: inline-flex; align-items: center; gap: 7px;
+                       font-size: 13px; color: var(--fg-soft); cursor: pointer; }
+  .multi-check input, .check-row input { width: auto; margin: 0; accent-color: var(--accent); }
+  .check-row { display: flex; flex-direction: column; gap: 9px; }
+
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 18px; border: 1px solid transparent;
+         background: var(--accent); color: #fff; border-radius: 9px; cursor: pointer;
+         font-weight: 700; font-size: 14px; }
+  .btn:hover { background: var(--accent-dark); }
+  .btn.secondary { background: #fff; color: var(--accent); border-color: #dfe3ec; }
+  .btn.secondary:hover { background: var(--accent-tint); }
+  .btn.ghost { background: transparent; color: var(--fg-soft); border-color: var(--line); }
+  .btn.ghost:hover { background: var(--line-soft); }
+  .btn.danger { background: #fff; color: #b91c1c; border-color: #fca5a5; }
+  .btn.danger:hover { background: #fef2f2; }
+
+  .summary-stat { display: flex; justify-content: space-between; align-items: baseline;
+                  padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .summary-stat:last-child { border-bottom: none; }
+  .summary-stat strong { color: var(--accent); font-size: 18px; }
+
+  .privacy-note { background: var(--indigo-tint); border: 1px solid #dfe3ec; border-radius: 10px;
+                  padding: 14px 16px; font-size: 13px; color: var(--indigo); line-height: 1.6; }
+  .privacy-note strong { color: var(--indigo); }
+
+  .meter { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; margin: 8px 0 4px; }
+  .meter > span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-mid)); width: 0; transition: width .3s; }
+
+  .toast { position: fixed; bottom: 24px; right: 24px;
+           background: var(--good); color: #fff; padding: 12px 20px; border-radius: 10px;
+           font-size: 14px; opacity: 0; transition: opacity .25s; pointer-events: none;
+           box-shadow: 0 8px 22px rgba(0,0,0,0.2); z-index: 100; }
+  .toast.show { opacity: 1; }
+  .toast.error { background: #b91c1c; }
+
+  textarea.io { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; line-height: 1.5; }
+
+  .save-bar { position: sticky; bottom: 0; background: linear-gradient(180deg, rgba(255,255,255,0) 0%, var(--bg) 36%);
+              padding: 16px 0 6px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; z-index: 5; }
+</style>
+
+<div class="breadcrumb"><a href="/">Home</a> / Your profile</div>
+
+<h1 style="margin:0 0 4px;">Your profile</h1>
+<p style="color:var(--muted); font-size:14.5px; max-width:720px; margin:0 0 22px; line-height:1.6;">
+  Tell Gaijin Hunter what you're looking for. Your profile powers a personal
+  <strong>Match Score</strong> on every job, a layer on top of the universal Foreigner Fit.
+  Everything stays in your browser. No account, nothing sent to a server.
+</p>
+
+<div class="profile-grid">
+  <form id="profile-form">
+
+    <!-- 1. JOB TARGET -->
+    <div class="panel">
+      <h2><span class="sec-n">1</span> Job target</h2>
+      <p class="lede">What roles, pay, and places you're aiming for.</p>
+      <div class="form-grid">
+        <div class="full">
+          <label class="fl" for="p-keywords">Target roles / keywords</label>
+          <input type="text" id="p-keywords" placeholder="backend engineer, fintech, kubernetes">
+          <div class="help">Comma-separated. Used to keyword-match postings (20 pts of your score).</div>
+        </div>
+        <div class="full">
+          <label class="fl">Role families</label>
+          <div class="multi-check" id="p-roles"></div>
+        </div>
+        <div>
+          <label class="fl" for="p-industries">Preferred industries</label>
+          <input type="text" id="p-industries" placeholder="SaaS, gaming, finance">
+        </div>
+        <div>
+          <label class="fl" for="p-salary">Minimum annual salary (¥)</label>
+          <input type="number" id="p-salary" min="0" step="100000" placeholder="8000000">
+        </div>
+        <div>
+          <label class="fl">Employment terms</label>
+          <div class="multi-check" id="p-terms"></div>
+        </div>
+        <div>
+          <label class="fl">Preferred locations</label>
+          <div class="multi-check" id="p-locations"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. LANGUAGE & ELIGIBILITY -->
+    <div class="panel">
+      <h2><span class="sec-n">2</span> Language &amp; work eligibility</h2>
+      <p class="lede">The constraints that decide whether you can actually take a role.</p>
+      <div class="form-grid">
+        <div>
+          <label class="fl" for="p-jp">Japanese level</label>
+          <select id="p-jp">
+            <option value="">Select…</option>
+            <option>None</option>
+            <option>Basic</option>
+            <option>Conversational</option>
+            <option>Business / Professional</option>
+            <option>Native / Fluent</option>
+          </select>
+        </div>
+        <div>
+          <label class="fl" for="p-en">English level</label>
+          <select id="p-en">
+            <option value="">Select…</option>
+            <option>Conversational</option>
+            <option>Business / Professional</option>
+            <option>Native / Fluent</option>
+          </select>
+        </div>
+        <div>
+          <label class="fl" for="p-visa">Need visa sponsorship?</label>
+          <select id="p-visa">
+            <option value="">Select…</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+            <option value="unsure">Not sure</option>
+          </select>
+        </div>
+        <div>
+          <label class="fl" for="p-from">Applying from</label>
+          <select id="p-from">
+            <option value="">Select…</option>
+            <option value="outside">Outside Japan</option>
+            <option value="inside">Inside Japan</option>
+            <option value="flexible">Flexible</option>
+          </select>
+        </div>
+        <div>
+          <label class="fl" for="p-reloc">Open to relocation?</label>
+          <select id="p-reloc">
+            <option value="">Select…</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+            <option value="strong-offer">Only for a strong offer</option>
+          </select>
+        </div>
+        <div>
+          <label class="fl" for="p-curvisa">Current visa / status (optional)</label>
+          <input type="text" id="p-curvisa" placeholder="Engineer/Specialist, Working Holiday, none…">
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. WORK PREFERENCES -->
+    <div class="panel">
+      <h2><span class="sec-n">3</span> Work preferences</h2>
+      <p class="lede">How you like to work, and sensible defaults for the job list.</p>
+      <div class="form-grid">
+        <div>
+          <label class="fl" for="p-remote">Remote preference</label>
+          <select id="p-remote">
+            <option value="">No preference</option>
+            <option value="remote-only">Remote only</option>
+            <option value="hybrid">Hybrid preferred</option>
+            <option value="onsite-ok">On-site OK</option>
+            <option value="any">Any</option>
+          </select>
+        </div>
+        <div>
+          <label class="fl" for="p-company">Company preference</label>
+          <select id="p-company">
+            <option value="">No preference</option>
+            <option value="gaishikei">Gaishikei / foreign company</option>
+            <option value="jp-startup">Japanese startup</option>
+            <option value="large-jp">Large Japanese company</option>
+            <option value="intl-startup">International startup</option>
+            <option value="any">Any</option>
+          </select>
+        </div>
+        <div class="full">
+          <label class="fl">Default filters on the job list</label>
+          <div class="check-row">
+            <label><input type="checkbox" id="p-excl-teaching"> Exclude teaching roles by default</label>
+            <label><input type="checkbox" id="p-excl-jaonly"> Exclude Japanese-only postings by default</label>
+            <label><input type="checkbox" id="p-salary-listed"> Show salary-listed jobs only by default</label>
+            <label><input type="checkbox" id="p-highfit"> High Foreigner Fit only by default</label>
+          </div>
+          <div class="help">These pre-tick the matching filters whenever you open the job list.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. SKILLS -->
+    <div class="panel">
+      <h2><span class="sec-n">4</span> Skills &amp; experience</h2>
+      <p class="lede">Sharpens keyword matching and prefills your resume documents.</p>
+      <div class="form-grid">
+        <div class="full">
+          <label class="fl" for="p-skills">Skills (comma-separated)</label>
+          <textarea id="p-skills" rows="2" placeholder="Python, React, AWS, project management, JLPT N3"></textarea>
+        </div>
+        <div>
+          <label class="fl" for="p-years">Years of experience</label>
+          <input type="number" id="p-years" min="0" placeholder="6">
+        </div>
+        <div>
+          <label class="fl" for="p-edu">Education level</label>
+          <select id="p-edu">
+            <option value="">Select…</option>
+            <option>High school</option>
+            <option>Associate / Vocational</option>
+            <option>Bachelor's</option>
+            <option>Master's</option>
+            <option>Doctorate</option>
+          </select>
+        </div>
+        <div class="full">
+          <label class="fl" for="p-certs">Certifications</label>
+          <input type="text" id="p-certs" placeholder="JLPT N2, AWS SA, PMP">
+        </div>
+        <div class="full">
+          <label class="fl" for="p-urls">Portfolio / GitHub / LinkedIn URLs</label>
+          <textarea id="p-urls" rows="2" placeholder="https://github.com/you&#10;https://linkedin.com/in/you"></textarea>
+        </div>
+        <div>
+          <label class="fl" for="p-name">Full name (optional)</label>
+          <input type="text" id="p-name" placeholder="Jane Doe">
+        </div>
+        <div>
+          <label class="fl" for="p-email">Email (optional)</label>
+          <input type="email" id="p-email" placeholder="you@example.com">
+        </div>
+      </div>
+    </div>
+
+    <div class="save-bar">
+      <button type="button" class="btn" id="save-btn">{{ icon('check', size=16) }} Save profile</button>
+      <button type="button" class="btn ghost" id="reset-form-btn">Revert changes</button>
+      <span style="color:var(--muted); font-size:12px;">Saved to your browser only.</span>
+    </div>
+  </form>
+
+  <aside>
+    <!-- Profile strength -->
+    <div class="panel">
+      <h2 style="font-size:16px;">Profile strength</h2>
+      <div class="meter"><span id="strength-bar"></span></div>
+      <p style="font-size:12.5px; color:var(--muted); margin:4px 0 0;" id="strength-label">Not started</p>
+      <p style="font-size:12px; color:var(--muted); margin:10px 0 0; line-height:1.6;">
+        The more you fill in, the more accurate every Match Score becomes.
+      </p>
+    </div>
+
+    <!-- Data at a glance -->
+    <div class="panel">
+      <h2 style="font-size:16px;">Your data, at a glance</h2>
+      <div class="summary-stat"><span>⭐ Saved jobs</span><strong id="s-saved">0</strong></div>
+      <div class="summary-stat"><span>In tracker</span><strong id="s-tracker">0</strong></div>
+      <div class="summary-stat"><span>Follow-ups due</span><strong id="s-overdue">0</strong></div>
+      <div class="summary-stat"><span>Saved searches</span><strong id="s-searches">0</strong></div>
+      <div class="summary-stat"><span>Hidden jobs</span><strong id="s-hidden">0</strong></div>
+      <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap;">
+        <a class="btn secondary" href="/tracker" style="flex:1; justify-content:center;">Open tracker</a>
+        <a class="btn ghost" href="/data" style="flex:1; justify-content:center;">Backup data</a>
+      </div>
+    </div>
+
+    <!-- Privacy -->
+    <div class="panel">
+      <div class="privacy-note">
+        🔒 <strong>Everything stays in your browser.</strong> Your profile, saved jobs, and
+        application tracker are stored in this browser's localStorage and never sent to a server.
+        Clearing your browser data will erase them, so
+        <a href="/data">export a backup</a> before you do.
+      </div>
+    </div>
+
+    <!-- Quick controls -->
+    <div class="panel">
+      <h2 style="font-size:16px;">Controls</h2>
+      <div style="display:flex; flex-direction:column; gap:9px;">
+        <button class="btn secondary" id="export-btn" style="justify-content:center;">Export profile JSON</button>
+        <button class="btn ghost" id="import-btn" style="justify-content:center;">Import profile JSON</button>
+        <button class="btn danger" id="wipe-btn" style="justify-content:center;">Reset all data</button>
+      </div>
+      <textarea id="io-area" class="io" rows="5"
+                placeholder="Paste your JSON export here, then click Import again"
+                style="display:none; width:100%; margin-top:10px;"></textarea>
+    </div>
+  </aside>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+(function () {
+  var ROLE_FAMILIES = [
+    "Software Engineering","Data / AI","Product","Design","Marketing",
+    "Sales / Business Development","Consulting","Finance / Accounting","Operations",
+    "HR / Recruiting","Teaching / Education","Hospitality / Tourism",
+    "Translation / Localization","Customer Support","Legal / Compliance",
+  ];
+  var TERMS = ["Full-time","Contract","Part-time","Internship"];
+  var LOCATIONS = ["Tokyo","Osaka","Fukuoka","Kyoto","Nagoya","Sapporo","Remote Japan","Anywhere in Japan"];
+
+  function toast(msg, isErr) {
+    // Prefer the global toast system; fall back to the inline element.
+    if (window.ghToast) { ghToast(msg, isErr ? "error" : "ok"); return; }
+    var t = document.getElementById("toast");
+    t.textContent = msg;
+    t.className = "toast show" + (isErr ? " error" : "");
+    setTimeout(function () { t.className = "toast" + (isErr ? " error" : ""); }, 2000);
+  }
+
+  function buildChecks(containerId, values) {
+    var c = document.getElementById(containerId);
+    values.forEach(function (v) {
+      var l = document.createElement("label");
+      var cb = document.createElement("input");
+      cb.type = "checkbox"; cb.value = v;
+      l.appendChild(cb);
+      l.appendChild(document.createTextNode(" " + v));
+      c.appendChild(l);
+    });
+  }
+  buildChecks("p-roles", ROLE_FAMILIES);
+  buildChecks("p-terms", TERMS);
+  buildChecks("p-locations", LOCATIONS);
+
+  function setVal(id, v) { var el = document.getElementById(id); if (el) el.value = (v == null ? "" : v); }
+  function getVal(id) { var el = document.getElementById(id); return el ? (el.value || "").trim() : ""; }
+  function setChecks(containerId, arr) {
+    arr = arr || [];
+    document.getElementById(containerId).querySelectorAll('input[type=checkbox]').forEach(function (cb) {
+      cb.checked = arr.indexOf(cb.value) !== -1;
+    });
+  }
+  function getChecks(containerId) {
+    var out = [];
+    document.getElementById(containerId).querySelectorAll('input:checked').forEach(function (cb) { out.push(cb.value); });
+    return out;
+  }
+
+  function loadIntoForm() {
+    var p = GH.profile.get();
+    setVal("p-keywords", p.targetKeywords);
+    setChecks("p-roles", p.targetRoleFamilies);
+    setVal("p-industries", p.preferredIndustries);
+    setVal("p-salary", p.minSalary);
+    setChecks("p-terms", p.employmentTerms);
+    setChecks("p-locations", p.preferredLocations);
+    setVal("p-jp", p.japaneseLevel);
+    setVal("p-en", p.englishLevel);
+    setVal("p-visa", p.visaNeed);
+    setVal("p-from", p.applyingFrom);
+    setVal("p-reloc", p.openToRelocation);
+    setVal("p-curvisa", p.currentVisa);
+    setVal("p-remote", p.remotePreference);
+    setVal("p-company", p.companyPreference);
+    document.getElementById("p-excl-teaching").checked = !!p.excludeTeaching;
+    document.getElementById("p-excl-jaonly").checked   = !!p.excludeJapaneseOnly;
+    document.getElementById("p-salary-listed").checked = !!p.salaryListedOnly;
+    document.getElementById("p-highfit").checked       = !!p.highFitOnly;
+    setVal("p-skills", p.skills);
+    setVal("p-years", p.yearsExperience);
+    setVal("p-edu", p.educationLevel);
+    setVal("p-certs", p.certifications);
+    setVal("p-urls", p.portfolioUrls);
+    setVal("p-name", p.name);
+    setVal("p-email", p.email);
+  }
+
+  function readForm() {
+    return {
+      targetKeywords: getVal("p-keywords"),
+      targetRoleFamilies: getChecks("p-roles"),
+      preferredIndustries: getVal("p-industries"),
+      minSalary: getVal("p-salary"),
+      employmentTerms: getChecks("p-terms"),
+      preferredLocations: getChecks("p-locations"),
+      japaneseLevel: getVal("p-jp"),
+      englishLevel: getVal("p-en"),
+      visaNeed: getVal("p-visa"),
+      applyingFrom: getVal("p-from"),
+      openToRelocation: getVal("p-reloc"),
+      currentVisa: getVal("p-curvisa"),
+      remotePreference: getVal("p-remote"),
+      companyPreference: getVal("p-company"),
+      excludeTeaching: document.getElementById("p-excl-teaching").checked,
+      excludeJapaneseOnly: document.getElementById("p-excl-jaonly").checked,
+      salaryListedOnly: document.getElementById("p-salary-listed").checked,
+      highFitOnly: document.getElementById("p-highfit").checked,
+      skills: getVal("p-skills"),
+      yearsExperience: getVal("p-years"),
+      educationLevel: getVal("p-edu"),
+      certifications: getVal("p-certs"),
+      portfolioUrls: getVal("p-urls"),
+      name: getVal("p-name"),
+      email: getVal("p-email"),
+    };
+  }
+
+  // Each check pairs a completion test with the human label shown as the
+  // "next thing to add" hint, so the meter is actionable, not just a number.
+  var STRENGTH_CHECKS = [
+    [function(p){ return p.targetKeywords || (p.targetRoleFamilies && p.targetRoleFamilies.length); }, "target roles"],
+    [function(p){ return p.japaneseLevel; },  "your Japanese level"],
+    [function(p){ return p.visaNeed; },       "whether you need visa sponsorship"],
+    [function(p){ return p.applyingFrom; },   "where you're applying from"],
+    [function(p){ return p.minSalary; },      "a minimum salary"],
+    [function(p){ return p.englishLevel; },   "your English level"],
+    [function(p){ return p.remotePreference; }, "a remote preference"],
+    [function(p){ return p.preferredLocations && p.preferredLocations.length; }, "preferred locations"],
+    [function(p){ return p.skills; },         "your skills"],
+    [function(p){ return p.employmentTerms && p.employmentTerms.length; }, "employment terms"],
+  ];
+  function strength(p) {
+    var done = STRENGTH_CHECKS.filter(function (c) { return c[0](p); }).length;
+    return Math.round((done / STRENGTH_CHECKS.length) * 100);
+  }
+  function nextMissing(p) {
+    var miss = STRENGTH_CHECKS.filter(function (c) { return !c[0](p); }).map(function (c) { return c[1]; });
+    return miss.slice(0, 2);
+  }
+
+  function refreshSummary() {
+    var st = GH.getState();
+    function set(id, n) { var el = document.getElementById(id); if (el) el.textContent = n; }
+    set("s-saved", st.saved.length);
+    set("s-tracker", Object.keys(st.tracker).length);
+    set("s-overdue", GH.tracker.overdueFollowUps().length);
+    set("s-searches", st.savedSearches.length);
+    set("s-hidden", st.hidden.length);
+    var pct = strength(st.profile);
+    document.getElementById("strength-bar").style.width = pct + "%";
+    var lbl = pct === 0 ? "Not started" : pct < 40 ? "Getting started" : pct < 75 ? "Looking good" : "Strong — great matches ahead";
+    var miss = nextMissing(st.profile);
+    var hint = (pct > 0 && pct < 100 && miss.length) ? " · Next: add " + miss.join(" and ") : "";
+    document.getElementById("strength-label").textContent = pct + "% complete · " + lbl + hint;
+  }
+
+  document.getElementById("save-btn").addEventListener("click", function () {
+    var wasConfigured = GH.profile.isConfigured();
+    GH.profile.set(readForm());
+    refreshSummary();
+    // First time the profile becomes usable, flag a one-time match-badge entrance
+    // for the next jobs page the user visits (animate once, not on every load).
+    if (!wasConfigured && GH.profile.isConfigured()) {
+      try { sessionStorage.setItem("gh-match-justenabled", "1"); } catch (e) {}
+    }
+    toast("Profile saved");
+  });
+  document.getElementById("reset-form-btn").addEventListener("click", function () {
+    loadIntoForm(); toast("Reverted to saved values");
+  });
+  document.getElementById("export-btn").addEventListener("click", function () {
+    var blob = new Blob([GH.export()], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "gaijin-hunter-export-" + new Date().toISOString().slice(0,10) + ".json";
+    document.body.appendChild(a); a.click(); a.remove();
+    toast("Exported");
+  });
+  document.getElementById("import-btn").addEventListener("click", function () {
+    var ta = document.getElementById("io-area");
+    if (ta.style.display === "none") { ta.style.display = ""; ta.focus(); toast("Paste JSON, then click Import again"); return; }
+    if (!ta.value.trim()) { toast("Paste your JSON first", true); return; }
+    if (GH.import(ta.value)) {
+      loadIntoForm(); refreshSummary();
+      ta.value = ""; ta.style.display = "none";
+      toast("Imported");
+    } else { toast("Invalid JSON", true); }
+  });
+  document.getElementById("wipe-btn").addEventListener("click", function () {
+    if (!confirm("This permanently deletes your profile, saved jobs, application tracker, and saved searches in this browser. Export a backup first if you want to keep it. Continue?")) return;
+    GH._reset(); loadIntoForm(); refreshSummary(); toast("All local data cleared");
+  });
+
+  loadIntoForm();
+  refreshSummary();
+})();
+</script>
+{% endblock %}
