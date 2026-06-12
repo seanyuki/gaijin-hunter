@@ -181,6 +181,86 @@ def test_db_queries():
           (rows[0]["employment_terms"] or "") != "Part-time", rows[0]["employment_terms"])
 
 
+def test_upsert_not_null_defaults():
+    """Regression: production scrape failed with `NOT NULL constraint failed:
+    jobs.is_employer_post` for every scraper that didn't set the field
+    explicitly (the INSERT names all columns, so SQL DEFAULTs never apply).
+    Runs against a fresh schema in a temp DB — exactly the production case."""
+    import importlib
+    import os
+    import tempfile
+
+    print("upsert NOT NULL defaults (fresh schema, temp db):")
+    fd, tmp = tempfile.mkstemp(suffix=".db")
+    os.close(fd)
+    old = os.environ.get("JAPAN_JOBS_DB")
+    os.environ["JAPAN_JOBS_DB"] = tmp
+    import db
+    importlib.reload(db)
+    try:
+        db.init_db()
+        # 1) minimal scraped job — no is_employer_post / scraped_at / last_seen_at
+        with db.connect() as conn:
+            res = db.upsert_job(conn, {
+                "source": "gaijinpot", "url": "https://example.com/job/1",
+                "title": "Software Engineer", "company_name": "Example KK",
+            })
+            conn.commit()
+        check("scraped job without is_employer_post inserts", res == "inserted", res)
+        with db.connect() as conn:
+            row = conn.execute("SELECT * FROM jobs WHERE url = ?",
+                               ("https://example.com/job/1",)).fetchone()
+        check("is_employer_post defaults to 0", row["is_employer_post"] == 0,
+              str(row["is_employer_post"]))
+        check("scraped_at auto-filled", bool(row["scraped_at"]))
+        check("last_seen_at auto-filled", bool(row["last_seen_at"]))
+        # 2) re-upsert (update path) must also survive missing fields
+        with db.connect() as conn:
+            res = db.upsert_job(conn, {
+                "source": "gaijinpot", "url": "https://example.com/job/1",
+                "title": "Software Engineer II", "company_name": "Example KK",
+            })
+            conn.commit()
+        check("update path works without is_employer_post", res == "updated", res)
+        # 3) employer post keeps is_employer_post = 1
+        post = db.create_employer_post({
+            "title": "Bilingual PM", "company_name": "Hiring Co",
+            "description": "A real description of the role.",
+            "location": "Tokyo", "employer_contact_email": "hr@example.com",
+            "employer_contact_name": "HR Team",
+            "application_url": "https://example.com/apply",
+        })
+        with db.connect() as conn:
+            row = conn.execute("SELECT is_employer_post FROM jobs WHERE id = ?",
+                               (post["id"],)).fetchone()
+        check("employer post stays is_employer_post=1",
+              row["is_employer_post"] == 1, str(row["is_employer_post"]))
+        # 4) explicit 0/1 passed by a scraper is never overridden
+        with db.connect() as conn:
+            db.upsert_job(conn, {"source": "yolo", "url": "https://example.com/job/2",
+                                 "title": "Cafe staff", "is_employer_post": 0})
+            conn.commit()
+            row = conn.execute("SELECT is_employer_post FROM jobs WHERE url = ?",
+                               ("https://example.com/job/2",)).fetchone()
+        check("explicit value preserved", row["is_employer_post"] == 0)
+    finally:
+        if old is None:
+            os.environ.pop("JAPAN_JOBS_DB", None)
+        else:
+            os.environ["JAPAN_JOBS_DB"] = old
+        importlib.reload(db)
+        os.unlink(tmp)
+
+
+def test_jobspy_sites_exclude_glassdoor():
+    import jobspy_scraper as js
+    print("jobspy defaults:")
+    check("glassdoor not in DEFAULT_SITES (no Japan support)",
+          "glassdoor" not in js.DEFAULT_SITES, str(js.DEFAULT_SITES))
+    check("indeed/linkedin/google still default",
+          {"indeed", "linkedin", "google"} <= set(js.DEFAULT_SITES))
+
+
 def _jobposting(html):
     import json, re
     m = re.search(r'<script type="application/ld\+json">(\{.*?"@type": ?"JobPosting".*?\})</script>',
@@ -300,11 +380,53 @@ def test_routes():
     check("landing top-jobs panel is real", b"Top-ranked jobs right now" in r.data)
 
 
+def test_sitemap_and_healthz():
+    import re as _re
+    import xml.etree.ElementTree as ET
+
+    import app as appmod
+    import db
+    print("sitemap + healthz:")
+    client = appmod.app.test_client()
+
+    r = client.get("/sitemap.xml")
+    check("sitemap 200 + xml", r.status_code == 200 and "xml" in r.content_type,
+          r.content_type)
+    body = r.data.decode()
+    ET.fromstring(body)
+    check("sitemap is well-formed XML", True)
+    # Active job detail pages included (they carry JobPosting JSON-LD)
+    row = db.query_jobs(limit=1)[0]
+    check("sitemap includes active job pages", f"/job/{row['id']}<" in body)
+    job_lastmod = _re.search(
+        r"<loc>[^<]*/job/\d+</loc><lastmod>\d{4}-\d{2}-\d{2}</lastmod>", body)
+    check("job URLs carry a lastmod date", job_lastmod is not None)
+    # Static pages must NOT claim they changed today (old fake-lastmod bug)
+    jobs_entry = _re.search(
+        r"<loc>[^<]+/jobs</loc>(<lastmod>[^<]+</lastmod>)?", body)
+    check("static pages omit fabricated lastmod",
+          jobs_entry is not None and jobs_entry.group(1) is None,
+          jobs_entry.group(0) if jobs_entry else "no /jobs entry")
+    locs = _re.findall(r"<loc>([^<]+)</loc>", body)
+    check("sitemap has no duplicate URLs", len(locs) == len(set(locs)))
+
+    r = client.get("/healthz")
+    check("healthz 200", r.status_code == 200, str(r.status_code))
+    data = r.get_json()
+    check("healthz exposes freshness",
+          {"status", "jobs", "fresh_jobs", "last_seen_at",
+           "data_age_days"} <= set(data), str(sorted(data)))
+    check("healthz status is ok|stale", data["status"] in ("ok", "stale"),
+          str(data.get("status")))
+
+
 if __name__ == "__main__":
     for fn in (test_inference, test_en_level_inference, test_posting_language,
                test_salary_extraction, test_yolo_classify, test_db_queries,
-               test_only_ids, test_provenance, test_job_posting_jsonld,
-               test_jsonld_uses_base_url, test_rate_limit, test_routes):
+               test_only_ids, test_provenance, test_upsert_not_null_defaults,
+               test_jobspy_sites_exclude_glassdoor, test_job_posting_jsonld,
+               test_jsonld_uses_base_url, test_rate_limit, test_routes,
+               test_sitemap_and_healthz):
         try:
             fn()
         except AssertionError:

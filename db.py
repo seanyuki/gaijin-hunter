@@ -10,6 +10,7 @@ any missing columns to existing databases via ALTER TABLE.
 import os
 import sqlite3
 from contextlib import contextmanager
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable, Optional
 
@@ -294,6 +295,19 @@ def _derive_fields(job: dict) -> None:
         r = inference.infer_relocation_support(body_text)
         if r is not None:
             job["relocation_support_mentioned"] = r
+
+    # ---- NOT NULL safety defaults ---------------------------------------
+    # INSERT lists every column explicitly, so SQL DEFAULTs never apply: a
+    # missing key becomes an explicit NULL and violates NOT NULL. Scraped
+    # rows are never employer posts; /post-a-job sets 1 itself and is
+    # preserved (only None is replaced).
+    if job.get("is_employer_post") is None:
+        job["is_employer_post"] = 0
+    now_iso = datetime.now(timezone.utc).isoformat()
+    if not job.get("scraped_at"):
+        job["scraped_at"] = now_iso
+    if not job.get("last_seen_at"):
+        job["last_seen_at"] = now_iso
 
     if job.get("data_quality_score") is None:
         job["data_quality_score"] = inference.calculate_data_quality(job)
@@ -965,12 +979,25 @@ def salary_context_for_job(job, benchmarks: Optional[dict] = None,
 # ---------------------------------------------------------------------------
 
 def _company_slug(name: str) -> str:
-    """URL-safe slug from a company name. Deterministic — used to look up by slug."""
+    """URL-safe slug from a company name. Deterministic — used to look up by slug.
+
+    Names containing non-ASCII (e.g. Japanese 株式会社…) used to collapse to
+    one shared slug ("company" for fully-Japanese names), which made most of
+    those company pages unreachable and flooded the sitemap with duplicate
+    URLs. Such names now get a short stable hash suffix so every company
+    resolves to exactly one URL. Pure-ASCII names keep their original slugs
+    (no URL churn for already-indexed pages).
+    """
+    import hashlib
     import re
-    s = (name or "").lower().strip()
+    raw = name or ""
+    s = raw.lower().strip()
     s = re.sub(r"[^a-z0-9]+", "-", s)
     s = s.strip("-")
-    return s or "company"
+    if not s or not raw.isascii():
+        h = hashlib.sha1(raw.encode("utf-8")).hexdigest()[:8]
+        s = f"{s}-{h}" if s else f"company-{h}"
+    return s
 
 
 def companies_list(min_jobs: int = 1,

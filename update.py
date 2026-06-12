@@ -126,10 +126,10 @@ def _run_robertwalters(pages: int, delay: float, enrich: bool,
 def _run_jobspy(pages: int, delay: float, enrich: bool,
                 dry_run: bool = False, limit=None) -> dict:
     """
-    JobSpy aggregates Indeed Japan, LinkedIn Japan, Glassdoor Japan, and
-    Google for Jobs. Runs broad job-category queries and accepts only rows
-    whose title + description are written predominantly in English
-    (Latin-letter ratio ≥ 0.6).
+    JobSpy aggregates Indeed Japan, LinkedIn Japan, and Google for Jobs
+    (Glassdoor is skipped — JobSpy has no Japan support for it). Runs broad
+    job-category queries and accepts only rows whose title + description are
+    written predominantly in English (Latin-letter ratio ≥ 0.6).
     """
     import jobspy_scraper as js
     return js.run(sites=None, results_wanted=min(limit or 300, 300),

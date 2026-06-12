@@ -53,9 +53,10 @@ ALL_SITES = [
 
 # Sites we hit by default. zip_recruiter (US/Canada), bayt (Middle East),
 # naukri (India), and bdjobs (Bangladesh) are intentionally excluded — they
-# yield ~0 Japan rows but cost the same per API call. The deeper iterative
-# scan would just burn requests on them. Pass --sites <name> to override.
-DEFAULT_SITES = ["indeed", "linkedin", "glassdoor", "google"]
+# yield ~0 Japan rows but cost the same per API call. Glassdoor is excluded
+# because JobSpy reports "Glassdoor is not available for JAPAN" (no Japan
+# country support), so every call fails. Pass --sites <name> to override.
+DEFAULT_SITES = ["indeed", "linkedin", "google"]
 
 # How many raw rows we'll process per scrape_jobs() call. JobSpy paginates
 # via `offset`, so each batch advances offset by this much.
