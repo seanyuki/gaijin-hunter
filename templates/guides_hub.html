@@ -16,8 +16,9 @@
   .card { display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--line);
     border-radius: var(--radius); padding: 20px 22px; text-decoration: none; color: inherit; }
   .card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-md); }
-  .card .ic { width: 38px; height: 38px; border-radius: 9px; background: var(--accent-soft); color: var(--accent);
-    display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+  /* Quiet inline glyph instead of a repeated pink icon-chip on every card. */
+  .card .ic { background: transparent; border-radius: 0; color: var(--muted-soft);
+    display: inline-flex; align-self: flex-start; align-items: center; justify-content: center; margin-bottom: 10px; }
   .card h3 { margin: 0 0 6px; font-size: 17px; color: var(--ink); }
   .card p { margin: 0 0 12px; color: var(--muted); font-size: 13px; line-height: 1.55; }
   .card .arrow { color: var(--accent); font-weight: 600; font-size: 13px; margin-top: auto; display: inline-flex; align-items: center; gap: 4px; }

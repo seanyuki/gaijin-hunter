@@ -1,4 +1,7 @@
 <nav class="resume-subnav">
+  <a href="/resume/import" class="{% if resume_tool == 'import' %}active{% endif %}">
+    Import CV <span class="en">Auto-fill from your résumé</span>
+  </a>
   <a href="/resume" class="{% if resume_tool == 'rirekisho' %}active{% endif %}">
     履歴書 <span class="en">Rirekisho</span>
   </a>
@@ -11,17 +14,18 @@
   <a href="/resume/cover-letter" class="{% if resume_tool == 'cover_letter' %}active{% endif %}">
     Cover Letter <span class="en">English / Japanese</span>
   </a>
-  <a href="/resume/bullets" class="{% if resume_tool == 'bullets' %}active{% endif %}">
-    Bullet Improver <span class="en">Rewrite weak bullets</span>
-  </a>
 </nav>
 
 <style>
+  /* One ruled row that scrolls horizontally on narrow widths instead of
+     wrapping the six tools into a ragged two-line block. */
   .resume-subnav { display: flex; gap: 4px; border-bottom: 2px solid var(--line);
-                   margin-bottom: 20px; flex-wrap: wrap; }
+                   margin-bottom: 20px; flex-wrap: nowrap; overflow-x: auto;
+                   scrollbar-width: none; -ms-overflow-style: none; }
+  .resume-subnav::-webkit-scrollbar { display: none; }
   .resume-subnav a { padding: 10px 18px; text-decoration: none; color: var(--muted);
                      border-bottom: 2px solid transparent; margin-bottom: -2px;
-                     font-size: 15px; font-weight: 500; }
+                     font-size: 15px; font-weight: 500; white-space: nowrap; flex: none; }
   .resume-subnav a:hover { color: var(--accent); }
   .resume-subnav a.active { color: var(--accent); border-bottom-color: var(--accent);
                             font-weight: 600; }

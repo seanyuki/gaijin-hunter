@@ -102,7 +102,10 @@
   article.res code { background: var(--line-soft); padding: 2px 6px; border-radius: 3px;
                       font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13.5px;
                       color: var(--fg); }
-  article.res a { color: var(--accent); font-weight: 500; }
+  article.res a { color: var(--accent); font-weight: 500;
+    text-decoration: underline; text-decoration-color: #e6c4bf; text-underline-offset: 2px;
+    text-decoration-thickness: 1px; }
+  article.res a:hover { text-decoration-color: var(--accent); }
   article.res .meta-row { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px;
                           margin: 8px 0 16px; padding: 10px 14px; background: var(--line-soft);
                           border-radius: 6px; color: var(--muted); }

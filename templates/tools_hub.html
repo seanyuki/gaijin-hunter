@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "_icons.html" import icon %}
 {% block title %}Japan Career Tools, Visa, HSP, Salary, COL Calculators · Gaijin Hunter{% endblock %}
-{% block meta_description %}Free interactive tools for foreigners working in Japan: HSP points calculator, visa eligibility checker, take-home pay calculator, cost-of-living comparator, JD match analyzer, visa timeline. No signup, browser-only.{% endblock %}
+{% block meta_description %}Free interactive tools for foreigners working in Japan: HSP points calculator, visa eligibility checker, take-home pay calculator, cost-of-living comparator, visa timeline. No signup, browser-only.{% endblock %}
 {% block jsonld %}
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"CollectionPage","name":"Japan Career Tools","description":"Interactive calculators for foreigners working in Japan.","url":"{{ base_url }}/tools"}
@@ -61,13 +61,6 @@
        insurance, income tax, and residence tax.</p>
     <span class="cta">Calculate net {{ icon('arrow-right', size=14) }}</span>
   </a>
-  <a class="tool-card" href="/tools/jd-match">
-    <div class="ic">{{ icon('flask', size=22) }}</div>
-    <h3>JD match analyzer</h3>
-    <p>Paste any job description. We extract requirements, score it against your profile, and
-       surface specific talking points and questions to ask.</p>
-    <span class="cta">Analyze a JD {{ icon('arrow-right', size=14) }}</span>
-  </a>
   <a class="tool-card" href="/tools/visa-timeline">
     <div class="ic">{{ icon('calendar', size=22) }}</div>
     <h3>Visa timeline &amp; checklist</h3>
@@ -89,20 +82,6 @@
        deposit, guarantor), flights, shipping, furnishing, and a survival buffer, minus your
        employer's relocation package.</p>
     <span class="cta">Estimate your move {{ icon('arrow-right', size=14) }}</span>
-  </a>
-  <a class="tool-card" href="/resume/bullets">
-    <div class="ic">{{ icon('pencil', size=22) }}</div>
-    <h3>Resume bullet improver</h3>
-    <p>Paste a weak bullet. Rule-based diagnostics catch missing metrics, weak verbs, filler
-       language, and cliché adjectives, with concrete rewrite suggestions.</p>
-    <span class="cta">Improve a bullet {{ icon('arrow-right', size=14) }}</span>
-  </a>
-  <a class="tool-card" href="/interview-prep">
-    <div class="ic">{{ icon('megaphone', size=22) }}</div>
-    <h3>Interview prep</h3>
-    <p>Role-specific question banks, what interviewers actually look for, Japan-specific
-       cultural tips, and a STAR answer builder that saves drafts.</p>
-    <span class="cta">Prepare {{ icon('arrow-right', size=14) }}</span>
   </a>
   <a class="tool-card" href="/insights/salary">
     <div class="ic">{{ icon('chart-line', size=22) }}</div>

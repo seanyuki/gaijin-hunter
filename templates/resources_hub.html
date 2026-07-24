@@ -11,8 +11,7 @@
 <style>
   /* hero */
   .hub-wrap { position: relative; overflow: hidden; border-bottom: 1px solid var(--line);
-    background: radial-gradient(45% 60% at 88% 0%, var(--accent-tint) 0%, rgba(247,244,238,0) 72%),
-      linear-gradient(180deg, #fffdf9 0%, var(--bg) 100%); margin: -1px 0 0; }
+    background: var(--bg); margin: -1px 0 0; }
   .hub-hero { max-width: 1080px; margin: 0 auto; padding: 48px 24px 30px; }
   .hub-hero h1 { font-family: var(--font-display); font-weight: 600; font-size: clamp(30px, 4vw, 46px);
     letter-spacing: -0.028em; margin: 14px 0 12px; max-width: 16ch; color: var(--ink); }
@@ -42,8 +41,8 @@
     background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
     transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard), transform var(--motion-fast) var(--ease-standard); }
   .pway:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
-  .pway .pic { width: 34px; height: 34px; flex: none; border-radius: 9px; background: var(--accent-soft);
-    color: var(--accent); display: inline-flex; align-items: center; justify-content: center; }
+  .pway .pic { flex: none; background: transparent; border-radius: 0;
+    color: var(--muted); display: inline-flex; align-items: center; justify-content: center; }
   .pway .pt { min-width: 0; }
   .pway .pt b { display: block; font-size: 13.5px; color: var(--ink); }
   .pway .pt span { font-size: 12px; color: var(--muted); }
@@ -54,15 +53,16 @@
   .res-card { display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--line);
     border-radius: var(--radius); padding: 20px 22px; text-decoration: none; color: inherit; }
   .res-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-md); }
-  .res-card .icon-wrap { width: 38px; height: 38px; border-radius: 9px; background: var(--accent-soft);
-    color: var(--accent); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+  /* Quiet inline glyph instead of a repeated pink icon-chip on every card. */
+  .res-card .icon-wrap { background: transparent; border-radius: 0; color: var(--muted-soft);
+    display: inline-flex; align-self: flex-start; align-items: center; justify-content: center; margin-bottom: 10px; }
   .res-card h3 { margin: 0 0 6px; font-size: 16px; color: var(--ink); }
   .res-card p { margin: 0 0 12px; color: var(--muted); font-size: 13px; line-height: 1.55; }
   .res-card .arrow { color: var(--accent); font-weight: 600; font-size: 13px; margin-top: auto;
     display: inline-flex; align-items: center; gap: 4px; }
   /* featured first card spans full width, horizontal */
   .res-card.feat { grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 22px;
-    background: linear-gradient(120deg, var(--accent-tint), var(--card) 60%); border-color: #e6c4bf; }
+    background: var(--accent-tint); border-color: var(--accent-soft); }
   .res-card.feat .icon-wrap { width: 52px; height: 52px; margin: 0; flex: none; }
   .res-card.feat .fc-body { flex: 1; }
   .res-card.feat h3 { font-family: var(--font-display); font-weight: 600; font-size: 21px; }
@@ -109,7 +109,6 @@
   <div class="pathways">
     <a class="pway" href="/tools/visa-eligibility"><span class="pic">{{ icon('badge', size=18) }}</span><span class="pt"><b>I need a visa</b><span>Check which visa fits you</span></span></a>
     <a class="pway" href="/resume"><span class="pic">{{ icon('document', size=18) }}</span><span class="pt"><b>I need a Japanese resume</b><span>Build 履歴書 + 職務経歴書</span></span></a>
-    <a class="pway" href="/interview-prep"><span class="pic">{{ icon('megaphone', size=18) }}</span><span class="pt"><b>I need interview prep</b><span>Etiquette and questions</span></span></a>
     <a class="pway" href="/insights/salary"><span class="pic">{{ icon('currency-yen', size=18) }}</span><span class="pt"><b>I need salary expectations</b><span>Real pay bands by role</span></span></a>
     <a class="pway" href="/jobs?overseas_application_ok=1"><span class="pic">{{ icon('plane', size=18) }}</span><span class="pt"><b>I'm applying from overseas</b><span>Roles that hire from abroad</span></span></a>
     <a class="pway" href="/living"><span class="pic">{{ icon('home', size=18) }}</span><span class="pt"><b>I'm already in Japan</b><span>Settle in and thrive</span></span></a>

@@ -1,0 +1,10 @@
+{#- Company "mark": a self-hosted brand logo when we have one, otherwise the
+    existing initials monogram. If the logo image fails to load, onerror reverts
+    to the monogram. `base` is the tile class to reuse (gh-mono / avatar / etc.).
+    Import `with context` so company_logo_url (a context global) is visible. -#}
+{% macro company_mark(name, base='gh-mono', cls='') -%}
+{%- set _logo = company_logo_url(name) if company_logo_url else None -%}
+<span class="{{ base }}{% if cls %} {{ cls }}{% endif %}{% if _logo %} has-logo{% endif %}">
+{%- if _logo %}<img class="brand-logo-img" src="{{ _logo }}" alt="{{ name|e }}" loading="lazy" decoding="async" onerror="var p=this.closest('.{{ base }}'); if(p){p.classList.remove('has-logo');} this.remove();">{% endif -%}
+<span class="brand-mono-txt">{{ (name or '?')[:2] | upper }}</span></span>
+{%- endmacro %}

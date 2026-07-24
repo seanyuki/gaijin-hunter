@@ -187,16 +187,23 @@
     .scale-wrap { transform: none; width: auto; height: auto; }
   }
 
-  /* Print */
+  /* Print. The actual paper @page size is set per-format by JS (see
+     #cv-print-page) so the sheet matches the CV exactly — that's what keeps
+     the document centered and un-clipped (an 8.5in resume on A4 paper was the
+     source of the off-center export). Default A4 if JS hasn't run. */
+  @page { size: A4; margin: 0; }
   @media print {
-    @page { margin: 0; }
     body { background: #fff; }
     header, .breadcrumb, .rr-page-h, .resume-subnav, .form-pane,
-    .preview-pane .toolbar { display: none !important; }
+    .preview-pane .toolbar, .back-to-top, .reading-progress, #gh-toasts,
+    .cmdk-backdrop { display: none !important; }
     .cv-layout { display: block; }
-    .preview-pane { position: static; background: #fff; padding: 0; max-height: none; overflow: visible; }
-    .scale-wrap { transform: none; width: auto; height: auto; }
-    .cv { box-shadow: none; margin: 0; }
+    .preview-pane { position: static; background: #fff; padding: 0; margin: 0;
+                    max-height: none; overflow: visible; }
+    .scale-wrap { transform: none; width: auto !important; height: auto; margin: 0; }
+    /* Centered on the sheet; the page size matches the format so margins are
+       symmetric. */
+    .cv { box-shadow: none; margin: 0 auto !important; }
     .cv[data-format="american"] { width: 8.5in; min-height: 11in; }
     .cv[data-format="british"] { width: 210mm; min-height: 297mm; }
   }
@@ -825,7 +832,22 @@
   document.getElementById("paste-sample").addEventListener("click", pasteSampleConsulting);
   document.getElementById("paste-sample-finance").addEventListener("click", pasteSampleFinance);
   document.getElementById("clear-cv").addEventListener("click", clearAll);
-  document.getElementById("print-btn").addEventListener("click", function () { window.print(); });
+  // Set the print paper to match the chosen format so the CV is centered and
+  // never clipped (Letter for the American resume, A4 for the British CV).
+  function syncPrintPageSize() {
+    var sizeName = (state.format === "british") ? "A4" : "letter";
+    var tag = document.getElementById("cv-print-page");
+    if (!tag) {
+      tag = document.createElement("style");
+      tag.id = "cv-print-page";
+      document.head.appendChild(tag);
+    }
+    tag.textContent = "@page { size: " + sizeName + "; margin: 0; }";
+  }
+  document.getElementById("print-btn").addEventListener("click", function () {
+    syncPrintPageSize();
+    window.print();
+  });
   document.getElementById("save-btn").addEventListener("click", function () { saveDraft(state); alert("Draft saved."); });
 
   // init

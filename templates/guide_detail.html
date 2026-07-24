@@ -103,7 +103,10 @@
                        font-size: 14px; color: #78350f; line-height: 1.65; }
   article.guide code { background: var(--line-soft); padding: 2px 6px; border-radius: 3px;
                        font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13.5px; }
-  article.guide a { color: var(--accent); font-weight: 500; }
+  article.guide a { color: var(--accent); font-weight: 500;
+    text-decoration: underline; text-decoration-color: #e6c4bf; text-underline-offset: 2px;
+    text-decoration-thickness: 1px; }
+  article.guide a:hover { text-decoration-color: var(--accent); }
 
   aside.related { background: var(--card); border: 1px solid var(--line);
                    border-radius: 10px; padding: 16px 18px; position: sticky; top: 90px; }
@@ -118,6 +121,23 @@
   aside.related a:hover .icn { color: var(--accent); }
   aside.related a.current { color: var(--accent); font-weight: 600; }
   @media (max-width: 1100px) { aside.related { display: none; } }
+
+  /* Live "open roles" band for role guides (jobs fetched client-side). */
+  #open-roles .sec-head { display:flex; justify-content:space-between; align-items:baseline; gap:14px; flex-wrap:wrap; }
+  #open-roles .sec-head .all { color:var(--accent); font-weight:600; font-size:14px; text-decoration:none; white-space:nowrap; }
+  .or-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:14px; }
+  @media (max-width:760px){ .or-grid { grid-template-columns:1fr; } }
+  .or-card { display:flex; gap:13px; align-items:flex-start; background:var(--card); border:1px solid var(--line);
+    border-radius:var(--radius-lg); padding:14px 16px; text-decoration:none; color:inherit;
+    transition:border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard); }
+  .or-card:hover { border-color:var(--line-strong); box-shadow:var(--shadow-md); }
+  .or-card .or-mono { flex:none; width:40px; height:40px; border-radius:var(--radius-sm); background:var(--ink);
+    color:#fff; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono);
+    font-weight:600; font-size:13px; letter-spacing:0.02em; }
+  .or-card .or-main { min-width:0; flex:1; }
+  .or-card .or-title { display:block; font-size:14px; font-weight:600; color:var(--ink); line-height:1.35; margin:1px 0 4px; }
+  .or-card .or-meta { display:block; font-size:12px; color:var(--muted); font-family:var(--font-mono); line-height:1.45; }
+  .or-card .or-meta .or-sal { color:var(--ink); }
 </style>
 
 <div class="article-h">
@@ -160,6 +180,19 @@
   </aside>
 </div>
 
+<!-- Live openings for this role (populated client-side; hidden for city guides
+     and when the board has no matching roles). -->
+<section id="open-roles" class="hub-sec" style="display:none; padding-top:8px;">
+  <div class="sec-head">
+    <div>
+      <span class="eyebrow-rule">On the board now</span>
+      <h2 id="open-roles-h" style="margin:6px 0 0;">Open roles right now</h2>
+    </div>
+    <a id="open-roles-all" class="all" href="/jobs">All jobs →</a>
+  </div>
+  <div id="open-roles-grid" class="or-grid"></div>
+</section>
+
 <section class="hub-sec hub-pad" style="padding-top:8px;">
   <div class="sec-head"><span class="eyebrow-rule">Keep going</span><h2>Recommended next steps</h2></div>
   <div class="nextsteps">
@@ -196,4 +229,62 @@
 })();
 </script>
 {% endif %}
+
+<script>
+/* Open-roles band: pull a few live listings for this role's job-board family.
+   Self-hides for city/pillar guides (no mapping) and when nothing matches. */
+(function () {
+  var ROLE = {
+    'software-engineering':       { fam: 'Software Engineering',  label: 'software engineering' },
+    'data-ai':                    { fam: 'Data / AI',             label: 'data & AI' },
+    'product-management':         { fam: 'Product Management',     label: 'product management' },
+    'design':                     { fam: 'Design',                label: 'design' },
+    'engineering-management':     { fam: 'Software Engineering',   label: 'engineering' },
+    'marketing-growth':           { fam: 'Marketing',             label: 'marketing' },
+    'finance-accounting':         { fam: 'Finance / Accounting',   label: 'finance & accounting' },
+    'sales-business-development': { fam: 'Sales / BD',            label: 'sales & BD' },
+    'teaching-english':           { fam: 'Teaching / Education',   label: 'teaching' },
+    'recruiting':                 { fam: 'HR / Recruiting',        label: 'recruiting' }
+  };
+  var cfg = ROLE[{{ item.slug|tojson }}];
+  if (!cfg) return;
+
+  var sec  = document.getElementById('open-roles');
+  var grid = document.getElementById('open-roles-grid');
+  if (!sec || !grid) return;
+
+  function esc(s) { var d = document.createElement('div'); d.textContent = (s == null ? '' : s); return d.innerHTML; }
+  function salary(j) {
+    if (j.salary && /\d/.test(j.salary)) return esc(String(j.salary)).slice(0, 38);
+    var lo = j.salary_min_annual_jpy, hi = j.salary_max_annual_jpy;
+    if (lo) { var s = '¥' + (lo / 1e6).toFixed(1) + 'M'; if (hi && hi !== lo) s += '–¥' + (hi / 1e6).toFixed(1) + 'M'; return s + '/yr'; }
+    return '';
+  }
+
+  var qs = 'role_family=' + encodeURIComponent(cfg.fam);
+  fetch('/api/jobs.json?' + qs + '&limit=4&sort=recommended')
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      var jobs = (data.jobs || []).slice(0, 4);
+      if (!jobs.length) return;                       // nothing to show — stay hidden
+      document.getElementById('open-roles-h').textContent = 'Open ' + cfg.label + ' roles right now';
+      var all = document.getElementById('open-roles-all');
+      all.href = '/jobs?' + qs;
+      all.textContent = 'All ' + data.total + ' ' + cfg.label + ' jobs →';
+      grid.innerHTML = jobs.map(function (j) {
+        var initials = ((j.company_name || '?').trim().slice(0, 2) || '?').toUpperCase();
+        var meta = [j.company_name, (j.location || j.prefecture)].filter(Boolean).map(esc).join(' · ');
+        var sal = salary(j);
+        return '<a class="or-card" href="/job/' + encodeURIComponent(j.id) + '">' +
+          '<span class="or-mono">' + esc(initials) + '</span>' +
+          '<span class="or-main">' +
+            '<span class="or-title">' + esc(j.title || 'Untitled role') + '</span>' +
+            '<span class="or-meta">' + meta + (sal ? ' · <span class="or-sal">' + sal + '</span>' : '') + '</span>' +
+          '</span></a>';
+      }).join('');
+      sec.style.display = '';
+    })
+    .catch(function () {});                            // network/JSON error — leave hidden
+})();
+</script>
 {% endblock %}

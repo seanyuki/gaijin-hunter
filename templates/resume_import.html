@@ -1,0 +1,808 @@
+{% extends "base.html" %}
+{% block title %}Import your résumé — Resume Builder, Gaijin Hunter{% endblock %}
+{% block meta_description %}Upload or paste your Western résumé and auto-fill the Japanese rirekisho (履歴書) and shokumu keirekisho (職務経歴書), plus an English CV. Review and edit everything before you export. Runs entirely in your browser.{% endblock %}
+{% block meta_robots %}noindex{% endblock %}
+{% block content %}
+<style>
+  .imp-wrap { max-width: 920px; margin: 0 auto; }
+  .imp-hero h1 { margin: 0 0 6px; font-size: 28px; }
+  .imp-hero p { margin: 0 0 14px; color: var(--muted); }
+
+  .imp-note { background: var(--indigo-tint); border: 1px solid #dfe3ec; border-radius: 10px;
+    padding: 13px 16px; font-size: 13px; color: var(--indigo); line-height: 1.6; margin: 0 0 18px; }
+  .imp-note strong { color: var(--indigo); }
+
+  .drop { border: 2px dashed var(--line-strong); border-radius: 14px; background: var(--card);
+    padding: 30px 24px; text-align: center; transition: border-color .15s, background .15s; }
+  .drop.drag { border-color: var(--accent); background: var(--accent-tint); }
+  .drop h3 { margin: 0 0 6px; font-size: 17px; }
+  .drop p { margin: 0 0 14px; color: var(--muted); font-size: 13.5px; }
+  .drop .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 18px; border-radius: 9px;
+    font-weight: 600; font-size: 14px; cursor: pointer; border: 1px solid transparent; text-decoration: none; }
+  .btn.primary { background: var(--accent); color: #fff; }
+  .btn.primary:hover { background: var(--accent-dark); }
+  .btn.secondary { background: #fff; color: var(--accent); border-color: #dfe3ec; }
+  .btn.secondary:hover { background: var(--accent-tint); }
+  .btn.ghost { background: transparent; color: var(--fg-soft); border: 1px solid var(--line); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  .or { text-align: center; color: var(--muted); font-size: 12px; margin: 16px 0 8px;
+    text-transform: uppercase; letter-spacing: .08em; }
+  textarea.paste { width: 100%; min-height: 160px; border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 14px; font-size: 13px; font-family: inherit; line-height: 1.5; resize: vertical; box-sizing: border-box; }
+
+  .status { font-size: 13px; color: var(--muted); margin-top: 10px; min-height: 18px; }
+  .status.err { color: #b91c1c; }
+
+  /* review */
+  .review { margin-top: 22px; display: none; }
+  .review.show { display: block; }
+  .rev-sec { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px 18px; margin-bottom: 14px; }
+  .rev-sec h3 { margin: 0 0 10px; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+  .rev-sec h3 .pill { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+    background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 2px 9px; }
+  .rev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .rev-grid { grid-template-columns: 1fr; } }
+  .rev-grid .full { grid-column: 1 / -1; }
+  .rev-grid label, .rev-block label { display: block; font-size: 11px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; font-weight: 600; }
+  .rev-grid input, .rev-block input, .rev-block textarea {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px;
+    font-size: 14px; font-family: inherit; background: #fff; box-sizing: border-box; }
+  .rev-block textarea { resize: vertical; min-height: 64px; }
+  .entry { border: 1px solid var(--line); border-radius: 9px; padding: 12px; margin-bottom: 10px; background: #fafafa; }
+  .entry .row { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .entry .row.three { grid-template-columns: 1.6fr 1fr 1fr; }
+  @media (max-width: 560px) { .entry .row, .entry .row.three { grid-template-columns: 1fr; } }
+  .entry .del { background: transparent; border: none; color: #b91c1c; cursor: pointer; font-size: 12px; float: right; }
+  .add-entry { background: transparent; color: var(--accent); border: 1px dashed var(--accent);
+    padding: 6px 12px; border-radius: 7px; cursor: pointer; font-size: 13px; }
+
+  .commit-bar { position: sticky; bottom: 0; background: linear-gradient(180deg, rgba(247,244,238,0) 0%, var(--bg) 40%);
+    padding: 16px 0 8px; margin-top: 6px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; z-index: 5; }
+
+  .done { display: none; background: var(--good-tint); border: 1px solid #cbe4d6; border-radius: 12px;
+    padding: 18px 20px; margin-top: 18px; }
+  .done.show { display: block; }
+  .done h3 { margin: 0 0 6px; color: #166534; font-size: 16px; }
+  .done .links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+</style>
+
+<div class="imp-wrap">
+  <div class="imp-hero">
+    <h1>Import your résumé</h1>
+    <p>Upload or paste your existing Western résumé. We extract the details and pre-fill your
+       Japanese 履歴書 and 職務経歴書 (plus an English CV) so you can review, edit, and export.</p>
+  </div>
+  {% include "_resume_subnav.html" %}
+
+  <div class="imp-note">
+    <strong>Private &amp; in your browser.</strong> Parsing happens locally — your file is never uploaded.
+    We translate <strong>recognized</strong> company names, universities, degrees and job titles to Japanese
+    (e.g. Japan Airlines → 日本航空株式会社) and add the standard rirekisho verbs (入学・卒業・入社・退社).
+    Anything not in our dictionary — your name, niche employers, and free-text descriptions — stays in
+    English for you to translate on the next screen. It's an accurate head start, not full machine translation.
+  </div>
+
+  <!-- ---------------- STEP 1: input ---------------- -->
+  <div id="step-input">
+    <div class="drop" id="drop">
+      <h3>Drop your résumé PDF here</h3>
+      <p>or choose a file (PDF or .txt). Most one- to two-page résumés work best.</p>
+      <div class="btn-row">
+        <label class="btn primary">Choose file…
+          <input type="file" id="file" accept=".pdf,.txt,application/pdf,text/plain" hidden>
+        </label>
+      </div>
+      <div class="status" id="file-status"></div>
+    </div>
+
+    <div class="or">— or paste the text —</div>
+    <textarea class="paste" id="paste" placeholder="Paste your résumé text here, then click Parse."></textarea>
+    <div style="margin-top:10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+      <button type="button" class="btn primary" id="parse-btn">Parse résumé</button>
+      <button type="button" class="btn ghost" id="sample-btn">Try a sample</button>
+      <span class="status" id="paste-status"></span>
+    </div>
+  </div>
+
+  <!-- ---------------- STEP 2: review ---------------- -->
+  <div class="review" id="review">
+    <div class="rev-sec">
+      <h3>Contact &amp; summary <span class="pill">review</span></h3>
+      <div class="rev-grid">
+        <div><label>Full name (romaji)</label><input id="r-name"></div>
+        <div><label>Location</label><input id="r-location"></div>
+        <div><label>Email</label><input id="r-email"></div>
+        <div><label>Phone</label><input id="r-phone"></div>
+        <div class="full"><label>LinkedIn / portfolio URL</label><input id="r-url"></div>
+        <div class="full"><label>Professional summary</label><textarea id="r-summary" rows="3" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:14px;box-sizing:border-box;"></textarea></div>
+      </div>
+    </div>
+
+    <div class="rev-sec">
+      <h3>Work experience <span class="pill">review</span></h3>
+      <div id="r-exp"></div>
+      <button type="button" class="add-entry" data-add="exp">+ Add a role</button>
+    </div>
+
+    <div class="rev-sec">
+      <h3>Education <span class="pill">review</span></h3>
+      <div id="r-edu"></div>
+      <button type="button" class="add-entry" data-add="edu">+ Add education</button>
+    </div>
+
+    <div class="rev-sec">
+      <h3>Skills &amp; certifications <span class="pill">review</span></h3>
+      <div class="rev-block" style="margin-bottom:10px;">
+        <label>Skills (one per line, or comma-separated)</label>
+        <textarea id="r-skills" rows="3"></textarea>
+      </div>
+      <div class="rev-block">
+        <label>Certifications / licenses (one per line)</label>
+        <textarea id="r-certs" rows="2"></textarea>
+      </div>
+    </div>
+
+    <label style="display:flex; align-items:flex-start; gap:8px; font-size:13px; color:var(--fg-soft);
+                  background:var(--card); border:1px solid var(--line); border-radius:10px; padding:11px 14px; margin-top:4px;">
+      <input type="checkbox" id="tx-toggle" checked style="margin-top:2px; accent-color:var(--accent);">
+      <span>Translate <strong>known</strong> company names, universities, degrees and job titles to Japanese
+        (e.g. <em>Japan Airlines → 日本航空株式会社</em>, <em>University of Cambridge → ケンブリッジ大学</em>).
+        Names and free-text descriptions we don't recognize stay in English for you to translate on the next screen.</span>
+    </label>
+
+    <div class="commit-bar">
+      <button type="button" class="btn primary" id="commit-btn">Fill my Japanese resume →</button>
+      <button type="button" class="btn ghost" id="restart-btn">Start over</button>
+      <span class="status" id="commit-status"></span>
+    </div>
+  </div>
+
+  <!-- ---------------- STEP 3: done ---------------- -->
+  <div class="done" id="done">
+    <h3>✓ Your documents are pre-filled</h3>
+    <p style="margin:0; font-size:14px; color:var(--fg-soft);">Open each one to review, translate the
+      Japanese-specific fields, add your photo, and export. Your data is saved in this browser.</p>
+    <div class="links">
+      <a class="btn primary" href="/resume">Open 履歴書 (Rirekisho)</a>
+      <a class="btn secondary" href="/resume/shokumu">Open 職務経歴書 (Shokumu)</a>
+      <a class="btn secondary" href="/resume/cv">Open English CV</a>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+(function () {
+  if (window.pdfjsLib) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  }
+
+  // ---------- DOM helpers ----------
+  function $(id) { return document.getElementById(id); }
+  function show(el) { el.classList.add("show"); }
+  function setStatus(id, msg, err) {
+    var el = $(id); el.textContent = msg || "";
+    el.classList.toggle("err", !!err);
+  }
+
+  // ====================================================================
+  // PARSING — heuristic, conservative. Resumes vary wildly; we extract what
+  // we can confidently and leave the rest for the user to fix on review.
+  // ====================================================================
+  // ====================================================================
+  // KNOWN-ENTITY TRANSLATION (curated, accurate — no machine translation).
+  // We only translate things we can map exactly: well-known companies (with
+  // their official Japanese corporate names), universities, degrees/fields,
+  // and common job titles. Anything not in the dictionary is left in English
+  // for the user to translate on the rirekisho/shokumu screens. This avoids
+  // hallucinated Japanese while nailing cases like Japan Airlines → 日本航空株式会社.
+  // ====================================================================
+  var COMPANIES = {
+    "japan airlines": "日本航空株式会社", "jal": "日本航空株式会社",
+    "all nippon airways": "全日本空輸株式会社", "ana": "全日本空輸株式会社",
+    "toyota": "トヨタ自動車株式会社", "toyota motor": "トヨタ自動車株式会社",
+    "honda": "本田技研工業株式会社", "nissan": "日産自動車株式会社",
+    "sony": "ソニー株式会社", "sony group": "ソニーグループ株式会社",
+    "panasonic": "パナソニック株式会社", "hitachi": "株式会社日立製作所",
+    "toshiba": "株式会社東芝", "mitsubishi": "三菱商事株式会社",
+    "mitsubishi electric": "三菱電機株式会社", "fujitsu": "富士通株式会社",
+    "nec": "日本電気株式会社", "canon": "キヤノン株式会社", "nikon": "株式会社ニコン",
+    "nintendo": "任天堂株式会社", "rakuten": "楽天グループ株式会社",
+    "softbank": "ソフトバンク株式会社", "softbank group": "ソフトバンクグループ株式会社",
+    "mercari": "株式会社メルカリ", "line": "LINE株式会社", "ntt": "日本電信電話株式会社",
+    "ntt data": "株式会社NTTデータ", "kddi": "KDDI株式会社", "dentsu": "株式会社電通",
+    "recruit": "株式会社リクルート", "fast retailing": "株式会社ファーストリテイリング",
+    "uniqlo": "株式会社ユニクロ", "nomura": "野村證券株式会社",
+    "mitsubishi ufj": "株式会社三菱UFJ銀行", "mufg": "株式会社三菱UFJ銀行",
+    "sumitomo mitsui": "株式会社三井住友銀行", "smbc": "株式会社三井住友銀行",
+    "mizuho": "株式会社みずほ銀行", "shiseido": "株式会社資生堂",
+    "bridgestone": "株式会社ブリヂストン", "denso": "株式会社デンソー",
+    "keyence": "キーエンス株式会社", "daikin": "ダイキン工業株式会社",
+    "google": "グーグル合同会社", "google japan": "グーグル合同会社",
+    "amazon": "アマゾンジャパン合同会社", "amazon japan": "アマゾンジャパン合同会社",
+    "microsoft": "日本マイクロソフト株式会社", "apple": "Apple Japan合同会社",
+    "meta": "Facebook Japan株式会社", "facebook": "Facebook Japan株式会社",
+    "ibm": "日本アイ・ビー・エム株式会社", "accenture": "アクセンチュア株式会社",
+    "deloitte": "有限責任監査法人トーマツ", "pwc": "PwCコンサルティング合同会社",
+    "kpmg": "KPMGコンサルティング株式会社", "ey": "EY Japan",
+    "mckinsey": "マッキンゼー・アンド・カンパニー", "mckinsey & company": "マッキンゼー・アンド・カンパニー",
+    "boston consulting group": "ボストン コンサルティング グループ", "bcg": "ボストン コンサルティング グループ",
+    "bain": "ベイン・アンド・カンパニー", "bain & company": "ベイン・アンド・カンパニー",
+    "goldman sachs": "ゴールドマン・サックス証券株式会社", "morgan stanley": "モルガン・スタンレー証券株式会社",
+    "jp morgan": "JPモルガン証券株式会社", "j.p. morgan": "JPモルガン証券株式会社",
+    "stripe": "Stripe Japan株式会社", "paypay": "PayPay株式会社", "indeed": "Indeed Japan株式会社",
+    "salesforce": "株式会社セールスフォース・ジャパン", "oracle": "日本オラクル株式会社",
+    "sap": "SAPジャパン株式会社", "cisco": "シスコシステムズ合同会社",
+  };
+  var UNIVERSITIES = {
+    "university of tokyo": "東京大学", "tokyo university": "東京大学",
+    "kyoto university": "京都大学", "osaka university": "大阪大学",
+    "keio university": "慶應義塾大学", "keio": "慶應義塾大学",
+    "waseda university": "早稲田大学", "waseda": "早稲田大学",
+    "hitotsubashi university": "一橋大学", "tokyo institute of technology": "東京工業大学",
+    "nagoya university": "名古屋大学", "tohoku university": "東北大学",
+    "kyushu university": "九州大学", "hokkaido university": "北海道大学",
+    "sophia university": "上智大学", "meiji university": "明治大学",
+    "university of cambridge": "ケンブリッジ大学", "cambridge university": "ケンブリッジ大学",
+    "university of oxford": "オックスフォード大学", "oxford university": "オックスフォード大学",
+    "harvard university": "ハーバード大学", "harvard": "ハーバード大学",
+    "stanford university": "スタンフォード大学", "stanford": "スタンフォード大学",
+    "massachusetts institute of technology": "マサチューセッツ工科大学", "mit": "マサチューセッツ工科大学",
+    "university of california, berkeley": "カリフォルニア大学バークレー校",
+    "national university of singapore": "シンガポール国立大学",
+    "tsinghua university": "清華大学", "peking university": "北京大学",
+    "seoul national university": "ソウル大学校",
+  };
+  // Degree / field — translated as components ("B.A. Economics" → 経済学 学士).
+  var DEGREES = {
+    "ph.d": "博士", "phd": "博士", "doctorate": "博士", "doctor of philosophy": "博士",
+    "master": "修士", "m.a": "修士", "m.s": "修士", "msc": "修士", "mba": "経営学修士（MBA）",
+    "bachelor": "学士", "b.a": "学士", "b.s": "学士", "bsc": "学士", "b.eng": "学士",
+    "associate degree": "準学士", "high school diploma": "高等学校卒業",
+  };
+  var FIELDS = {
+    "computer science": "コンピュータサイエンス", "economics": "経済学", "business": "経営学",
+    "business administration": "経営学", "engineering": "工学", "electrical engineering": "電気工学",
+    "mechanical engineering": "機械工学", "law": "法学", "finance": "金融", "accounting": "会計学",
+    "marketing": "マーケティング", "mathematics": "数学", "physics": "物理学", "chemistry": "化学",
+    "biology": "生物学", "psychology": "心理学", "international relations": "国際関係学",
+    "political science": "政治学", "design": "デザイン", "data science": "データサイエンス",
+    "information technology": "情報技術", "communications": "コミュニケーション学",
+  };
+  var TITLES = {
+    "software engineer": "ソフトウェアエンジニア", "senior software engineer": "シニアソフトウェアエンジニア",
+    "backend engineer": "バックエンドエンジニア", "frontend engineer": "フロントエンドエンジニア",
+    "full stack engineer": "フルスタックエンジニア", "data scientist": "データサイエンティスト",
+    "data analyst": "データアナリスト", "data engineer": "データエンジニア",
+    "machine learning engineer": "機械学習エンジニア", "devops engineer": "DevOpsエンジニア",
+    "product manager": "プロダクトマネージャー", "project manager": "プロジェクトマネージャー",
+    "program manager": "プログラムマネージャー", "engineering manager": "エンジニアリングマネージャー",
+    "ux designer": "UXデザイナー", "ui designer": "UIデザイナー", "product designer": "プロダクトデザイナー",
+    "graphic designer": "グラフィックデザイナー", "marketing manager": "マーケティングマネージャー",
+    "sales manager": "営業マネージャー", "account executive": "アカウントエグゼクティブ",
+    "account manager": "アカウントマネージャー", "business analyst": "ビジネスアナリスト",
+    "business development manager": "事業開発マネージャー", "consultant": "コンサルタント",
+    "senior consultant": "シニアコンサルタント", "associate": "アソシエイト",
+    "senior associate": "シニアアソシエイト", "analyst": "アナリスト",
+    "financial analyst": "ファイナンシャルアナリスト", "investment banking analyst": "投資銀行アナリスト",
+    "accountant": "会計士", "intern": "インターン", "director": "ディレクター",
+    "vice president": "ヴァイスプレジデント", "chief executive officer": "最高経営責任者（CEO）",
+    "chief technology officer": "最高技術責任者（CTO）", "teacher": "教師",
+    "english teacher": "英語教師", "translator": "翻訳者", "researcher": "研究員",
+  };
+
+  function _norm(s) {
+    return String(s || "").toLowerCase().replace(/[.,]/g, "").replace(/\s+/g, " ").trim();
+  }
+  // Exact-ish dictionary lookup: exact, then trailing-corp-suffix-stripped.
+  function lookup(dict, raw) {
+    if (!raw) return null;
+    var n = _norm(raw);
+    if (dict[n]) return dict[n];
+    var stripped = n.replace(/\b(inc|incorporated|ltd|limited|llc|corp|corporation|co|company|group|plc|kk|k k|gmbh)\b/g, "").replace(/\s+/g, " ").trim();
+    if (dict[stripped]) return dict[stripped];
+    return null;
+  }
+  function txCompany(name, on) {
+    if (!on) return name;
+    var hit = lookup(COMPANIES, name);
+    return hit || name;   // unknown → keep English (honest)
+  }
+  function txSchool(name, on) {
+    if (!on) return name;
+    return lookup(UNIVERSITIES, name) || name;
+  }
+  function txTitle(title, on) {
+    if (!on || !title) return title || "";
+    var n = _norm(title);
+    if (TITLES[n]) return TITLES[n];
+    // try the longest known title contained in the string
+    var best = null;
+    Object.keys(TITLES).forEach(function (k) {
+      if (n.indexOf(k) !== -1 && (!best || k.length > best.length)) best = k;
+    });
+    return best ? TITLES[best] : title;
+  }
+  function txDegree(degree, on) {
+    if (!on || !degree) return degree || "";
+    var n = _norm(degree), level = "", field = "";
+    Object.keys(DEGREES).forEach(function (k) { if (n.indexOf(k) !== -1 && DEGREES[k].length >= level.length) level = DEGREES[k]; });
+    var bestF = "";
+    Object.keys(FIELDS).forEach(function (k) { if (n.indexOf(k) !== -1 && k.length > bestF.length) bestF = k; });
+    if (bestF) field = FIELDS[bestF];
+    if (level && field) return field + " " + level;   // e.g. 経済学 学士
+    if (level) return level;
+    if (field) return field;
+    return degree;
+  }
+
+  var EMAIL_RE = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
+  var PHONE_RE = /(\+?\d[\d\s().-]{7,}\d)/;
+  var URL_RE = /((https?:\/\/)?(www\.)?(linkedin\.com|github\.com|[a-z0-9-]+\.[a-z]{2,})\/[^\s|]+)/i;
+  // Date range: "Aug 2022 – Present", "2019 - 2022", "Jul 2017 – Jun 2019", "09/2019–05/2021"
+  // Non-capturing — a capturing group here would shift .match() indices.
+  var MONTHS = "(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*";
+  var DATE_RANGE_RE = new RegExp(
+    "(" + MONTHS + "\\.?\\s*)?(\\d{4})\\s*(?:[–\\-—to]+)\\s*((" + MONTHS + "\\.?\\s*)?(\\d{4})|present|current|now)",
+    "i");
+  var SINGLE_DATE_RE = new RegExp("(" + MONTHS + "\\.?\\s*)?(\\d{4})", "i");
+  var MONTH_NUM = { jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,sept:9,oct:10,nov:11,dec:12 };
+
+  var SECTION_HEADERS = {
+    summary: /^(professional\s+)?(summary|profile|objective|about( me)?)\b/i,
+    experience: /^(work\s+|professional\s+|employment\s+)?(experience|history|employment)\b/i,
+    education: /^education\b/i,
+    skills: /^(technical\s+)?(skills|competenc|technologies|tools)\b/i,
+    certs: /^(certifications?|licen[sc]es?|credentials)\b/i,
+    languages: /^languages?\b/i,
+    other: /^(projects|publications|awards|honou?rs|interests|volunteer|references)\b/i,
+  };
+
+  function monthNum(s) {
+    if (!s) return "";
+    var m = s.toLowerCase().match(/[a-z]+/);
+    return m && MONTH_NUM[m[0].slice(0,3)] ? MONTH_NUM[m[0].slice(0,3)] : "";
+  }
+
+  function classifyHeader(line) {
+    var t = line.trim();
+    if (t.length > 42) return null;          // headers are short
+    for (var k in SECTION_HEADERS) {
+      if (SECTION_HEADERS[k].test(t)) return k;
+    }
+    return null;
+  }
+
+  function parseResume(text) {
+    var rawLines = text.replace(/\r/g, "").split("\n");
+    var lines = rawLines.map(function (l) { return l.replace(/ /g, " ").trimEnd(); });
+
+    var out = { name:"", location:"", email:"", phone:"", url:"",
+                summary:"", experience:[], education:[], skills:[], certs:[] };
+
+    // ---- contact: scan the top ~12 non-empty lines ----
+    var head = lines.filter(function (l) { return l.trim(); }).slice(0, 12).join("\n");
+    var m;
+    if ((m = head.match(EMAIL_RE))) out.email = m[0];
+    if ((m = head.match(URL_RE)))   out.url = m[0].replace(/^https?:\/\//, "");
+    // phone: avoid matching the URL or a date
+    var headNoUrl = head.replace(URL_RE, " ");
+    if ((m = headNoUrl.match(PHONE_RE)) && m[0].replace(/\D/g,"").length >= 9) out.phone = m[0].trim();
+    // name = first non-empty line that isn't contact info
+    for (var i = 0; i < lines.length; i++) {
+      var t = lines[i].trim();
+      if (!t) continue;
+      if (EMAIL_RE.test(t) || URL_RE.test(t) || (PHONE_RE.test(t) && t.replace(/\D/g,"").length>=9)) continue;
+      if (/resume|curriculum|cv\b/i.test(t) && t.length < 24) continue;
+      out.name = t.replace(/\s{2,}/g, " ").replace(/[|•].*$/, "").trim();
+      break;
+    }
+    // location: a top line with "City, Country/Region" pattern, no @ or digits-heavy
+    for (var j = 0; j < Math.min(lines.length, 12); j++) {
+      var lt = lines[j].trim();
+      if (lt === out.name) continue;
+      if (/^[A-Z][A-Za-z.\-' ]+,\s*[A-Z][A-Za-z.\-' ]+$/.test(lt) && !EMAIL_RE.test(lt) && lt.length < 48) {
+        out.location = lt; break;
+      }
+      // contact line with pipes: pull a Tokyo/Japan-like token
+      var pm = lt.split(/[|•·]/).map(function(s){return s.trim();})
+                 .filter(function(s){ return /[A-Za-z]{3,},|japan|tokyo|osaka|kyoto/i.test(s) && !EMAIL_RE.test(s) && !/\d{4}/.test(s); });
+      if (pm.length) { out.location = pm[0]; break; }
+    }
+
+    // ---- split into sections ----
+    var sections = { _head: [] };
+    var cur = "_head";
+    lines.forEach(function (line) {
+      var h = classifyHeader(line);
+      if (h) { cur = h; if (!sections[h]) sections[h] = []; return; }
+      (sections[cur] = sections[cur] || []).push(line);
+    });
+
+    if (sections.summary) {
+      out.summary = sections.summary.join(" ").replace(/\s{2,}/g, " ").trim();
+    }
+    if (sections.skills) {
+      out.skills = splitSkills(sections.skills.join("\n"));
+    }
+    if (sections.certs) {
+      out.certs = sections.certs.map(function(l){return l.replace(/^[\s•\-*]+/,"").trim();})
+                                .filter(Boolean);
+    }
+    if (sections.experience) out.experience = parseEntries(sections.experience, "work");
+    if (sections.education)  out.education  = parseEntries(sections.education, "edu");
+
+    return out;
+  }
+
+  function splitSkills(block) {
+    var items = [];
+    block.split("\n").forEach(function (line) {
+      var l = line.replace(/^[\s•\-*]+/, "").trim();
+      if (!l) return;
+      // "Category: a, b, c" -> keep whole line; else split on commas
+      if (/:/.test(l)) items.push(l);
+      else if (/,/.test(l)) l.split(",").forEach(function (s){ if (s.trim()) items.push(s.trim()); });
+      else items.push(l);
+    });
+    return items;
+  }
+
+  // An "entry" = a header line (org/title + maybe dates) followed by bullet lines.
+  function parseEntries(blockLines, kind) {
+    var entries = [];
+    var cur = null;
+    function flush() { if (cur) { entries.push(cur); cur = null; } }
+
+    blockLines.forEach(function (raw) {
+      var line = raw.trim();
+      if (!line) return;
+      var isBullet = /^[•\-*▪◦·]/.test(raw) || /^\s{2,}\S/.test(raw);
+      var hasDate = DATE_RANGE_RE.test(line) || (SINGLE_DATE_RE.test(line) && /\b(19|20)\d{2}\b/.test(line));
+
+      if (!isBullet && (hasDate || (cur === null) || looksLikeTitle(line))) {
+        // start a new entry (or attach a second header line to current)
+        if (cur && !cur._twoLineDone && !hasDate && !cur.dates) {
+          // second descriptive line of the same entry (e.g. role under company)
+          cur.line2 = line; cur._twoLineDone = true; return;
+        }
+        flush();
+        cur = { line1: line, line2: "", dates: "", bullets: [], _twoLineDone: false };
+        var dm = line.match(DATE_RANGE_RE);
+        if (dm) { cur.dates = dm[0]; cur.line1 = line.replace(dm[0], "").replace(/[|•·,–\-]\s*$/, "").trim(); }
+      } else {
+        if (!cur) cur = { line1: "", line2: "", dates: "", bullets: [], _twoLineDone: true };
+        cur.bullets.push(line.replace(/^[•\-*▪◦·\s]+/, "").trim());
+      }
+    });
+    flush();
+
+    // Normalize into the shape the mappers expect.
+    return entries.map(function (e) {
+      var dm = (e.dates || (e.line1 + " " + e.line2)).match(DATE_RANGE_RE);
+      var startY = "", startM = "", endY = "", endM = "", current = false;
+      if (dm) {
+        var full = dm[0];
+        var sd = full.match(SINGLE_DATE_RE);
+        if (sd) { startM = monthNum(sd[1]); startY = sd[2]; }
+        if (/present|current|now/i.test(full)) current = true;
+        else {
+          var tail = full.replace(SINGLE_DATE_RE, "");
+          var ed = tail.match(SINGLE_DATE_RE);
+          if (ed) { endM = monthNum(ed[1]); endY = ed[2]; }
+        }
+      }
+      // org vs title heuristic
+      var a = e.line1, b = e.line2;
+      var org = a, title = b;
+      var ORG_KW = /\b(inc|ltd|llc|corp|co\.|k\.k\.|kk|gmbh|company|group|bank|university|college|institute|school|co\b)\b/i;
+      // "Title — Company" / "Title, Company" / "Title at Company" on one line.
+      if (!b) {
+        var parts = a.split(/\s+[—–]\s+| \| | at (?=[A-Z])/);
+        if (parts.length === 2) {
+          var L = parts[0].trim(), R = parts[1].trim();
+          // The side with a company/school keyword is the org; default "Title — Org".
+          if (ORG_KW.test(L) && !ORG_KW.test(R)) { org = L; title = R; }
+          else { title = L; org = R; }
+        }
+      } else if (kind === "work" && ORG_KW.test(b) && !ORG_KW.test(a)) {
+        org = b; title = a;   // line2 is the company
+      }
+      if (kind === "edu") {
+        // For education the school is the org, the degree is the title.
+        if (ORG_KW.test(title) && !ORG_KW.test(org)) { var tmp = org; org = title; title = tmp; }
+      }
+      return { org: org, title: title, dates: e.dates,
+               startY: startY, startM: startM, endY: endY, endM: endM, current: current,
+               bullets: e.bullets.filter(Boolean) };
+    }).filter(function (e) { return e.org || e.title || e.bullets.length; });
+  }
+
+  function looksLikeTitle(line) {
+    // Heading-ish: short, title-cased or has org keyword, not a sentence.
+    if (line.length > 70) return false;
+    if (/[.!?]$/.test(line) && line.length > 40) return false;
+    return /\b(engineer|manager|analyst|consultant|developer|designer|director|lead|associate|intern|specialist|officer|university|college|inc|ltd|llc|corp|co\.|k\.k\.|gmbh|company|group|bank|school)\b/i.test(line)
+        || /^[A-Z][A-Za-z0-9&.,'\- ]+$/.test(line);
+  }
+
+  // ====================================================================
+  // REVIEW UI — render parsed data into editable fields.
+  // ====================================================================
+  var parsed = null;
+
+  function entryRowHtml(kind, e, idx) {
+    e = e || {};
+    var orgLbl = kind === "edu" ? "School" : "Company";
+    var titLbl = kind === "edu" ? "Degree / field" : "Title / role";
+    return '<div class="entry" data-kind="'+kind+'" data-idx="'+idx+'">' +
+      '<button type="button" class="del" data-del>✕ remove</button>' +
+      '<div class="row"><div><label>'+orgLbl+'</label><input data-k="org" value="'+esc(e.org||"")+'"></div>' +
+      '<div><label>'+titLbl+'</label><input data-k="title" value="'+esc(e.title||"")+'"></div></div>' +
+      '<div class="row three"><div><label>Start (YYYY MM)</label><input data-k="start" value="'+esc(((e.startY||"")+" "+(e.startM||"")).trim())+'" placeholder="2019 4"></div>' +
+      '<div><label>End (YYYY MM)</label><input data-k="end" value="'+esc(e.current?"":((e.endY||"")+" "+(e.endM||"")).trim())+'" placeholder="2022 3"></div>' +
+      '<div><label>Current?</label><select data-k="current" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;"><option value="">No</option><option value="1"'+(e.current?" selected":"")+'>Yes</option></select></div></div>' +
+      (kind==="work" ? '<div><label>Bullets / duties (one per line)</label><textarea data-k="bullets" rows="3" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:13px;box-sizing:border-box;">'+esc((e.bullets||[]).join("\n"))+'</textarea></div>' : '') +
+      '</div>';
+  }
+  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
+
+  function renderReview(p) {
+    $("r-name").value = p.name || "";
+    $("r-location").value = p.location || "";
+    $("r-email").value = p.email || "";
+    $("r-phone").value = p.phone || "";
+    $("r-url").value = p.url || "";
+    $("r-summary").value = p.summary || "";
+    $("r-skills").value = (p.skills || []).join("\n");
+    $("r-certs").value = (p.certs || []).join("\n");
+    $("r-exp").innerHTML = (p.experience.length ? p.experience : [{}]).map(function (e,i){ return entryRowHtml("work", e, i); }).join("");
+    $("r-edu").innerHTML = (p.education.length ? p.education : [{}]).map(function (e,i){ return entryRowHtml("edu", e, i); }).join("");
+    bindEntryDeletes();
+    $("step-input").style.display = "none";
+    show($("review"));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function bindEntryDeletes() {
+    document.querySelectorAll("[data-del]").forEach(function (b) {
+      b.onclick = function () { b.closest(".entry").remove(); };
+    });
+  }
+
+  document.querySelectorAll("[data-add]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var kind = b.getAttribute("data-add") === "edu" ? "edu" : "work";
+      var box = $(kind === "edu" ? "r-edu" : "r-exp");
+      var div = document.createElement("div");
+      div.innerHTML = entryRowHtml(kind, {}, box.children.length);
+      box.appendChild(div.firstChild);
+      bindEntryDeletes();
+    });
+  });
+
+  // Read the (possibly edited) review fields back into a clean object.
+  function collectReview() {
+    function entries(boxId, kind) {
+      return Array.prototype.map.call($(boxId).querySelectorAll(".entry"), function (el) {
+        function v(k){ var n=el.querySelector('[data-k="'+k+'"]'); return n?n.value.trim():""; }
+        var s = v("start").split(/\s+/), e = v("end").split(/\s+/);
+        return { org:v("org"), title:v("title"),
+                 startY:s[0]||"", startM:s[1]||"", endY:e[0]||"", endM:e[1]||"",
+                 current: v("current")==="1",
+                 bullets: v("bullets").split("\n").map(function(x){return x.trim();}).filter(Boolean) };
+      }).filter(function(x){ return x.org||x.title||x.bullets.length; });
+    }
+    return {
+      name: $("r-name").value.trim(), location: $("r-location").value.trim(),
+      email: $("r-email").value.trim(), phone: $("r-phone").value.trim(),
+      url: $("r-url").value.trim(), summary: $("r-summary").value.trim(),
+      skills: $("r-skills").value.split("\n").map(function(s){return s.trim();}).filter(Boolean),
+      certs: $("r-certs").value.split("\n").map(function(s){return s.trim();}).filter(Boolean),
+      experience: entries("r-exp","work"), education: entries("r-edu","edu"),
+    };
+  }
+
+  // ====================================================================
+  // MAPPERS — write the three builders' localStorage shapes.
+  // ====================================================================
+  function ym(y, mo) { return { year: y || "", month: mo || "" }; }
+
+  function translateOn() {
+    var el = $("tx-toggle");
+    return el ? el.checked : true;
+  }
+
+  function toRirekisho(d) {
+    var on = translateOn();
+    var edu = [];
+    (d.education || []).forEach(function (e) {
+      var school = txSchool(e.org, on);
+      var degree = txDegree(e.title, on);
+      var label = school + (degree ? "　" + degree : "");
+      if (e.startY) edu.push({ year: e.startY, month: e.startM, text: (label + " 入学").trim() });
+      if (e.endY || e.current) edu.push({ year: e.endY || e.startY, month: e.endM, text: (label + " 卒業").trim() });
+      if (!e.startY && !e.endY) edu.push({ year:"", month:"", text: label });
+    });
+    var work = [];
+    (d.experience || []).forEach(function (e) {
+      var co = txCompany(e.org, on);
+      var role = txTitle(e.title, on);
+      var label = co + (role ? "　" + role : "");
+      if (e.startY) work.push({ year: e.startY, month: e.startM, text: (label + " 入社").trim() });
+      if (e.current) work.push({ year:"", month:"", text: "現在に至る" });
+      else if (e.endY) work.push({ year: e.endY, month: e.endM, text: (label + " 退社").trim() });
+      if (!e.startY && !e.endY) work.push({ year:"", month:"", text: label });
+    });
+    var licenses = (d.certs || []).map(function (c) { return { year:"", month:"", text: c }; });
+    return {
+      name: d.name || "", nameJp: "", furigana: "",
+      dob: "", gender: "", phone: d.phone || "", email: d.email || "",
+      postal: "", address: d.location || "", addressFurigana: "", resumeDate: "",
+      motivation: "", wishes: "貴社規定に従います。",
+      education: edu, work: work, licenses: licenses, photo: "",
+    };
+  }
+
+  function toShokumu(d) {
+    var on = translateOn();
+    var companies = (d.experience || []).map(function (e) {
+      return { name: txCompany(e.org, on) || "", industry: "",
+               startYear: e.startY || "", startMonth: e.startM || "",
+               endYear: e.endY || "", endMonth: e.endM || "", current: !!e.current,
+               position: txTitle(e.title, on) || "",
+               duties: (e.bullets || []).join("\n"), achievements: "" };
+    });
+    return {
+      name: d.name || "", nameJp: "", docDate: "",
+      summary: d.summary || "",
+      companies: companies,
+      skills: (d.skills || []).map(function (s) { return { text: s }; }),
+      quals: (d.certs || []).map(function (c) { return { year:"", month:"", text: c }; }),
+      selfPr: "",
+    };
+  }
+
+  function toCV(d) {
+    return {
+      format: "american", name: d.name || "", headline: "",
+      email: d.email || "", phone: d.phone || "", location: d.location || "", url: d.url || "",
+      summary: d.summary || "", skills: (d.skills || []).join("\n"), interests: "",
+      experience: (d.experience || []).map(function (e) {
+        var dates = e.dates || ((e.startM?e.startM+"/":"")+(e.startY||"") +
+          (e.current ? " – Present" : (e.endY ? " – " + (e.endM?e.endM+"/":"") + e.endY : "")));
+        return { title: e.title || "", company: e.org || "", location: "",
+                 dates: dates.trim(), bullets: (e.bullets || []).join("\n") };
+      }),
+      education: (d.education || []).map(function (e) {
+        var dates = e.dates || ((e.startY||"") + (e.endY ? " – " + e.endY : ""));
+        return { degree: e.title || "", school: e.org || "", location: "", dates: dates.trim(), notes: "" };
+      }),
+      languages: [], certs: (d.certs || []).map(function (c) { return { name: c, dates: "" }; }),
+    };
+  }
+
+  function commit() {
+    var d = collectReview();
+    if (!d.name && !d.experience.length && !d.education.length) {
+      setStatus("commit-status", "Add at least a name or one entry first.", true);
+      return;
+    }
+    try {
+      localStorage.setItem("gaijin-hunter-rirekisho-v2", JSON.stringify(toRirekisho(d)));
+      localStorage.setItem("gaijin-hunter-shokumu-v1", JSON.stringify(toShokumu(d)));
+      localStorage.setItem("gh-cv-draft-v2", JSON.stringify(toCV(d)));
+    } catch (e) {
+      setStatus("commit-status", "Could not save to this browser (storage blocked).", true);
+      return;
+    }
+    show($("done"));
+    $("done").scrollIntoView({ behavior: "smooth" });
+    setStatus("commit-status", "");
+  }
+
+  // ====================================================================
+  // FILE / TEXT INPUT
+  // ====================================================================
+  async function extractPdf(file) {
+    var buf = await file.arrayBuffer();
+    var pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    var out = [];
+    for (var p = 1; p <= pdf.numPages; p++) {
+      var page = await pdf.getPage(p);
+      var content = await page.getTextContent();
+      // Reconstruct lines from text items using their Y positions.
+      var rows = {};
+      content.items.forEach(function (it) {
+        var y = Math.round(it.transform[5]);
+        (rows[y] = rows[y] || []).push({ x: it.transform[4], s: it.str });
+      });
+      Object.keys(rows).map(Number).sort(function(a,b){return b-a;}).forEach(function (y) {
+        var line = rows[y].sort(function(a,b){return a.x-b.x;}).map(function(o){return o.s;}).join(" ")
+                    .replace(/\s{2,}/g," ").trim();
+        if (line) out.push(line);
+      });
+    }
+    return out.join("\n");
+  }
+
+  async function handleFile(file) {
+    if (!file) return;
+    setStatus("file-status", "Reading " + file.name + "…");
+    try {
+      var text;
+      if (/\.pdf$/i.test(file.name) || file.type === "application/pdf") {
+        if (!window.pdfjsLib) throw new Error("PDF reader didn't load — paste the text instead.");
+        text = await extractPdf(file);
+      } else {
+        text = await file.text();
+      }
+      if (!text || text.trim().length < 30) throw new Error("Couldn't read enough text — try pasting it.");
+      parsed = parseResume(text);
+      setStatus("file-status", "");
+      renderReview(parsed);
+    } catch (e) {
+      setStatus("file-status", e.message || "Could not read that file.", true);
+    }
+  }
+
+  $("file").addEventListener("change", function (e) { handleFile(e.target.files[0]); });
+  var drop = $("drop");
+  ["dragenter","dragover"].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add("drag"); }); });
+  ["dragleave","drop"].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove("drag"); }); });
+  drop.addEventListener("drop", function (e) { if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+
+  $("parse-btn").addEventListener("click", function () {
+    var t = $("paste").value;
+    if (!t || t.trim().length < 30) { setStatus("paste-status", "Paste your résumé text first.", true); return; }
+    parsed = parseResume(t);
+    setStatus("paste-status", "");
+    renderReview(parsed);
+  });
+
+  $("commit-btn").addEventListener("click", commit);
+  $("restart-btn").addEventListener("click", function () {
+    $("review").classList.remove("show"); $("done").classList.remove("show");
+    $("step-input").style.display = ""; $("paste").value = ""; $("file").value = "";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  $("sample-btn").addEventListener("click", function () {
+    $("paste").value = SAMPLE;
+    parsed = parseResume(SAMPLE);
+    renderReview(parsed);
+  });
+
+  var SAMPLE = [
+    "Jane Eleanor Doe",
+    "Tokyo, Japan | jane.doe@example.com | +81 90 1234 5678 | linkedin.com/in/janedoe",
+    "",
+    "SUMMARY",
+    "Strategy consultant with seven years' experience advising Fortune 500 and JPX 100 clients on growth strategy, market entry, and operational transformation.",
+    "",
+    "EXPERIENCE",
+    "Senior Associate, Strategy & Operations — Bain & Company    Aug 2022 – Present",
+    "• Led a ¥40bn cost reduction programme for a JPX 100 conglomerate.",
+    "• Managed a 6-person team across two cross-border M&A transactions.",
+    "Associate — Boston Consulting Group    Jul 2019 – Aug 2022",
+    "• Designed a digital-first sales operating model for a Japanese mega-bank.",
+    "",
+    "EDUCATION",
+    "B.A. (Hons) Economics — University of Cambridge    Oct 2014 – Jun 2017",
+    "",
+    "SKILLS",
+    "Strategy: market entry, due diligence, financial modelling",
+    "Technical: Excel, SQL, Tableau, Python",
+    "",
+    "CERTIFICATIONS",
+    "JLPT N2 (2023)",
+    "Project Management Professional (PMP)",
+  ].join("\n");
+})();
+</script>
+{% endblock %}

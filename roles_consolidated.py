@@ -30,6 +30,7 @@ GUIDE_TO_ROADMAP_SLUG: dict[str, str] = {
     "data-ai": "data-ai",
     "design": "design",
     "engineering-management": "engineering-management",
+    "recruiting": "recruiting",
 }
 
 # Which guide slugs are *role* guides (used to decide whether to append a roadmap
@@ -374,6 +375,131 @@ firms.</p>
   <li><strong>Neglecting the bilingual bridge</strong>, your job often includes translating between
       a Japanese team and a global HQ; do it deliberately.</li>
 </ul>
+"""
+    },
+
+    {
+        "slug": "recruiting",
+        "category": "Role",
+        "icon": "megaphone",
+        "title": "Recruiting in Japan, the foreigner's guide",
+        "summary": "Talent acquisition and agency recruiting as a foreigner in Japan, why the bilingual recruitment industry hires foreigners, the language-defines-your-market reality, base-plus-commission pay, and how to break in.",
+        "updated": "June 2026",
+        "read_time": "11 min",
+        "key_takeaways": [
+            "Recruiting is one of the <strong>most foreigner-open careers outside engineering</strong>, a whole bilingual industry exists to place international talent, and it hires foreigners to do it.",
+            "English-first <strong>bilingual / foreign-talent desks</strong> let you start with limited Japanese; every level of Japanese you add widens your candidate pool and client list.",
+            "Employers: bilingual agencies (Robert Walters, Michael Page, Hays, en world, Computer Futures, JAC) and in-house talent-acquisition teams at global-tech and English-first firms.",
+            "Pay is <strong>base + commission</strong>: agency OTE roughly <strong>¥8–15M</strong> for solid billers (¥20M+ for top performers); in-house TA steadier at <strong>¥6–10M</strong> with less upside.",
+            "An <strong>accessible career-change route</strong>, agencies hire for drive over credentials and sponsor visas, but it's a quota-driven sales job; resilience is the work.",
+        ],
+        "faqs": [
+            ("Can foreigners work as recruiters in Japan?",
+             "<p>Yes, it's one of the most foreigner-open non-technical careers here. The bilingual recruitment industry is built around placing international and bilingual talent into Japanese jobs, and agencies actively hire native-English, culturally-fluent foreigners to run those desks, because they can reach candidates Japanese-only recruiters can't. Barriers to entry are low (it's a sales role, not a credentialled one) and the large agencies sponsor visas and hire career-changers as a matter of course.</p>"),
+            ("Do you need Japanese to be a recruiter in Japan?",
+             "<p>It depends on the desk. English-first <strong>bilingual / foreign-talent desks</strong> and in-house talent acquisition at global firms run substantially in English, so you can start with limited Japanese. Recruiting Japanese-native candidates or serving domestic-only clients needs business Japanese (JLPT N2+). Recruiting is one of the few careers where your language level literally defines your addressable market, so every step up in Japanese pays back fast.</p>"),
+            ("How much do recruiters earn in Japan?",
+             "<p>Pay is base plus commission, so the spread is wide. Agency recruiters typically start on a <strong>¥4–7M base</strong> with uncapped commission, putting solid billers around <strong>¥8–15M</strong> on-target and strong performers <strong>¥20M+</strong>. In-house talent acquisition is steadier at roughly <strong>¥6–10M</strong> with a smaller bonus and less volatility, and executive search tops out higher on senior placements. Your billings, not your tenure, set the ceiling.</p>"),
+        ],
+        "toc": [
+            ("overview", "Overview, an unusually open door"),
+            ("where-jobs", "Where the jobs are, named employers"),
+            ("types", "Types of recruiting & what they pay"),
+            ("agency-vs-inhouse", "Agency vs in-house, the trade-off"),
+            ("language", "The Japanese-language reality"),
+            ("comp", "Compensation"),
+            ("interview", "The interview loop"),
+            ("breaking-in", "Breaking in"),
+        ],
+        "body": """
+<h2 id="overview">Overview, an unusually open door</h2>
+<p>Recruiting is one of the most foreigner-accessible careers in Japan outside of engineering, for a
+neat structural reason: a whole industry exists to place <strong>international and bilingual talent</strong>
+into Japanese jobs, and it hires foreigners to do that work. The bilingual recruitment agencies that fill
+much of this site's job board are themselves big employers of native-English, culturally-fluent recruiters
+who can source and place the candidates Japanese-only recruiters can't reach. Barriers to entry are low,
+it's a sales job, not a credentialled one, and the large agencies sponsor visas routinely.</p>
+
+<h2 id="where-jobs">Where the jobs are, named employers</h2>
+<ul>
+  <li><strong>Bilingual recruitment agencies:</strong> Robert Walters, Michael Page / PageGroup, Hays,
+      en world, Robert Half, Morgan McKinley, Computer Futures, JAC Recruitment, the core of the
+      foreign-recruiter market, organised into specialist desks (tech, finance, sales, etc.).</li>
+  <li><strong>In-house talent acquisition (TA):</strong> the recruiting teams at global tech and
+      English-first firms, Google, Amazon, Mercari, Rakuten, LINE Yahoo, Indeed, where you hire for one
+      company rather than bill clients.</li>
+  <li><strong>Executive search / headhunting:</strong> boutique and global search firms placing senior
+      and C-level bilingual talent, higher fees, longer cycles, deeper relationships.</li>
+  <li><strong>Sourcing & RPO:</strong> recruitment-process-outsourcing providers and dedicated sourcer
+      roles, often a softer, less commission-driven way in.</li>
+</ul>
+
+<h2 id="types">Types of recruiting & what they pay</h2>
+<table>
+  <thead><tr><th>Type</th><th>What it is</th><th>Foreigner-friendly?</th></tr></thead>
+  <tbody>
+    <tr><td>Agency recruiter (bilingual desk)</td><td>Sourcing + placing candidates with client firms for a fee</td><td>★★★★★, the core foreign-recruiter job, English-heavy</td></tr>
+    <tr><td>In-house TA</td><td>Recruiting for one employer; partnering with hiring managers</td><td>★★★★, English-first at global firms, steadier</td></tr>
+    <tr><td>Executive search / headhunter</td><td>Senior/C-level placement, mapped markets, discreet outreach</td><td>★★★★, relationship-driven, higher pay</td></tr>
+    <tr><td>Sourcer / RPO</td><td>Pipeline-building and screening, often without closing</td><td>★★★★, good entry point, less commission</td></tr>
+    <tr><td>Recruitment coordinator / ops</td><td>Scheduling, candidate experience, ATS admin</td><td>★★★, entry-level, more Japanese-facing admin</td></tr>
+  </tbody>
+</table>
+<div class="callout">The <strong>bilingual / foreign-talent desk</strong> is the natural home for a
+newcomer with limited Japanese, you work English-speaking candidates and the international side of client
+companies. The more Japanese you add, the more of the domestic candidate and client market you can bill.</div>
+
+<h2 id="agency-vs-inhouse">Agency vs in-house, the trade-off</h2>
+<p>The first fork in a recruiting career here is agency vs in-house. Agencies pay more at the top but
+live and die by commission; in-house is steadier and more strategic. Rough comparison:</p>
+<table>
+  <thead><tr><th></th><th>Agency recruiter</th><th>In-house TA</th></tr></thead>
+  <tbody>
+    <tr><td>Pay model</td><td>Base + uncapped commission</td><td>Base + (smaller) bonus</td></tr>
+    <tr><td>Upside</td><td><strong>High</strong>, top billers ¥20M+</td><td>Moderate, steadier</td></tr>
+    <tr><td>Pressure</td><td>Quota / KPI-driven, high churn</td><td>Lower, partner with hiring managers</td></tr>
+    <tr><td>Best if</td><td>You're driven by sales & money</td><td>You prefer stability & depth</td></tr>
+  </tbody>
+</table>
+
+<h2 id="language">The Japanese-language reality</h2>
+<p>Recruiting is one of the few careers where <strong>your language level literally defines your
+market</strong>. With strong English and limited Japanese you can run a bilingual desk, placing
+international and bilingual candidates into the English-friendly companies on this board. To recruit
+Japanese-native candidates or serve domestic-only clients you'll need business Japanese (JLPT N2+).
+In-house TA at global firms is the most English-tolerant entry; pure-domestic agencies are the least.
+Every level of Japanese you add widens both your candidate pool and your client list, so it pays back
+faster here than in almost any other role.</p>
+
+<h2 id="comp">Compensation</h2>
+<p>Recruiting pay is <strong>base + commission</strong>, so the spread is wide. Agency recruiters
+typically start on a <strong>¥4–7M base</strong> with uncapped commission on placements, putting solid
+billers at roughly <strong>¥8–15M</strong> on-target and strong performers <strong>¥20M+</strong>.
+In-house talent acquisition is steadier at about <strong>¥6–10M</strong> with a smaller bonus and less
+volatility, and executive search tops out higher on big senior placements. Your billings, not your
+tenure, set the ceiling. See <a href="/insights/salary">live salary insights</a>.</p>
+
+<h2 id="interview">The interview loop</h2>
+<p>Recruiting interviews are <strong>sales interviews</strong>: expect deep probing on motivation
+('why recruitment?'), resilience and how you handle rejection, your drive and comfort with targets, and
+often a role-play or a 'how would you fill this role' scenario. Agencies screen hard for energy and
+commission appetite; in-house TA weighs stakeholder management and candidate experience. It's run in
+English at the bilingual agencies and global firms, and the loop is usually fast.</p>
+
+<h2 id="breaking-in">Breaking in</h2>
+<ol>
+  <li><strong>Target the bilingual agencies</strong> (Robert Walters, Michael Page, Hays, en world,
+      Computer Futures), they hire foreigners continuously and sponsor visas.</li>
+  <li><strong>Sell your transferable background</strong>, sales, customer-facing, account management or
+      any results-and-relationships role converts well; recruiting hires for drive over credentials.</li>
+  <li><strong>Lead with English plus whatever Japanese you have</strong>, native English is an asset
+      here, and even conversational Japanese widens the desks you can run.</li>
+  <li><strong>Be honest about the commission grind</strong>, it's a high-reward, high-pressure sales
+      job; show you actively want that.</li>
+  <li><strong>Expect the standard 2–4 month COE/visa timeline</strong> after an offer
+      (<a href="/living/coe-and-arrival">COE & arrival</a>), then browse current openings on the
+      <a href="/jobs">job board</a>.</li>
+</ol>
 """
     },
 ]

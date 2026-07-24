@@ -91,7 +91,8 @@ def _base_url() -> str:
 
 @app.context_processor
 def _inject_base_url():
-    return {"base_url": _base_url()}
+    import company_logos
+    return {"base_url": _base_url(), "company_logo_url": company_logos.logo_url}
 
 
 @app.before_request
@@ -738,13 +739,11 @@ def glossary():
 def sitemap_xml():
     """Dynamic sitemap covering all major routes + DB-driven detail pages.
 
-    Includes priority + changefreq + lastmod hints to help crawlers
-    prioritize the most-important and most-updated pages.
+    `lastmod` is only emitted when we honestly know it (job pages: when the
+    posting was last seen at source; company pages: their newest posting).
+    Emitting today's date on every URL teaches crawlers to ignore lastmod.
     """
     import content
-    from datetime import date
-
-    today = date.today().isoformat()
 
     # (path, priority, changefreq)
     static_pages = [
@@ -787,30 +786,69 @@ def sitemap_xml():
         ("/compare",                     "0.4", "monthly"),
     ]
 
-    pages = [(p, prio, cf) for p, prio, cf in static_pages]
+    # (path, priority, changefreq, lastmod-or-None)
+    pages = [(p, prio, cf, None) for p, prio, cf in static_pages]
     # Dynamic pages — resources and guides are evergreen, high authority
     for r in content.RESOURCES:
-        pages.append((f"/resources/{r['slug']}", "0.85", "monthly"))
+        pages.append((f"/resources/{r['slug']}", "0.85", "monthly", None))
     import roles_consolidated
     for g in roles_consolidated.all_guides(content.GUIDES):
-        pages.append((f"/guides/{g['slug']}", "0.85", "monthly"))
+        pages.append((f"/guides/{g['slug']}", "0.85", "monthly", None))
     import living_content
     for g in living_content.LIVING_GUIDES:
-        pages.append((f"/living/{g['slug']}", "0.85", "monthly"))
+        pages.append((f"/living/{g['slug']}", "0.85", "monthly", None))
     # Roadmaps consolidated into guides — no standalone /roadmaps URLs to index.
     for p in content.PILLAR_GUIDES:
-        pages.append((f"/pillars/{p['slug']}", "0.85", "monthly"))
-    for c in db.companies_list(min_jobs=2):
-        pages.append((f"/companies/{c['slug']}", "0.7", "weekly"))
+        pages.append((f"/pillars/{p['slug']}", "0.85", "monthly", None))
+
+    def _datestr(val) -> str | None:
+        # last_seen_at is an ISO timestamp; sitemap wants YYYY-MM-DD.
+        if not val:
+            return None
+        s = str(val)[:10]
+        return s if len(s) == 10 else None
+
+    with db.connect() as conn:
+        # Company pages: lastmod = newest posting we've seen for the company.
+        company_seen = {
+            row["name"]: row["seen"]
+            for row in conn.execute(
+                "SELECT company_name AS name, MAX(last_seen_at) AS seen "
+                "FROM jobs WHERE company_name IS NOT NULL GROUP BY company_name")
+        }
+        seen_slugs: set = set()
+        for c in db.companies_list(min_jobs=2):
+            # Case-variant names ("Exawizards"/"ExaWizards") share one slug;
+            # emit each company URL once.
+            if c["slug"] in seen_slugs:
+                continue
+            seen_slugs.add(c["slug"])
+            pages.append((f"/companies/{c['slug']}", "0.7", "weekly",
+                          _datestr(company_seen.get(c["name"]))))
+
+        # Job detail pages — these carry JobPosting JSON-LD (Google Jobs).
+        # Active = seen at source within the stale window, employer posts
+        # only while live + approved. lastmod = last_seen_at (honest).
+        job_rows = conn.execute(
+            "SELECT id, last_seen_at FROM jobs "
+            "WHERE DATE(last_seen_at) >= DATE('now', ?) "
+            "  AND COALESCE(employer_post_status, 'active') = 'active' "
+            "  AND COALESCE(moderation_status, 'approved') = 'approved' "
+            "ORDER BY last_seen_at DESC",
+            (f"-{db.STALE_DAYS} days",)).fetchall()
+    for row in job_rows:
+        pages.append((f"/job/{row['id']}", "0.6", "weekly",
+                      _datestr(row["last_seen_at"])))
 
     base = _base_url()
     xml = ['<?xml version="1.0" encoding="UTF-8"?>',
            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
-    for path, priority, changefreq in pages:
+    for path, priority, changefreq, lastmod in pages:
+        lastmod_tag = f"<lastmod>{lastmod}</lastmod>" if lastmod else ""
         xml.append(
             f"<url>"
             f"<loc>{base}{path}</loc>"
-            f"<lastmod>{today}</lastmod>"
+            f"{lastmod_tag}"
             f"<changefreq>{changefreq}</changefreq>"
             f"<priority>{priority}</priority>"
             f"</url>"
@@ -1019,6 +1057,14 @@ def api_similar_jobs(job_id: int):
 @app.route("/resume")
 def resume():
     return render_template("resume.html", section="resume", resume_tool="rirekisho")
+
+
+@app.route("/resume/import")
+def resume_import():
+    """Upload/paste a Western résumé; parse it client-side and pre-fill the
+    rirekisho, shokumu and English CV builders for review + edit before export.
+    All parsing happens in the browser — the file never leaves the device."""
+    return render_template("resume_import.html", section="resume", resume_tool="import")
 
 
 @app.route("/resume/shokumu")
@@ -1660,12 +1706,28 @@ def employer_cleanup():
 
 @app.route("/healthz")
 def healthz():
-    """Liveness + basic data freshness for deploy health checks."""
+    """Liveness + basic data freshness for deploy health checks.
+
+    Always 200 when the DB is readable (a stale board should not take the
+    site down), but exposes data_age_days / fresh_jobs / status="stale" so
+    external monitoring can alert before the 30-day archive window empties
+    the board.
+    """
     try:
         with db.connect() as conn:
             total = conn.execute("SELECT COUNT(*) AS n FROM jobs").fetchone()["n"]
             last = conn.execute("SELECT MAX(last_seen_at) AS t FROM jobs").fetchone()["t"]
-        return jsonify({"status": "ok", "jobs": total, "last_seen_at": last,
+            fresh = conn.execute(
+                "SELECT COUNT(*) AS n FROM jobs "
+                "WHERE DATE(last_seen_at) >= DATE('now', ?)",
+                (f"-{db.STALE_DAYS} days",)).fetchone()["n"]
+            age_days = conn.execute(
+                "SELECT CAST(julianday('now') - julianday(MAX(last_seen_at)) "
+                "AS INTEGER) AS d FROM jobs").fetchone()["d"]
+        status = "ok" if (age_days is not None and age_days <= 7) else "stale"
+        return jsonify({"status": status, "jobs": total, "fresh_jobs": fresh,
+                        "last_seen_at": last,
+                        "data_age_days": age_days,
                         "env": config.ENV}), 200
     except Exception as e:                                # pragma: no cover
         logging.getLogger("app").exception("healthz failed")
@@ -1674,7 +1736,13 @@ def healthz():
 
 @app.route("/privacy")
 def privacy():
-    return render_template("privacy.html", section="privacy")
+    import os
+    from datetime import date
+    return render_template(
+        "privacy.html", section="privacy",
+        updated=date.today().strftime("%B %d, %Y").replace(" 0", " "),
+        contact_email=os.environ.get("CONTACT_EMAIL", "hello@gaijinhunterjp.com"),
+    )
 
 
 @app.errorhandler(429)

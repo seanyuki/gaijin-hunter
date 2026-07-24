@@ -78,7 +78,12 @@ def _html_to_text(html_str: Optional[str], cap: int = 20_000) -> Optional[str]:
 
 def _location_obj(job: dict) -> dict:
     loc = job.get("location")
-    return loc if isinstance(loc, dict) else {}
+    if isinstance(loc, dict) and loc:
+        return loc
+    # The widget API (?details=true) returns flat location fields instead of a
+    # nested location object — fall back to those so Japan detection works.
+    return {"country": job.get("country"), "countryCode": job.get("countryCode"),
+            "city": job.get("city"), "region": job.get("state") or job.get("region")}
 
 
 def _is_japan(job: dict, location_str: str) -> bool:
@@ -139,9 +144,12 @@ def _job_url(slug: str, job: dict) -> str:
 
 def map_job(company: dict, job: dict) -> Optional[dict]:
     """Map one Workable posting -> our schema. Returns None if not a Japan job."""
-    # Only published roles.
-    state = str(job.get("state") or "").lower()
-    if state and state not in ("published", "open", "active"):
+    # Drop non-public roles. NB: in the widget (?details=true) API `state` is the
+    # geographic region (e.g. "Tokyo"), so only reject known non-published
+    # statuses — never an arbitrary non-"published" value.
+    state = str(job.get("status") or "").lower()
+    if state in ("draft", "closed", "archived", "cancelled", "canceled",
+                 "on_hold", "internal"):
         return None
 
     location_str = _location_string(job)

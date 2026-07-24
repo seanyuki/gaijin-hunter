@@ -290,90 +290,140 @@ def english_ratio(text: Optional[str]) -> float:
 # Phase 1 derived-field helpers
 # ===========================================================================
 
-# Role-family taxonomy. Each family maps to a list of regex patterns that
-# (case-insensitive) match in title or description. The family with the most
-# matches wins; ties broken by list order.
-_ROLE_FAMILY_PATTERNS: list[tuple[str, list[str]]] = [
-    ("Software Engineering", [
-        r"\bsoftware\s+engineer", r"\bbackend", r"\bfront[\s-]?end", r"\bfull[\s-]?stack",
-        r"\bdeveloper\b", r"\bdevops\b", r"\bsre\b", r"\bsite reliability",
-        r"\bplatform engineer", r"\bsystems engineer", r"\bprogrammer\b",
-        r"\biOS\b", r"\bandroid\b", r"\bmobile engineer", r"\bembedded\b",
-    ]),
-    ("Data / AI", [
-        r"\bdata\s+scientist", r"\bdata\s+engineer", r"\bdata\s+analyst",
-        r"\bml\s+engineer", r"\bmachine\s+learning", r"\bai\s+engineer",
-        r"\banalytics\b", r"\bllm\b", r"\bnlp\b", r"\bcomputer\s+vision",
-    ]),
-    ("Product Management", [
-        r"\bproduct\s+manager", r"\bpm\b", r"\bpdm\b",
-        r"\bproduct\s+owner", r"\bproduct\s+lead",
-    ]),
-    ("Design", [
-        r"\bdesigner\b", r"\bux\b", r"\bui\b", r"\bui[\s/]+ux",
-        r"\bproduct\s+design", r"\bvisual\s+design", r"\bgraphic\s+design",
-        r"\binteraction\s+design",
-    ]),
-    ("Marketing", [
-        r"\bmarketing\b", r"\bgrowth\b", r"\bseo\b", r"\bsem\b", r"\bcontent\b",
-        r"\bbrand\b", r"\bsocial\s+media", r"\bperformance\s+marketing",
-    ]),
-    ("Sales / BD", [
-        r"\bsales\b", r"\baccount\s+executive", r"\bbusiness\s+development",
-        r"\b\s*bd\s*\b", r"\bsdr\b", r"\bbdr\b", r"\bsales\s+manager",
-    ]),
-    ("Finance / Accounting", [
-        r"\bfinance\b", r"\baccountant\b", r"\baccounting\b", r"\bcfo\b",
-        r"\bcontroller\b", r"\btreasur", r"\binvestment\b", r"\baudit\b",
-    ]),
-    ("Consulting", [
-        r"\bconsultant\b", r"\bconsulting\b", r"\bstrateg(y|ist)\b",
-        r"\badvisory\b", r"\bsenior\s+associate",
-    ]),
-    ("Operations", [
-        r"\boperations\b", r"\bops\b", r"\bsupply\s+chain", r"\blogistics\b",
-        r"\bproject\s+manager", r"\bprogram\s+manager",
-    ]),
-    ("HR / Recruiting", [
-        r"\bhr\b", r"\bhuman\s+resources", r"\brecruit(er|ing|ment)\b",
-        r"\btalent\s+(acquisition|partner)", r"\bpeople\s+ops",
-    ]),
-    ("Customer Support", [
-        r"\bcustomer\s+(support|success|service)", r"\bsupport\s+engineer",
-        r"\btechnical\s+support", r"\bhelp\s+desk", r"\bcs\b",
-    ]),
-    ("Teaching / Education", [
-        r"\bteacher\b", r"\bteaching\b", r"\binstructor\b",
-        r"\beikaiwa\b", r"\bcurriculum\b", r"\bprofessor\b", r"\btutor\b",
-        r"\beslteacher\b", r"\besl\b", r"\balt\b", r"\bassistant\s+language",
-    ]),
-    ("Translation / Localization", [
-        r"\btranslator\b", r"\btranslation\b", r"\blocalization\b",
-        r"\binterpret(er|ation)\b", r"\bi18n\b", r"\bl10n\b",
-    ]),
-    ("Hospitality / Tourism", [
-        r"\bhotel\b", r"\bhospitality\b", r"\btourism\b", r"\bconcierge\b",
-        r"\brestaurant\b", r"\bchef\b", r"\bfront\s+desk", r"\btravel\b",
-    ]),
-    ("Legal / Compliance", [
-        r"\blegal\b", r"\blawyer\b", r"\battorney\b", r"\bparalegal\b",
-        r"\bcompliance\b", r"\bgovernance\b",
-    ]),
+# Role-family taxonomy. Each family has two pattern lists:
+#   strong      — reliable enough to count anywhere (title / tags+industries / body).
+#   title_only  — short or ambiguous tokens (e.g. "pm", "cs", "hr", "alt") that fire
+#                 on unrelated words in free text, so they only count in the TITLE
+#                 (and the structured tags/industries meta), never the body.
+# Scoring weights the TITLE heavily, the tags/industries meta moderately, and the
+# body lightly (capped), then requires a real signal — a title hit, a meta hit, or
+# >=2 distinct body matches — to return a label (otherwise None, "uncategorised").
+# Patterns include Japanese terms so JP-language postings classify too.
+_ROLE_FAMILY_PATTERNS: list[tuple[str, list[str], list[str]]] = [
+    ("Software Engineering",
+     [r"\bsoftware\s+engineer", r"\bback[\s-]?end", r"\bfront[\s-]?end", r"\bfull[\s-]?stack",
+      r"\bweb\s+develop", r"\bsoftware\s+develop", r"\bdevops\b", r"\bsite\s+reliability",
+      r"\bplatform\s+engineer", r"\bsystems?\s+engineer", r"\bmobile\s+engineer",
+      r"\bios\s+(developer|engineer)", r"\bandroid\s+(developer|engineer)",
+      r"\bembedded\s+(software|engineer)",
+      r"\b(qa|test|automation|quality\s+assurance)\s+engineer",
+      r"ソフトウェアエンジニア", r"プログラマ", r"バックエンド", r"フロントエンド", r"開発エンジニア"],
+     [r"\bsre\b", r"\bdevelopers?\b", r"\bprogrammers?\b", r"\bqa\b"]),
+    ("Data / AI",
+     [r"\bdata\s+scientist", r"\bdata\s+engineer", r"\bdata\s+analyst",
+      r"\bml\s+engineer", r"\bmachine\s+learning", r"\bai\s+engineer", r"\bmlops\b",
+      r"\bllm\b", r"\bcomputer\s+vision", r"\banalytics\b", r"\bbusiness\s+intelligence",
+      r"\bbi\s+(developer|engineer|analyst|lead)", r"データサイエン", r"データエンジニア",
+      r"機械学習", r"データアナリスト"],
+     [r"\bnlp\b", r"\bbi\b"]),
+    ("Product Management",
+     [r"\bproduct\s+manager", r"\bproduct\s+owner", r"\bproduct\s+lead",
+      r"\bproduct\s+management", r"プロダクトマネ"],
+     [r"\bpdm\b"]),
+    ("Design",
+     [r"\bdesigners?\b", r"\bux\b", r"\bui[\s/]*ux", r"\bproduct\s+design",
+      r"\bvisual\s+design", r"\bgraphic\s+design", r"\binteraction\s+design",
+      r"デザイナー", r"デザイン"],
+     [r"\bui\b"]),
+    ("Marketing",
+     [r"\bmarketing\b", r"\bseo\b", r"\bsem\b", r"\bcontent\s+(marketing|writer|creator|strateg)",
+      r"\bbrand\s+(manager|marketing|strateg)", r"\bsocial\s+media", r"\bperformance\s+marketing",
+      r"マーケティング", r"マーケター", r"広報"],
+     []),
+    ("Sales / BD",
+     [r"\baccount\s+executives?", r"\bbusiness\s+development", r"\bsales\s+(manager|representative|director|engineer)",
+      r"\bsales\b", r"\bsdr\b", r"\bbdr\b", r"営業", r"セールス"],
+     [r"\bbd\b"]),
+    ("Finance / Accounting",
+     [r"\bfinance\b", r"\baccountants?\b", r"\baccounting\b", r"\bcfo\b",
+      r"\bcontroller\b", r"\btreasur", r"\binvestment\b", r"\baudit", r"\bbookkeep",
+      r"経理", r"財務", r"会計", r"監査"],
+     []),
+    ("HR / Recruiting",
+     [r"\bhuman\s+resources", r"\brecruiters?\b", r"\bsourcers?\b",
+      r"\brecruit(ing|ment)\s+(manager|consultant|coordinator|lead|specialist|partner)",
+      r"\btalent\s+(acquisition|partner)", r"\bpeople\s+ops", r"人事", r"採用担当", r"リクルーター"],
+     [r"\bhr\b"]),
+    ("Consulting",
+     [r"\bconsultants?\b", r"\bconsulting\b", r"\bstrateg(y|ist)\b",
+      r"\badvisory\b", r"コンサル"],
+     []),
+    ("Operations",
+     [r"\boperations\b", r"\bsupply\s+chain", r"\bproject\s+manager",
+      r"\bprogram\s+manager", r"オペレーション"],
+     [r"\bops\b"]),
+    ("Customer Support",
+     [r"\bcustomer\s+(support|success|service)", r"\bsupport\s+engineer",
+      r"\btechnical\s+support", r"\bhelp\s*desk", r"カスタマーサ"],
+     [r"\bcs\b"]),
+    ("Teaching / Education",
+     [r"\bteachers?\b", r"\bteaching\b", r"\binstructors?\b", r"\beikaiwa\b",
+      r"\bcurriculum\b", r"\bprofessors?\b", r"\btutors?\b", r"\bassistant\s+language",
+      r"講師", r"教師", r"教員", r"英会話"],
+     [r"\balt\b", r"\besl\b"]),
+    ("Translation / Localization",
+     [r"\btranslator\b", r"\btranslation\b", r"\blocali[sz]ation\b",
+      r"\binterpret(er|ation)\b", r"翻訳", r"通訳", r"ローカライ"],
+     [r"\bi18n\b", r"\bl10n\b"]),
+    ("Hospitality / Tourism",
+     [r"\bhotel\b", r"\bhospitality\b", r"\btourism\b", r"\bconcierge\b",
+      r"\brestaurant\b", r"\bfront\s+desk", r"接客", r"飲食"],
+     []),
+    ("Legal / Compliance",
+     [r"\blegal\s+(counsel|advisor|manager)", r"\blawyer\b", r"\battorney\b",
+      r"\bparalegal\b", r"\bcompliance\b", r"\bgovernance\b", r"法務", r"弁護士",
+      # Government affairs / public policy / regulatory affairs — the adjacent
+      # legal-regulatory-policy function (no dedicated family of its own).
+      r"\bgovernment\s+affairs", r"\bgovernment\s+relations", r"\bpublic\s+affairs",
+      r"\bpublic\s+policy", r"\bregulatory\s+affairs", r"渉外", r"公共政策"],
+     # title/meta only — "policy" is too broad to count from body text.
+     [r"\bpolicy\b"]),
 ]
 
+# The families this classifier can produce — used by the reprocessor to know which
+# stored labels are "ours" (safe to re-derive) vs. source-provided sector categories
+# (e.g. "Logistics / Manufacturing", "Healthcare / Care") that must be preserved.
+ROLE_FAMILIES: list[str] = [fam for fam, _s, _w in _ROLE_FAMILY_PATTERNS]
 
-def classify_role_family(title: Optional[str], description: Optional[str]) -> Optional[str]:
-    """Best-effort taxonomy mapping. Returns None when no signal matches."""
-    if not title and not description:
+
+def classify_role_family(title: Optional[str], description: Optional[str],
+                         *, industries: Optional[str] = None,
+                         tags: Optional[str] = None) -> Optional[str]:
+    """Best-effort role-family taxonomy mapping.
+
+    Weights the title heavily, the structured tags/industries meta moderately, and
+    the free-text body lightly (capped), and only returns a label when there's a
+    real signal — otherwise None (honest "uncategorised" rather than a confident
+    wrong guess). Pass ``industries``/``tags`` when available for better accuracy.
+    """
+    if not any((title, description, industries, tags)):
         return None
-    text = ((title or "") + "  " + (description or "")).lower()
-    best_family = None
-    best_count = 0
-    for family, patterns in _ROLE_FAMILY_PATTERNS:
-        count = sum(1 for p in patterns if re.search(p, text))
-        if count > best_count:
-            best_count = count
+    title_l = (title or "").lower()
+    body_l = (description or "").lower()
+    meta_l = (" ".join(p for p in (str(industries or ""), str(tags or "")) if p)).lower()
+
+    best_family: Optional[str] = None
+    best_score = 0.0
+    best_has_title = False
+    for family, strong, weak in _ROLE_FAMILY_PATTERNS:
+        t_strong = sum(1 for p in strong if re.search(p, title_l))
+        t_weak = sum(1 for p in weak if re.search(p, title_l))
+        m_strong = sum(1 for p in strong if re.search(p, meta_l))
+        m_weak = sum(1 for p in weak if re.search(p, meta_l))
+        b_strong = sum(1 for p in strong if re.search(p, body_l))
+
+        title_hits = t_strong + t_weak
+        # Require a real signal: a title hit, a structured-meta hit, or >=2 body hits.
+        if not (title_hits or m_strong or b_strong >= 2):
+            continue
+        score = title_hits * 5.0 + m_strong * 2.0 + m_weak * 1.5 + min(b_strong, 3) * 1.0
+        has_title = title_hits > 0
+        # Higher score wins; on a tie, prefer the family that matched the TITLE,
+        # then earlier list order.
+        if score > best_score or (score == best_score and has_title and not best_has_title):
+            best_score = score
             best_family = family
+            best_has_title = has_title
     return best_family
 
 
@@ -600,6 +650,7 @@ def calculate_foreigner_fit(job: dict) -> tuple[int, list[str]]:
       +15  visa sponsorship / relocation support
       +10  salary present
       +10  remote or hybrid available
+      +15  foreign-capital (gaishikei) employer
       +5   source is direct ATS
       +5   recent posting (post_date or last_seen within 30 days)
 
@@ -663,6 +714,14 @@ def calculate_foreigner_fit(job: dict) -> tuple[int, list[str]]:
     elif sq == "Aggregator":
         # No subtraction — but signals lower trust.
         reasons.append("aggregator_source")
+
+    # Foreign-capital (gaishikei) employers are structurally the most
+    # foreigner-friendly — English-friendly culture, and visa sponsorship and
+    # no-Japanese roles are common — so give them a baseline lift even when the
+    # posting text itself is sparse.
+    et = (job.get("employer_type") or "").lower()
+    if "foreign" in et or "gaishikei" in et or "外資" in et:
+        score += 15; reasons.append("foreign_capital_employer")
 
     # Freshness
     last_seen = job.get("last_seen_at") or ""
@@ -846,6 +905,7 @@ FIT_REASON_LABELS = {
     "salary_listed":             "Salary listed",
     "salary_missing":            "Salary not listed",
     "remote_or_hybrid":          "Remote or hybrid OK",
+    "foreign_capital_employer":  "Foreign-capital (gaishikei) employer",
     "direct_source":             "Direct company ATS",
     "curated_source":            "Curated source",
     "aggregator_source":         "Aggregator source — verify at original page",

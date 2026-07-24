@@ -74,9 +74,8 @@
                   display: flex; flex-direction: column; gap: 10px; }
   .sector-card:hover { border-color: var(--accent); transform: translateY(-2px);
                        box-shadow: 0 8px 16px rgba(0,0,0,0.05); }
-  .sector-card .top { display: flex; gap: 10px; align-items: flex-start; }
-  .sector-card .icon { font-size: 28px; line-height: 1; }
-  .sector-card h3 { margin: 0 0 4px; font-size: 15px; line-height: 1.3; }
+  .sector-card .top { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+  .sector-card h3 { margin: 0; font-size: 17px; line-height: 1.25; letter-spacing: -0.01em; }
   .sector-card .bump { color: var(--accent); font-weight: 700; font-size: 12px;
                        background: var(--indigo-tint); padding: 2px 8px; border-radius: 999px; }
   .sector-card .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
@@ -157,7 +156,6 @@
                           gap: 14px; border-bottom: 1px solid var(--line); cursor: pointer; }
   .sector-block > .head:hover { background: #f3f4f6; }
   .sector-block > .head .ttl { display: flex; gap: 10px; align-items: center; }
-  .sector-block > .head .ttl .ic { font-size: 22px; line-height: 1; }
   .sector-block > .head .ttl h3 { margin: 0; font-size: 16px; }
   .sector-block > .head .ttl .role-count { font-size: 11px; color: var(--muted);
                                             margin-left: 6px; font-weight: 400; }
@@ -165,7 +163,7 @@
   .sector-block > .head .right .pill { font-size: 11px; padding: 3px 9px; border-radius: 999px;
                                         background: var(--indigo-tint); color: var(--indigo); font-weight: 600; }
   .sector-block > .head .right .pill.bump { background: #ecfdf5; color: #065f46; }
-  .sector-block > .head .right .pill.demand { background: #fef3c7; color: #92400e; }
+  .sector-block > .head .right .pill.demand { background: var(--warn-tint); color: var(--warn); }
   .sector-block > .head .toggle { color: var(--muted); font-size: 12px; padding: 0 4px; }
   .sector-block.open > .head .toggle::after { content: " ▴"; }
   .sector-block:not(.open) > .head .toggle::after { content: " ▾"; }
@@ -312,11 +310,8 @@
     {% for s in sectors %}
       <a class="sector-card" href="#sector-{{ s.slug }}">
         <div class="top">
-          <div class="icon">{{ s.icon }}</div>
-          <div style="flex:1; min-width:0;">
-            <h3>{{ s.name }}</h3>
-            <span class="bump">+{{ s.expected_pay_bump_low }}–{{ s.expected_pay_bump_high }}% job change</span>
-          </div>
+          <h3>{{ s.name }}</h3>
+          <span class="bump">+{{ s.expected_pay_bump_low }}–{{ s.expected_pay_bump_high }}% job change</span>
         </div>
         <div class="top3">
           <strong>Top in demand:</strong>
@@ -381,7 +376,7 @@
         <select id="cmp-sector">
           <option value="">Pick a sector</option>
           {% for s in sectors %}
-            <option value="{{ s.slug }}">{{ s.icon }} {{ s.name }}</option>
+            <option value="{{ s.slug }}">{{ s.name }}</option>
           {% endfor %}
         </select>
       </div>
@@ -445,7 +440,6 @@
     <article class="sector-block" id="sector-{{ s.slug }}" data-slug="{{ s.slug }}">
       <header class="head">
         <div class="ttl">
-          <span class="ic">{{ s.icon }}</span>
           <h3>{{ s.name }}<span class="role-count">
             {{ (s.roles_east|length) + (s.roles_west|length) }} roles
           </span></h3>

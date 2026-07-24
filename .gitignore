@@ -3,10 +3,15 @@ __pycache__/
 *.pyc
 *.pyo
 *.db
+*.db.*
+*.db-wal
+*.db-shm
 *.sqlite
 *.sqlite3
 *.bak
+*.bak*
 *.backup
+*.corrupt
 .env
 .DS_Store
 screenshots/
@@ -14,3 +19,4 @@ playwright-report/
 test-results/
 node_modules/
 .fuse_hidden*
+.reddit_posted.json

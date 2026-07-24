@@ -11,9 +11,9 @@
     padding:8px 16px; cursor:pointer; }
   .view-toggle button.active { background:var(--accent); color:#fff; }
 
-  .followup-banner { background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:12px 16px;
-    margin:14px 0; color:#92400e; font-size:14px; display:none; align-items:center; gap:10px; }
-  .followup-banner a { color:#92400e; font-weight:700; }
+  .followup-banner { background:var(--warn-tint); border:1px solid var(--gold); border-radius:10px; padding:12px 16px;
+    margin:14px 0; color:var(--warn); font-size:14px; display:none; align-items:center; gap:10px; }
+  .followup-banner a { color:var(--warn); font-weight:700; }
 
   .tk-stats { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 20px; }
   .stat-chip { background:var(--card); border:1px solid var(--line); border-radius:999px; padding:6px 14px;
@@ -29,14 +29,14 @@
     display:flex; justify-content:space-between; align-items:center; }
   .col h3 .count { background:#fff; color:var(--accent); border:1px solid var(--line); border-radius:999px; padding:1px 8px; font-size:11px; }
   .app-card { background:var(--card); border:1px solid var(--line); border-radius:9px; padding:11px; margin-bottom:9px; }
-  .app-card.overdue { border-color:#fbbf24; box-shadow:0 0 0 2px #fef3c7; }
+  .app-card.overdue { border-color:var(--gold); box-shadow:0 0 0 2px var(--warn-tint); }
   .app-card h4 { margin:0 0 3px; font-size:13.5px; line-height:1.35; }
   .app-card h4 a { color:var(--fg); text-decoration:none; }
   .app-card h4 a:hover { color:var(--accent); }
   .app-card .meta { color:var(--muted); font-size:11.5px; margin-bottom:7px; }
   .app-card .row2 { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:7px; }
   .pill { font-size:10.5px; border-radius:999px; padding:2px 8px; font-weight:600; }
-  .pill.due { background:#fef3c7; color:#92400e; }
+  .pill.due { background:var(--warn-tint); color:var(--warn); }
   .pill.sal { background:#ecfdf5; color:#065f46; }
   .pill.note { background:var(--line-soft); color:var(--fg-soft); }
   .app-card select.st { width:100%; font-size:12px; font-weight:600; color:var(--accent);
@@ -53,7 +53,7 @@
   .tk-table th { text-align:left; padding:9px 10px; border-bottom:2px solid var(--line); color:var(--muted);
     font-size:11.5px; text-transform:uppercase; letter-spacing:.03em; }
   .tk-table td { padding:9px 10px; border-bottom:1px solid var(--line-soft); vertical-align:top; }
-  .tk-table tr.overdue td { background:#fffbeb; }
+  .tk-table tr.overdue td { background:var(--warn-tint); }
   .tk-table td a { color:var(--accent); text-decoration:none; }
   .tk-table select.st { font-size:12.5px; font-weight:600; color:var(--accent); border:1px solid var(--line);
     border-radius:6px; padding:4px 6px; background:#fff; }

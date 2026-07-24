@@ -7,14 +7,51 @@ filtering and display them faithfully. `init_db()` runs `migrate()`, which adds
 any missing columns to existing databases via ALTER TABLE.
 """
 
+import functools
 import os
 import sqlite3
+import time as _time
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable, Optional
 
 import inference
+
+# ---------------------------------------------------------------------------
+# Tiny in-process TTL cache for filter-INVARIANT reads (dropdown option lists,
+# salary benchmarks, site stats). These don't depend on a visitor's query and
+# only change when the data changes — and writes happen in a SEPARATE process
+# (scrapers / backfill), never in the web process. So on the /jobs hot path we
+# compute them once and reuse for a short window instead of issuing ~13
+# identical queries (each its own SQLite connection) on every page load.
+# Bounded staleness keeps newly-scraped filter options at most _CACHE_TTL late.
+# ---------------------------------------------------------------------------
+_CACHE_TTL = 60.0          # seconds
+_invariant_cache: dict = {}
+
+
+def _ttl_cached(fn):
+    """Memoize a read-only helper for _CACHE_TTL seconds. Skips caching when a
+    non-default db_path is passed (tests / backfill use that path)."""
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        if kwargs.get("db_path") is not None:
+            return fn(*args, **kwargs)
+        key = (fn.__name__, str(DB_PATH), args, tuple(sorted(kwargs.items())))
+        now = _time.monotonic()
+        hit = _invariant_cache.get(key)
+        if hit is not None and (now - hit[0]) < _CACHE_TTL:
+            return hit[1]
+        val = fn(*args, **kwargs)
+        _invariant_cache[key] = (now, val)
+        return val
+    return wrapper
+
+
+def clear_invariant_cache() -> None:
+    """Drop the TTL cache (e.g. after an in-process data change in tests)."""
+    _invariant_cache.clear()
 
 # Default DB location; override with JAPAN_JOBS_DB env var or by reassigning DB_PATH.
 DB_PATH = Path(os.environ.get("JAPAN_JOBS_DB", Path(__file__).parent / "jobs.db"))
@@ -263,7 +300,8 @@ def _derive_fields(job: dict) -> None:
             job[_src] = "not_stated"
 
     if job.get("role_family") is None:
-        job["role_family"] = inference.classify_role_family(title, desc)
+        job["role_family"] = inference.classify_role_family(
+            title, desc, industries=job.get("industries"), tags=job.get("tags"))
 
     if job.get("prefecture") is None:
         job["prefecture"] = inference.normalize_prefecture(job.get("location"))
@@ -754,6 +792,7 @@ def get_job(job_id: int) -> Optional[sqlite3.Row]:
         return conn.execute("SELECT * FROM jobs WHERE id = ?", (job_id,)).fetchone()
 
 
+@_ttl_cached
 def stats() -> dict:
     with connect() as conn:
         total = conn.execute("SELECT COUNT(*) AS n FROM jobs").fetchone()["n"]
@@ -766,6 +805,7 @@ def stats() -> dict:
         }
 
 
+@_ttl_cached
 def distinct(column: str) -> list[str]:
     """Distinct non-null values for a filter dropdown."""
     if column not in FILTERABLE_TEXT:
@@ -886,6 +926,7 @@ def _percentile(sorted_vals: list, p: float) -> float:
     return sorted_vals[lo] + (sorted_vals[hi] - sorted_vals[lo]) * (k - lo)
 
 
+@_ttl_cached
 def salary_benchmarks(db_path: Optional[Path] = None) -> dict:
     """Live salary distribution per role_family from active, salaried postings.
 

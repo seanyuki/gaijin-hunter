@@ -58,7 +58,7 @@
   .score-card { text-align: center; padding: 22px; }
   .score-card .label { font-size: 14px; font-weight: 600; }
   .score-card .label.high { color: #166534; }
-  .score-card .label.mid  { color: #92400e; }
+  .score-card .label.mid  { color: var(--warn); }
   .score-card .label.low  { color: #991b1b; }
   .score-card .explain { font-size: 13px; color: var(--muted); margin-top: 8px;
                           line-height: 1.55; }
@@ -67,7 +67,7 @@
   .pill-row { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px;
               background: #f9fafb; border-radius: 8px; border-left: 4px solid var(--line); }
   .pill-row.ok    { border-color: #10b981; background: #ecfdf5; }
-  .pill-row.warn  { border-color: #f59e0b; background: #fffbeb; }
+  .pill-row.warn  { border-color: #f59e0b; background: var(--warn-tint); }
   .pill-row.miss  { border-color: #ef4444; background: #fef2f2; }
   .pill-row .ic   { font-size: 16px; line-height: 1.4; flex-shrink: 0; }
   .pill-row .text { font-size: 13px; line-height: 1.55; color: var(--fg); }

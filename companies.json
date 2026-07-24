@@ -44,8 +44,8 @@
   ],
   "lever": [
     {
-      "slug": "wise",
-      "name": "Wise"
+      "slug": "palantir",
+      "name": "Palantir Technologies"
     }
   ],
   "ashby": [
@@ -60,22 +60,21 @@
   ],
   "workable": [
     {
-      "slug": "example-co",
-      "name": "Example Co (replace with a real Workable subdomain)"
+      "slug": "mercari",
+      "name": "Mercari"
     }
   ],
   "smartrecruiters": [
     {
-      "slug": "ExampleCompany",
-      "name": "Example Co (replace with a real SmartRecruiters companyId)"
-    }
-  ],
-  "recruitee": [
+      "slug": "BoschGroup",
+      "name": "Bosch"
+    },
     {
-      "slug": "example-co",
-      "name": "Example Co (replace with a real Recruitee subdomain)"
+      "slug": "NielsenIQ",
+      "name": "NielsenIQ"
     }
   ],
+  "recruitee": [],
   "careercross": {
     "search_url": "https://www.careercross.com/en/job-search/result/76028209",
     "_help": "Paste your saved-search URL here. Build one at https://www.careercross.com/en/job-search and the result page URL becomes /en/job-search/result/<sid>. The current value targets English Level = Native/Fluent/Business + Last Updated < 1 month."

@@ -15,7 +15,8 @@
                padding: 0; overflow: hidden; }
   .form-section { border-top: 1px solid var(--line); }
   .form-section:first-child { border-top: none; }
-  .form-section .head { padding: 14px 22px; background: #f9fafb;
+  /* Ruled section header (no gray fill) — avoids the card-inside-card look. */
+  .form-section .head { padding: 14px 22px; background: transparent;
                         display: flex; align-items: center; justify-content: space-between; }
   .form-section .head h2 { margin: 0; font-size: 16px; }
   .form-section .head .num { display: inline-block; width: 22px; height: 22px;
@@ -29,8 +30,8 @@
   .form-section details.help-panel summary { display: none; }
   .form-section details.help-panel { padding: 0; }
   .form-section details.help-panel[open] .help-body {
-    background: #eff6ff; padding: 14px 22px; border-top: 1px solid #dbeafe;
-    font-size: 13px; line-height: 1.6; color: #1e3a8a;
+    background: var(--bg-deep); padding: 14px 22px; border-top: 1px solid var(--line);
+    font-size: 13px; line-height: 1.6; color: var(--fg-soft);
   }
   .form-section .help-body code { background: #fff; padding: 1px 6px; border-radius: 3px;
                                   font-family: "MS Mincho", "Yu Mincho", serif;
@@ -39,7 +40,7 @@
 
   .field-grid { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
   .field-grid.single { grid-template-columns: 1fr; }
-  .field-grid label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 3px; }
+  .field-grid label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 3px; }
   .field-grid input, .field-grid textarea, .field-grid select {
     width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px;
     font-size: 14px; font-family: inherit; background: #fff;
@@ -57,14 +58,14 @@
     width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px;
     font-size: 13px; background: #fff;
   }
-  .row-list .row .del { background: transparent; color: #b91c1c; border: none;
+  .row-list .row .del { background: transparent; color: var(--muted); border: none;
                          cursor: pointer; font-size: 16px; padding: 4px 8px; }
-  .row-list .row .del:hover { color: #7f1d1d; }
+  .row-list .row .del:hover { color: var(--accent-dark); }
   .row-list .insert-bar { display: flex; flex-wrap: wrap; gap: 5px; grid-column: 1 / -1;
                           padding: 4px 0 0; }
-  .row-list .insert-bar button { background: #f3f4f6; border: 1px solid var(--line);
-                                  border-radius: 999px; padding: 3px 9px; font-size: 11px;
-                                  cursor: pointer; color: #374151; }
+  .row-list .insert-bar button { background: var(--bg-deep); border: 1px solid var(--line);
+                                  border-radius: var(--radius-sm); padding: 3px 9px; font-size: 11px;
+                                  cursor: pointer; color: var(--fg-soft); }
   .row-list .insert-bar button:hover { background: var(--accent); color: #fff;
                                         border-color: var(--accent); }
   .add-row { background: transparent; color: var(--accent);
@@ -75,22 +76,28 @@
                  padding-bottom: 8px; border-bottom: 1px dashed var(--line); }
   .quick-cert .lbl { font-size: 12px; color: var(--muted); align-self: center;
                       margin-right: 4px; }
-  .quick-cert button { background: #fef3c7; border: 1px solid #fbbf24; color: #92400e;
-                        padding: 4px 10px; border-radius: 6px; font-size: 12px;
+  .quick-cert button { background: var(--bg-deep); border: 1px solid var(--line-strong); color: var(--fg-soft);
+                        padding: 4px 10px; border-radius: var(--radius-sm); font-size: 12px;
                         font-weight: 600; cursor: pointer; }
-  .quick-cert button:hover { background: #fde68a; }
+  .quick-cert button:hover { background: var(--card); border-color: var(--ink); }
   .template-paste { display: inline-block; margin-top: 6px; color: var(--accent);
                      background: transparent; border: none; cursor: pointer;
                      font-size: 12px; text-decoration: underline; padding: 0; }
 
-  .actions { display: flex; gap: 10px; padding: 16px 22px; background: #f9fafb;
-             border-top: 1px solid var(--line); }
-  .actions button { padding: 10px 18px; border: none; border-radius: 6px;
+  .actions { display: flex; gap: 10px; padding: 16px 22px; background: var(--bg-deep);
+             border-top: 1px solid var(--line); flex-wrap: wrap; align-items: center; }
+  .actions button { padding: 10px 18px; border: 1px solid transparent; border-radius: var(--radius);
                     font-weight: 600; font-size: 14px; cursor: pointer; }
-  .actions .print-btn { background: var(--accent); color: #fff; }
-  .actions .print-btn:hover { background: var(--accent-dark); }
-  .actions .save-btn { background: #d1fae5; color: #065f46; }
-  .actions .reset-btn { background: #fee2e2; color: #991b1b; margin-left: auto; }
+  .actions .print-btn { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .actions .print-btn:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+  /* Override the global job-card star `.save-btn` (position:absolute) — here it is
+     an inline form button in the flat warm palette, not a Tailwind-green pill. */
+  .actions .save-btn { position: static; background: var(--card); color: var(--ink);
+                       border-color: var(--line-strong); }
+  .actions .save-btn:hover { background: var(--bg-deep); border-color: var(--ink); }
+  .actions .reset-btn { background: transparent; color: var(--muted);
+                        border-color: var(--line-strong); margin-left: auto; }
+  .actions .reset-btn:hover { color: var(--accent-dark); border-color: var(--accent-soft); }
 
   /* Photo uploader */
   .photo-uploader { margin-top: 6px; }
@@ -106,14 +113,14 @@
                 background: #fff; color: var(--accent); border-radius: 6px; font-size: 13px;
                 cursor: pointer; font-weight: 500; text-align: center; }
   .photo-btn:hover { background: var(--accent); color: #fff; }
-  .photo-btn.remove { border-color: #f87171; color: #b91c1c; }
-  .photo-btn.remove:hover { background: #fee2e2; color: #991b1b; }
+  .photo-btn.remove { border-color: var(--line-strong); color: var(--accent-dark); }
+  .photo-btn.remove:hover { background: var(--accent-tint); color: var(--accent-dark); }
 
   /* ============== preview pane: the rirekisho ============== */
   .preview-pane { position: sticky; top: 100px; max-height: calc(100vh - 110px);
                   overflow-y: auto; padding-right: 4px; }
   .preview-pane .scale-wrap {
-    background: #e5e7eb; padding: 14px; border-radius: 8px;
+    background: var(--bg-deep); padding: 14px; border-radius: var(--radius-lg);
   }
   .scale-wrap .page-sep { text-align: center; font-size: 11px; color: #6b7280;
                           margin: 14px 0; }
@@ -125,11 +132,27 @@
     font-family: "MS Mincho", "Yu Mincho", "Hiragino Mincho ProN", serif;
     font-size: 11px; line-height: 1.45;
     width: 580px; max-width: 100%;
+    /* A4 portrait ratio (210:297) → fixed sheet so the form always fills a
+       full page on screen and in print, like the official MHLW layout. */
+    height: 820px;
+    box-sizing: border-box;
     margin: 0 auto; padding: 22px 26px;
     box-shadow: 0 4px 18px rgba(0,0,0,0.10);
     border: 1px solid #1a1a1a;
+    display: flex; flex-direction: column;
   }
   .rirekisho.page2 { margin-top: 24px; }
+  /* Uniform ruled-row height so padded blank rows read as a real form. */
+  .rr-section-table td, .rr-section-table th { height: 26px; }
+  /* History wrapper takes the remaining page height; rows are padded with
+     blank ruled rows in JS so the table reaches the bottom like the official
+     form (rather than one stretched cell). */
+  /* History wrapper fills the remaining sheet height; the table stretches to
+     the wrapper and its blank ruled rows distribute evenly so the grid reaches
+     the very bottom like the official form (no big gap above the note). */
+  .rr-fill { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
+  .rr-fill > table { flex: 1 1 auto; height: 100%; }
+  .rr-body-box.rr-grow { flex: 1 1 auto; }
   .rr-title-row { display: flex; align-items: flex-start; justify-content: space-between; }
   .rr-title {
     font-size: 24px; letter-spacing: 0.45em; font-weight: 700;
@@ -179,7 +202,7 @@
                     padding: 4px 8px; font-size: 11px; font-weight: 600;
                     margin-top: 10px; }
   .rr-body-box { border: 1px solid #1a1a1a; padding: 8px 10px; font-size: 11px;
-                  white-space: pre-wrap; min-height: 90px; }
+                  white-space: pre-wrap; min-height: 90px; box-sizing: border-box; }
 
   /* Print: hide chrome and zero the @page margin so the browser has nowhere
      to inject its default URL / timestamp / page-number header & footer.
@@ -194,9 +217,17 @@
     .preview-pane { position: static; max-height: none; overflow: visible; padding: 0; }
     .scale-wrap { background: #fff; padding: 0; }
     .scale-wrap .page-sep { display: none !important; }
-    .rirekisho { width: 100%; box-shadow: none; border: none;
-                  padding: 10mm 12mm; font-size: 10px; margin: 0; }
-    .rirekisho.page2 { page-break-before: always; margin-top: 0; }
+    /* Each sheet fills exactly one A4 page. Flex column so the history table
+       (page 1) and the body boxes (page 2) stretch to the bottom edge. */
+    /* Height a hair under A4 + overflow:hidden so sub-pixel rounding can't
+       spill each sheet onto a trailing blank page. */
+    .rirekisho { width: 210mm; height: 290mm; box-shadow: none; border: none;
+                  padding: 12mm 14mm; font-size: 10px; margin: 0;
+                  display: flex; flex-direction: column; overflow: hidden; }
+    .rirekisho.page1 { page-break-after: always; }
+    .rirekisho.page2 { margin-top: 0; }
+    /* Print rows a touch taller so padded tables still reach the bottom. */
+    .rr-section-table td, .rr-section-table th { height: 30px; }
   }
 </style>
 
@@ -512,21 +543,23 @@
           </div>
         </div>
 
-        <!-- 学歴・職歴 (page 1 portion) -->
-        <table class="rr-section-table">
-          <thead>
-            <tr>
-              <th class="y-col">年</th>
-              <th class="m-col">月</th>
-              <th>学　歴・職　歴（各別にまとめて書く）</th>
-            </tr>
-          </thead>
-          <tbody id="rkHistoryP1">
-            <tr><td colspan="3" class="rr-empty">Add rows in the form to populate.</td></tr>
-          </tbody>
-        </table>
+        <!-- 学歴・職歴 (page 1 portion) — fills the rest of the sheet -->
+        <div class="rr-fill">
+          <table class="rr-section-table">
+            <thead>
+              <tr>
+                <th class="y-col">年</th>
+                <th class="m-col">月</th>
+                <th>学　歴・職　歴（各別にまとめて書く）</th>
+              </tr>
+            </thead>
+            <tbody id="rkHistoryP1">
+              <tr><td colspan="3" class="rr-empty">Add rows in the form to populate.</td></tr>
+            </tbody>
+          </table>
+        </div>
 
-        <div style="font-size: 9px; color: #6b7280; margin-top: 8px;">
+        <div style="font-size: 9px; color: #6b7280; margin-top: 6px;">
           ※「性別」欄：記載は任意です。未記載とすることも可能です。
         </div>
       </div>
@@ -566,11 +599,11 @@
 
         <!-- 志望の動機 -->
         <div class="rr-body-title">志望の動機、特技、自己PR、アピールポイントなど</div>
-        <div class="rr-body-box" id="rkMotivation"><span class="rr-empty">–</span></div>
+        <div class="rr-body-box rr-grow" id="rkMotivation"><span class="rr-empty">–</span></div>
 
         <!-- 本人希望記入欄 -->
         <div class="rr-body-title">本人希望記入欄（特に給料、職種、勤務時間、勤務地、その他についての希望などがあれば記入）</div>
-        <div class="rr-body-box" id="rkWishes"><span class="rr-empty">–</span></div>
+        <div class="rr-body-box rr-grow" id="rkWishes"><span class="rr-empty">–</span></div>
       </div>
     </div>
   </div>
@@ -826,6 +859,16 @@
            '<td class="detail">' + escapeHtml(r.text || "") + '</td></tr>';
   }
 
+  // Target row counts so each table fills its sheet like the official form.
+  // Page 1 history fills the lower ~two-thirds of the sheet; the licenses
+  // table on page 2 always shows a few blank ruled rows.
+  var P1_FILL_ROWS = 15;
+  var LICENSE_FILL_ROWS = 6;
+
+  function blankRow() {
+    return '<tr><td class="y-col"></td><td class="m-col"></td><td class="detail"></td></tr>';
+  }
+
   function renderHistory() {
     var st = getState();
     var tokens = buildHistoryTokens(st);
@@ -833,36 +876,41 @@
     var p1Tokens = tokens.slice(0, PAGE1_MAX);
     var p2Tokens = tokens.slice(PAGE1_MAX);
 
-    document.getElementById("rkHistoryP1").innerHTML =
-      p1Tokens.map(renderTokenRow).join("");
+    // Page 1: pad with blank ruled rows so the table always reaches the
+    // bottom of the sheet, even for a short history.
+    var p1Html = p1Tokens.map(renderTokenRow);
+    while (p2Tokens.length === 0 && p1Html.length < P1_FILL_ROWS) {
+      p1Html.push(blankRow());
+    }
+    document.getElementById("rkHistoryP1").innerHTML = p1Html.join("");
 
-    // Page 2's 学歴・職歴 table either shows the continuation or an empty row.
+    // Page 2's 学歴・職歴 table: continuation rows (padded) or a few blanks.
     var p2Body = document.getElementById("rkHistoryP2");
     if (p2Tokens.length) {
-      p2Body.innerHTML = p2Tokens.map(renderTokenRow).join("");
+      var p2Html = p2Tokens.map(renderTokenRow);
+      while (p2Html.length < 6) p2Html.push(blankRow());
+      p2Body.innerHTML = p2Html.join("");
     } else {
-      p2Body.innerHTML =
-        '<tr><td colspan="3" class="rr-empty">' +
-        '(continuation rows appear here when page 1 fills up)' +
-        '</td></tr>';
+      var blanks = [];
+      for (var i = 0; i < 3; i++) blanks.push(blankRow());
+      p2Body.innerHTML = blanks.join("");
     }
   }
 
   function renderLicenses() {
     var st = getState();
     var tbody = document.getElementById("rkLicenses");
-    if (!st.licenses.length) {
-      tbody.innerHTML = '<tr><td colspan="3" class="rr-empty">No certificates yet.</td></tr>';
-      return;
-    }
     var html = [];
-    st.licenses.forEach(function (r) {
+    (st.licenses || []).forEach(function (r) {
       html.push('<tr><td class="y-col">' + (r.year || "") + '</td>' +
                 '<td class="m-col">' + (r.month || "") + '</td>' +
                 '<td class="detail">' + escapeHtml(r.text || "") + '</td></tr>');
     });
-    // "以上" at the end of licenses too
-    html.push('<tr><td class="y-col"></td><td class="m-col"></td><td class="detail rr-history-bottom">以　上</td></tr>');
+    if (st.licenses && st.licenses.length) {
+      // "以上" closes the list, then pad to a full block of ruled rows.
+      html.push('<tr><td class="y-col"></td><td class="m-col"></td><td class="detail rr-history-bottom">以　上</td></tr>');
+    }
+    while (html.length < LICENSE_FILL_ROWS) html.push(blankRow());
     tbody.innerHTML = html.join("");
   }
 

@@ -641,6 +641,9 @@ def run(pages: int, delay: float, debug: bool, dry_run: bool, limit: Optional[in
             result = db.upsert_job(conn, job)
             stats[result] += 1
             log.info("[%d/%d] %s: %s", i, len(job_urls), result, job["title"])
+            # Commit periodically so a long run survives interruption.
+            if i % 50 == 0:
+                conn.commit()
 
     return stats
 

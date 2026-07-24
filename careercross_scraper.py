@@ -305,7 +305,10 @@ def iter_listing_pages(fetch: Fetcher, base_url: str, max_pages: int) -> Iterato
         if not html:
             log.warning("page %d: no html, stopping", page)
             return
-        if not JOB_URL_RE.search(html):
+        # NB: JOB_URL_RE is ^-anchored for matching a URL *path* in
+        # discover_jobs; it can never .search() the full page HTML. Guard on the
+        # detail-link substring instead.
+        if "/en/job/detail-" not in html:
             log.warning("page %d: no job urls found, stopping", page)
             return
         yield page, html

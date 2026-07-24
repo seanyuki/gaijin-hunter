@@ -7,28 +7,51 @@
 {% endif %}
 {% endblock %}
 {% block content %}
+{% from "_company_mark.html" import company_mark with context %}
 
 <div class="breadcrumb"><a href="/">← Back to listings</a></div>
 
+<style>
+  .job-detail-head { display: flex; gap: 18px; align-items: flex-start; margin-bottom: 4px; }
+  .job-detail-head .gh-mono { width: 60px; height: 60px; font-size: 20px; border-radius: var(--radius-lg); }
+  .job-detail-head > div { min-width: 0; }
+  /* h1 is now nested, so re-apply the editorial display treatment here. */
+  .job-detail-head h1 { font-family: var(--font-display); font-weight: 600;
+    font-size: clamp(26px, 3.4vw, 36px); letter-spacing: -0.025em; margin: 0 0 8px; color: var(--ink); }
+  @media (max-width: 560px) {
+    .job-detail-head { gap: 13px; }
+    .job-detail-head .gh-mono { width: 46px; height: 46px; font-size: 15px; }
+  }
+</style>
+
 <div class="detail">
-  <h1>{{ job['title'] }}</h1>
-  <div class="meta">
-    {% if job['company_name'] %}{{ job['company_name'] }}
-      {% if job['company_name_jp'] %} <span style="color: var(--muted)">({{ job['company_name_jp'] }})</span>{% endif %}
-    {% endif %}
-    {% if job['location'] %} · {{ job['location'] }}{% endif %}
+  <div class="job-detail-head">
+    {{ company_mark(job['company_name']) }}
+    <div>
+      <h1>{{ job['title'] }}</h1>
+      <div class="meta">
+        {% if job['company_name'] %}{{ job['company_name'] }}
+          {% if job['company_name_jp'] %} <span style="color: var(--muted)">({{ job['company_name_jp'] }})</span>{% endif %}
+        {% endif %}
+        {% if job['location'] %} · {{ job['location'] }}{% endif %}
+      </div>
+    </div>
   </div>
 
   {# ============ At a glance: definitive answers to the questions foreign
      applicants actually ask. Unknowns are stated honestly. ============ #}
   <style>
-    .gh-glance { display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:1px;
-      background:var(--line); border:1px solid var(--line); border-radius:10px; overflow:hidden; margin-top:14px; }
+    /* Exactly 8 facts → a clean 4×2 ruled grid (no orphaned/empty cells). */
+    .gh-glance { display:grid; grid-template-columns:repeat(4, 1fr); gap:1px;
+      background:var(--line); border:1px solid var(--line); border-radius:var(--radius-lg); overflow:hidden; margin-top:14px; }
+    @media (max-width:720px){ .gh-glance { grid-template-columns:repeat(2, 1fr); } }
     .gh-glance > div { background:var(--card, #fff); padding:10px 12px; }
     .gh-glance .gl { font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:700; }
     .gh-glance .gv { font-size:13.5px; font-weight:600; margin-top:2px; color:var(--fg); }
-    .gh-glance .gv.yes { color:#166534; }
-    .gh-glance .gv.no { color:#991b1b; }
+    /* Positive answers read as primary data (near-black); the ✓ glyph carries
+       the affirmative meaning (color-blind safe), not a green success wash. */
+    .gh-glance .gv.yes { color:var(--ink); }
+    .gh-glance .gv.no { color:var(--danger); }
     .gh-glance .gv.unknown { color:var(--muted); font-weight:500; font-style:italic; }
     /* Provenance: how we know each fact. Quiet by design. */
     .gh-glance .gp { display:block; font-size:10px; font-weight:500; color:var(--muted-soft);
@@ -118,15 +141,15 @@
         {% if positive.append(r) %}{% endif %}
       {% endif %}
     {% endfor %}
-    <div style="margin-top:14px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:12px 14px;">
-      <strong style="font-size:13px; color:#166534;">★ Why this fits foreign applicants{% if job['foreigner_fit_score'] is not none %} · {{ job['foreigner_fit_score'] }}/100{% endif %}</strong>
+    <div style="margin-top:14px; background:var(--bg-deep); border:1px solid var(--line); border-radius:var(--radius-lg); padding:13px 16px;">
+      <strong style="font-size:13px; color:var(--ink); display:inline-flex; align-items:center; gap:7px;">{{ icon('star', size=14) }} Why this fits foreign applicants{% if job['foreigner_fit_score'] is not none %} <span style="font-family:var(--font-mono); font-feature-settings:'tnum'; color:var(--muted);">· {{ job['foreigner_fit_score'] }}/100</span>{% endif %}</strong>
       {% if positive and fit_reason_labels %}
-        <ul style="margin:6px 0 0; padding-left:18px; font-size:13px; color:#15803d;">
+        <ul style="margin:6px 0 0; padding-left:18px; font-size:13px; color:var(--fg-soft);">
           {% for r in positive[:6] %}{% if r in fit_reason_labels %}<li>{{ fit_reason_labels[r] }}</li>{% endif %}{% endfor %}
         </ul>
       {% endif %}
       {% if negative and fit_reason_labels %}
-        <div style="font-size:12px; color:#92400e; margin-top:6px;">⚠ Things to check:
+        <div style="font-size:12px; color:var(--warn); margin-top:6px;">⚠ Things to check:
           {% for r in negative[:4] %}{% if r in fit_reason_labels %}{{ fit_reason_labels[r] }}{% if not loop.last %} · {% endif %}{% endif %}{% endfor %}
         </div>
       {% endif %}
@@ -134,10 +157,10 @@
   {% endif %}
 
   {% if salary_ctx %}
-    <div style="margin-top:14px; background:var(--indigo-tint); border:1px solid #dfe3ec; border-radius:10px; padding:12px 14px;">
-      <strong style="font-size:13px; color:var(--indigo);">Salary context</strong>
+    <div style="margin-top:14px; background:var(--bg-deep); border:1px solid var(--line); border-radius:var(--radius-lg); padding:12px 14px;">
+      <strong style="font-size:13px; color:var(--ink);">Salary context</strong>
       {% if salary_ctx.kind == 'actual' %}
-        <div style="font-size:13px; color:#3730a3; margin-top:4px;">
+        <div style="font-size:13px; color:var(--fg-soft); margin-top:4px;">
           {{ salary_ctx.label }}, this role pays
           <strong>{{ salary_ctx.p25|yen_short }}</strong> (25th) ·
           <strong>{{ salary_ctx.p50|yen_short }}</strong> (median) ·
@@ -145,7 +168,7 @@
           across {{ salary_ctx.n }} listed postings.
         </div>
       {% else %}
-        <div style="font-size:13px; color:#475569; margin-top:4px;">
+        <div style="font-size:13px; color:var(--fg-soft); margin-top:4px;">
           This posting doesn't list pay. Comparable <strong>{{ salary_ctx.role }}</strong>
           roles typically pay <strong>{{ salary_ctx.p25|yen_short }}–{{ salary_ctx.p75|yen_short }}</strong>
           (median {{ salary_ctx.p50|yen_short }}), based on {{ salary_ctx.n }} listed postings.
@@ -177,21 +200,21 @@
   </script>
 
   <style>
-    .gh-panel { border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin:0 0 18px; background:var(--card); }
+    .gh-panel { border:1px solid var(--line); border-radius:var(--radius-lg); padding:18px 20px; margin:0 0 18px; background:var(--card); }
     .gh-panel h3 { margin:0 0 12px; font-size:15px; display:flex; align-items:center; gap:8px; }
-    .gh-match-head { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
-    .gh-match-ring { --pct:0; width:74px; height:74px; border-radius:50%; flex:none;
-      background:conic-gradient(var(--gh-ring,#1e3a8a) calc(var(--pct)*1%), var(--line) 0);
-      display:flex; align-items:center; justify-content:center; }
-    .gh-match-ring > span { width:58px; height:58px; border-radius:50%; background:var(--card);
-      display:flex; flex-direction:column; align-items:center; justify-content:center; }
-    .gh-match-ring b { font-size:19px; line-height:1; color:var(--fg); }
-    .gh-match-ring small { font-size:9px; color:var(--muted); letter-spacing:.04em; }
-    .gh-match-label { font-size:16px; font-weight:800; }
+    .gh-match-head { display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; }
+    /* Match score: a plain mono figure, not a gradient ring (no conic-gradient,
+       no navy). Color is set inline to a warm semantic value by the JS. */
+    .gh-match-ring { --pct:0; flex:none; display:flex; align-items:baseline; }
+    .gh-match-ring > span { display:flex; align-items:baseline; gap:6px; }
+    .gh-match-ring b { font-family:var(--font-mono); font-size:30px; line-height:1; color:var(--ink);
+      font-feature-settings:"tnum"; letter-spacing:-0.02em; }
+    .gh-match-ring small { font-size:10px; color:var(--muted); letter-spacing:.08em; text-transform:uppercase; }
+    .gh-match-label { font-size:16px; font-weight:700; }
     .gh-chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
-    .gh-chip-good { font-size:12px; background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; border-radius:999px; padding:3px 9px; }
-    .gh-chip-gap  { font-size:12px; background:#fffbeb; color:#92400e; border:1px solid #fde68a; border-radius:999px; padding:3px 9px; }
-    .gh-strategy { margin-top:12px; background:var(--accent-tint); border:1px solid #c7d2fe; border-radius:10px;
+    .gh-chip-good { font-size:12px; background:var(--bg-deep); color:var(--fg-soft); border:1px solid var(--line); border-radius:var(--radius-sm); padding:3px 9px; }
+    .gh-chip-gap  { font-size:12px; background:var(--gold-tint); color:var(--gold); border:1px solid var(--gold-tint); border-radius:var(--radius-sm); padding:3px 9px; }
+    .gh-strategy { margin-top:12px; background:var(--accent-tint); border:1px solid var(--accent-soft); border-radius:var(--radius-lg);
       padding:12px 14px; font-size:13.5px; line-height:1.6; color:var(--fg-soft); }
     .gh-tk-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     @media (max-width:560px){ .gh-tk-grid { grid-template-columns:1fr; } }
@@ -199,12 +222,12 @@
     .gh-tk-grid label.fl { display:block; font-size:11px; text-transform:uppercase; letter-spacing:.04em;
       color:var(--muted); font-weight:600; margin-bottom:4px; }
     .gh-tk-grid input, .gh-tk-grid select, .gh-tk-grid textarea {
-      width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-size:14px;
+      width:100%; padding:8px 10px; border:1px solid var(--line-strong); border-radius:var(--radius); font-size:14px;
       font-family:inherit; background:#fff; color:var(--fg); }
     .gh-docs { display:flex; flex-wrap:wrap; gap:10px 16px; }
     .gh-docs label { display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--fg-soft); }
     .gh-docs input { width:auto; accent-color:var(--accent); }
-    .gh-cta-box { background:var(--accent-tint); border:1px solid #c7d2fe; border-radius:10px; padding:16px;
+    .gh-cta-box { background:var(--accent-tint); border:1px solid var(--accent-soft); border-radius:var(--radius-lg); padding:16px;
       text-align:center; font-size:14px; color:var(--fg-soft); }
   </style>
 
@@ -264,7 +287,7 @@
           {% if job['company_size'] %}<dt>Employees</dt><dd>{{ job['company_size'] }}</dd>{% endif %}
         </dl>
         {% if job['company_about'] %}
-          <p style="font-size: 13px; color: #374151; margin-top: 12px;">{{ job['company_about'] | snippet(400) }}</p>
+          <p style="font-size: 13px; color: var(--fg-soft); margin-top: 12px;">{{ job['company_about'] | snippet(400) }}</p>
         {% endif %}
       </div>
 
@@ -272,35 +295,26 @@
            this job's company + role prefilled. -->
       {% set company_qs = (job['company_name'] or '') | urlencode %}
       {% set role_qs = (job['title'] or '') | urlencode %}
-      <div class="card" style="background:#f0f9ff; border-color:#bae6fd;">
-        <h3 style="color:#0c4a6e;">📝 Build application packet</h3>
-        <p style="font-size:13px; color:#0c4a6e; margin:0 0 12px;">
+      <div class="card" style="background:var(--accent-tint); border-color:var(--accent-soft);">
+        <h3 style="color:var(--accent-dark); display:flex; align-items:center; gap:7px;">{{ icon('edit', size=15) }} Build application packet</h3>
+        <p style="font-size:13px; color:var(--fg-soft); margin:0 0 14px;">
           One-click jump into the career tools with <strong>{{ job['company_name'] or 'this company' }}</strong>
           and <strong>{{ job['title'] | snippet(40) }}</strong> already filled in.
         </p>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          <a href="/resume/cover-letter?company={{ company_qs }}&role={{ role_qs }}"
-             style="background:var(--accent); color:#fff; padding:8px 14px; border-radius:6px;
-             text-decoration:none; font-weight:600; font-size:13px; text-align:center;">
-            ✍ Draft a cover letter
+        <div style="display:flex; flex-direction:column; gap:9px;">
+          <a class="btn primary" style="width:100%; justify-content:center;"
+             href="/resume/cover-letter?company={{ company_qs }}&role={{ role_qs }}">
+            {{ icon('pencil', size=14) }} Draft a cover letter
           </a>
-          <a href="/templates?company={{ company_qs }}&role={{ role_qs }}"
-             style="background:#fff; color:var(--accent); padding:8px 14px; border-radius:6px;
-             text-decoration:none; font-weight:600; font-size:13px; text-align:center;
-             border:1px solid var(--accent);">
-            📨 Open email templates
+          <a class="btn secondary" style="width:100%; justify-content:center;"
+             href="/templates?company={{ company_qs }}&role={{ role_qs }}">
+            {{ icon('mail', size=14) }} Open email templates
           </a>
-          <a href="/resume/cv"
-             style="background:#fff; color:#374151; padding:8px 14px; border-radius:6px;
-             text-decoration:none; font-weight:500; font-size:13px; text-align:center;
-             border:1px solid var(--line);">
-            📄 English CV builder
+          <a class="btn secondary" style="width:100%; justify-content:center;" href="/resume/cv">
+            {{ icon('document', size=14) }} English CV builder
           </a>
-          <a href="/resume"
-             style="background:#fff; color:#374151; padding:8px 14px; border-radius:6px;
-             text-decoration:none; font-weight:500; font-size:13px; text-align:center;
-             border:1px solid var(--line);">
-            Rirekisho / Shokumu builder
+          <a class="btn secondary" style="width:100%; justify-content:center;" href="/resume">
+            {{ icon('document', size=14) }} Rirekisho / Shokumu builder
           </a>
         </div>
       </div>
@@ -325,19 +339,19 @@
           var list  = document.getElementById("similar-jobs-list");
           list.innerHTML = rows.map(function (j) {
             var fit = j.foreigner_fit_score;
-            var fitCls = fit >= 75 ? "#dcfce7;color:#166534" : fit >= 60 ? "#fef3c7;color:#92400e" : "#fee2e2;color:#991b1b";
+            var fitCls = fit >= 75 ? "var(--good-tint);color:var(--good)" : fit >= 60 ? "var(--warn-tint);color:var(--warn)" : "var(--accent-soft);color:var(--accent-dark)";
             var salary = j.salary_min_annual_jpy
               ? "¥" + (j.salary_min_annual_jpy / 1e6).toFixed(1) + "M" : "";
             return '<a href="/job/' + j.id + '" style="display:block;background:var(--card);' +
-              'border:1px solid var(--line); border-radius:8px; padding:12px 14px; ' +
+              'border:1px solid var(--line); border-radius:var(--radius-lg); padding:12px 14px; ' +
               'text-decoration:none; color:inherit; transition:all 0.15s;" ' +
-              'onmouseover="this.style.borderColor=\'var(--accent)\'" ' +
+              'onmouseover="this.style.borderColor=\'var(--line-strong)\'" ' +
               'onmouseout="this.style.borderColor=\'var(--line)\'">' +
               '<div style="display:flex; justify-content:space-between; align-items:flex-start;">' +
                 '<div style="font-size:13px; font-weight:600; flex:1; color:var(--fg); line-height:1.35;">' +
                   (j.title || '').replace(/</g, '&lt;') + '</div>' +
                 (fit != null ? '<span style="background:' + fitCls + '; padding:2px 8px;' +
-                  ' border-radius:999px; font-size:11px; font-weight:700; margin-left:6px;">Fit ' + fit + '</span>' : '') +
+                  ' border-radius:var(--radius-sm); font-size:11px; font-weight:700; margin-left:6px; font-family:var(--font-mono);">' + fit + '</span>' : '') +
               '</div>' +
               '<div style="font-size:11px; color:var(--muted); margin-top:4px;">' +
                 (j.company_name || '—') + (j.location ? ' · ' + j.location : '') +
@@ -394,9 +408,9 @@
     </div>
     <div style="margin-top:14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
       <button type="button" class="action-btn" id="tk-save" style="background:var(--accent); color:#fff; border-color:var(--accent); font-weight:700;">Save tracker details</button>
-      <button type="button" class="action-btn" id="tk-remove" style="color:#b91c1c; border-color:#fca5a5;">Remove from tracker</button>
+      <button type="button" class="action-btn" id="tk-remove" style="color:var(--accent-dark); border-color:var(--accent-soft);">Remove from tracker</button>
       <a class="action-btn" href="/tracker">Open full tracker →</a>
-      <span id="tk-saved-note" style="font-size:12px; color:var(--good); opacity:0; transition:opacity .2s;">Saved ✓</span>
+      <span id="tk-saved-note" style="font-size:12px; color:var(--muted); opacity:0; transition:opacity .2s;">Saved ✓</span>
     </div>
   </div>
 
@@ -406,7 +420,7 @@
     var JOB = {};
     try { JOB = JSON.parse(document.getElementById("gh-job-data").textContent); } catch (e) {}
     var id = JOB.id;
-    var RING = { excellent:"#2f7d5b", strong:"#c3382f", possible:"#b4690e", weak:"#a86a3c", poor:"#9c2a23" };
+    var RING = { excellent:"#2F7D5B", strong:"#C93B2B", possible:"#B4690E", weak:"#A82C1E", poor:"#A82C1E" };
 
     function esc(s){ var d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
 
@@ -421,15 +435,15 @@
       }
       var m = GH.computeMatch(JOB);
       var html = '<div class="gh-match-head">';
-      html += '<div class="gh-match-ring" style="--pct:' + m.score + '; --gh-ring:' + (RING[m.band]||"#1e3a8a") + ';"><span><b>' + m.score + '%</b><small>MATCH</small></span></div>';
-      html += '<div><div class="gh-match-label" style="color:' + (RING[m.band]||"#1e3a8a") + ';">' + esc(m.label) + '</div>';
+      html += '<div class="gh-match-ring" style="--pct:' + m.score + '; --gh-ring:' + (RING[m.band]||"#C93B2B") + ';"><span><b>' + m.score + '%</b><small>MATCH</small></span></div>';
+      html += '<div><div class="gh-match-label" style="color:' + (RING[m.band]||"#C93B2B") + ';">' + esc(m.label) + '</div>';
       html += '<div style="font-size:12.5px; color:var(--muted); margin-top:2px;">Personalized — separate from the universal Foreigner Fit score.</div></div></div>';
       if (m.why.length) {
-        html += '<div style="margin-top:12px;"><div style="font-size:12px; font-weight:700; color:#065f46; margin-bottom:5px;">Why it matches</div><div class="gh-chips">' +
+        html += '<div style="margin-top:12px;"><div style="font-size:12px; font-weight:700; color:var(--ink); margin-bottom:5px;">Why it matches</div><div class="gh-chips">' +
           m.why.map(function (w){ return '<span class="gh-chip-good">✓ ' + esc(w) + '</span>'; }).join("") + '</div></div>';
       }
       if (m.gaps.length) {
-        html += '<div style="margin-top:10px;"><div style="font-size:12px; font-weight:700; color:#92400e; margin-bottom:5px;">Potential gaps</div><div class="gh-chips">' +
+        html += '<div style="margin-top:10px;"><div style="font-size:12px; font-weight:700; color:var(--gold); margin-bottom:5px;">Potential gaps</div><div class="gh-chips">' +
           m.gaps.map(function (g){ return '<span class="gh-chip-gap">⚠ ' + esc(g) + '</span>'; }).join("") + '</div></div>';
       }
       html += '<div class="gh-strategy"><strong>Recommended application strategy.</strong> ' + esc(GH.applicationStrategy(JOB, m)) + '</div>';

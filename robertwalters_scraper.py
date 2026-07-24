@@ -546,6 +546,79 @@ def probe_facets(headed: bool = False) -> None:
 # CLI
 # ---------------------------------------------------------------------------
 
+_RW_JOB_ID_RE = re.compile(r"/(\d+)-[^/]*\.html")
+
+
+def _row_from_card(card: dict) -> Optional[dict]:
+    """Map one harvested search-results card (which carries the exact
+    `language1` English level the search filter matched) to our schema.
+
+    The RW search results page is PerimeterX-protected, so these cards are
+    harvested with a real browser into a JSON snapshot (see --from-file). Each
+    card has: url, title, english_level, salary, location, date.
+    """
+    _strip = lambda s: re.sub(r"\s+", " ", (s or "").strip())  # noqa: E731 (keep case)
+    url = (card.get("url") or "").strip()
+    title = _strip(card.get("title"))
+    if not url or not title:
+        return None
+    level = _strip(card.get("english_level"))
+    if level.lower().startswith("native"):
+        level = "Native / Fluent"
+    elif level.lower().startswith("business"):
+        level = "Business / Professional"
+    clean_salary, smin, smax = _parse_rw_salary(card.get("salary"))
+    loc = _strip(card.get("location"))
+    location = f"{loc}, Japan" if loc and "japan" not in loc.lower() else (loc or "Japan")
+    jid = _RW_JOB_ID_RE.search(url)
+    now = datetime.now(timezone.utc).isoformat()
+    return {
+        "source": SOURCE_NAME,
+        "source_job_id": jid.group(1) if jid else None,
+        "url": url,
+        "application_url": _en_url(url),
+        "title": title,
+        "company_name": None,            # RW client companies are confidential
+        "location": location,
+        "english_level": level,          # EXACT, from the language1 search facet
+        "salary": clean_salary,
+        "salary_min_annual_jpy": smin,
+        "salary_max_annual_jpy": smax,
+        "post_date": _posted_iso(card.get("date")),
+        "scraped_at": now,
+        "last_seen_at": now,
+    }
+
+
+def ingest_from_file(path: str, dry_run: bool = False) -> dict:
+    """Ingest a browser-harvested snapshot of English-level-filtered RW jobs."""
+    import json
+    db.init_db()
+    with open(path, encoding="utf-8") as f:
+        cards = json.load(f)
+    stats = {"inserted": 0, "updated": 0, "skipped": 0}
+    from collections import Counter
+    by_level: Counter = Counter()
+    with db.connect() as conn:
+        for card in cards:
+            row = _row_from_card(card)
+            if not row:
+                stats["skipped"] += 1
+                continue
+            by_level[row["english_level"]] += 1
+            if dry_run:
+                continue
+            try:
+                stats[db.upsert_job(conn, row)] += 1
+            except Exception as e:  # noqa: BLE001
+                log.warning("upsert failed for %s: %s", row.get("url"), e)
+                stats["skipped"] += 1
+        if not dry_run:
+            conn.commit()
+    log.info("from-file: %s | by english level: %s", stats, dict(by_level))
+    return stats
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(
         description="Scrape Robert Walters Japan via public sitemap + detail pages.")
@@ -560,6 +633,9 @@ def main() -> int:
                          "page (blocked by px-captcha on this site). Not the scraper.")
     ap.add_argument("--headed", action="store_true", help="(probe) show the browser")
     ap.add_argument("--debug", action="store_true", help="dump fetched HTML to ./debug/")
+    ap.add_argument("--from-file", metavar="PATH", default=None,
+                    help="ingest a browser-harvested JSON snapshot of jobs filtered "
+                         "by the language1 English-level facet (exact, not inferred)")
     ap.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args()
 
@@ -567,6 +643,10 @@ def main() -> int:
         level=logging.DEBUG if args.verbose else logging.INFO,
         format="%(asctime)s %(levelname)s %(message)s",
     )
+
+    if args.from_file:
+        ingest_from_file(args.from_file, dry_run=args.dry_run)
+        return 0
 
     if args.probe:
         probe_facets(headed=args.headed)

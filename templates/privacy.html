@@ -1,54 +1,297 @@
 {% extends "base.html" %}
-{% block title %}Privacy & Data · Gaijin Hunter{% endblock %}
-{% block meta_description %}How Gaijin Hunter handles your data: profile, tracker, saved jobs and resume data stay in your browser's localStorage. Job data is aggregated from public job pages. No accounts, no tracking.{% endblock %}
+{% block title %}Privacy, Terms & Accessibility · Gaijin Hunter{% endblock %}
+{% block meta_description %}Gaijin Hunter's Privacy Policy, Terms of Use, disclaimers, and Accessibility statement. Your profile, tracker, and resume data stay in your browser; job data is aggregated from public sources.{% endblock %}
 {% block content %}
-<div style="max-width:720px; margin:0 auto;">
-  <div class="breadcrumb"><a href="/">Home</a> / Privacy &amp; data</div>
-  <h1 style="margin:0 0 6px;">Privacy &amp; data</h1>
-  <p style="color:var(--muted); margin:0 0 26px;">Short version: your data stays in your browser; job data comes from public pages.</p>
+<style>
+  .legal { max-width: 760px; margin: 0 auto; }
+  .legal h1 { margin: 0 0 4px; }
+  .legal .updated { color: var(--muted); font-size: 13px; margin: 0 0 20px; }
+  .legal h2 { font-size: 20px; margin: 30px 0 8px; scroll-margin-top: 80px; }
+  .legal h3 { font-size: 15px; margin: 16px 0 4px; }
+  .legal p, .legal li { line-height: 1.7; color: var(--fg-soft); }
+  .legal ul { padding-left: 20px; }
+  .legal li { margin-bottom: 5px; }
+  .legal .toc { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+                padding: 16px 20px; margin: 0 0 26px; }
+  .legal .toc strong { display: block; font-size: 12px; text-transform: uppercase;
+                letter-spacing: .05em; color: var(--muted); margin-bottom: 8px; }
+  .legal .toc a { display: inline-block; font-size: 13.5px; margin: 0 14px 6px 0; text-decoration: none; }
+  .legal .callout { background: var(--accent-tint); border: 1px solid var(--accent-soft);
+                border-radius: 10px; padding: 14px 16px; font-size: 13.5px; line-height: 1.65; margin: 12px 0; }
+  .legal .legal-note { background: var(--warn-tint); border: 1px solid #f0dcc0;
+                border-radius: 10px; padding: 12px 15px; font-size: 13px; color: var(--warn);
+                line-height: 1.6; margin: 0 0 22px; }
+</style>
 
-  <h2 style="font-size:19px; margin:26px 0 8px;">Your data stays in your browser</h2>
-  <p style="line-height:1.7; color:var(--fg-soft);">
-    Your profile, saved jobs, applied list, application tracker, saved searches, and everything
-    you type into the resume builders (including the photo you upload) are stored in
-    <strong>this browser's localStorage</strong>. They are not sent to or stored on our server.
-    There are no accounts and no login. The trade-offs of that design: clearing your browser
-    data erases it, and it doesn't sync between devices — use
-    <a href="/data">Export / import data</a> to back it up, move it, or delete it completely.
-  </p>
-  <p style="line-height:1.7; color:var(--fg-soft);">
-    The optional <a href="/newsletter">newsletter</a> is the one exception: if you subscribe,
-    your email address and preferences are stored server-side so we can send it. Every email
-    includes a one-click unsubscribe, which also lets you remove your address.
-  </p>
-  <p style="line-height:1.7; color:var(--fg-soft);">
-    If a future deployment of this site changes any of this (for example, adding accounts or
-    server-side sync), this page will say so explicitly before that applies to you.
-  </p>
+<div class="legal">
+  <div class="breadcrumb"><a href="/">Home</a> / Privacy, Terms &amp; Accessibility</div>
+  <h1>Privacy, Terms &amp; Accessibility</h1>
+  <p class="updated">Last updated: {{ updated }}</p>
 
-  <h2 id="sources" style="font-size:19px; margin:26px 0 8px;">Where the job data comes from</h2>
-  <p style="line-height:1.7; color:var(--fg-soft);">
-    Job listings are aggregated from publicly available job pages and public APIs (GaijinPot,
-    TokyoDev, Japan Dev, YOLO Japan, company ATS pages such as Greenhouse and Lever, and
-    aggregators). Every listing links back to the original posting — always apply at the source.
-    Some fields are <strong>inferred from posting text</strong> by conservative rules (and labeled
-    as such on job pages); inferred or missing data can be wrong or incomplete.
-    <strong>Always verify visa, salary, and language requirements with the employer.</strong>
-  </p>
+  <div class="toc">
+    <strong>On this page</strong>
+    <a href="#privacy">Privacy Policy</a>
+    <a href="#info">What we collect</a>
+    <a href="#use">How it's used</a>
+    <a href="#email">Email &amp; marketing</a>
+    <a href="#cookies">Cookies &amp; tracking</a>
+    <a href="#children">Children's privacy</a>
+    <a href="#rights">Your rights &amp; choices</a>
+    <a href="#security">Data security</a>
+    <a href="#sources">Job data &amp; sources</a>
+    <a href="#accessibility">Accessibility</a>
+    <a href="#terms">Terms of Use</a>
+    <a href="#disclaimer">Disclaimers</a>
+    <a href="#liability">Limitation of liability</a>
+    <a href="#ip">Intellectual property</a>
+    <a href="#law">Governing law</a>
+    <a href="#contact">Contact</a>
+  </div>
 
-  <h2 style="font-size:19px; margin:26px 0 8px;">Not advice</h2>
-  <p style="line-height:1.7; color:var(--fg-soft);">
-    Guides, calculators, and visa/tax content here are practical information, not legal,
-    immigration, tax, or financial advice. Rules change; for decisions that matter, confirm with
-    the Immigration Services Agency of Japan, your employer, or a licensed professional
-    (行政書士 / immigration lawyer).
-  </p>
+  <p>Gaijin Hunter ("Gaijin Hunter," "we," "us," or "our") operates the website at
+  gaijinhunterjp.com and its tools (the "Service"). This page contains our Privacy Policy, our
+  Terms of Use, and our Accessibility statement. By using the Service you agree to these terms.
+  If you do not agree, please do not use the Service.</p>
 
-  <h2 style="font-size:19px; margin:26px 0 8px;">Quick actions</h2>
-  <p style="line-height:1.7;">
-    <a href="/data">Export, import, or delete all your local data →</a><br>
-    <a href="/profile">Edit your profile →</a><br>
-    <a href="/newsletter">Newsletter (optional) →</a>
-  </p>
+  <p>The Service is provided for people seeking work in Japan. We aim to handle personal
+  information and operate the Service in accordance with <strong>Japanese law and standards</strong>
+  — including the Act on the Protection of Personal Information (個人情報保護法 / "APPI") and the
+  guidance of the Personal Information Protection Commission (個人情報保護委員会 / "PPC") — as well as
+  the U.S. standards referenced below. Where the requirements differ, we aim to follow the stricter
+  protection. Japanese-language equivalents of key statutes are given in parentheses for reference.</p>
+
+  <!-- ============================ PRIVACY ============================ -->
+  <h2 id="privacy">Privacy Policy</h2>
+  <p>We've built the Service to collect as little personal information as possible. We do not
+  sell your personal information, and we do not provide it to third parties for their own
+  marketing. This policy explains, in plain language, what is collected, how it is used, and
+  the choices you have — consistent with the Federal Trade Commission's guidance on fair,
+  transparent data practices and with Japan's Act on the Protection of Personal Information
+  (個人情報保護法 / APPI).</p>
+  <p>For the purposes of the APPI, the operator of the Service acts as the business handling
+  personal information (個人情報取扱事業者). We do not provide personal data to third parties without
+  your consent except as permitted or required by law, and we do not transfer personal data
+  abroad except to service providers (such as our hosting and email-delivery providers) as needed
+  to run the Service, taking the measures the APPI requires for such providers.</p>
+
+  <h2 id="info">Information we collect</h2>
+  <h3>Information stored only in your browser (not sent to us)</h3>
+  <p>Your profile, saved jobs, applied list, application tracker, saved searches, and everything
+  you enter into the résumé builders (履歴書 / 職務経歴書 / English CV / cover letter), including any
+  photo you upload and any résumé you import, are stored in <strong>your own browser's local
+  storage on your device</strong>. This information is <strong>not transmitted to or stored on our
+  servers</strong>. We cannot see it, access it, or recover it for you. Files you upload to the
+  résumé importer are parsed locally in your browser and are never uploaded.</p>
+
+  <h3>Information you choose to give us</h3>
+  <ul>
+    <li><strong>Newsletter:</strong> if you subscribe, we store the email address and any
+      preferences you provide so we can send the newsletter.</li>
+    <li><strong>Employer job posts:</strong> if you submit a posting through "Post a job," we
+      store the listing content and the contact name and email you provide.</li>
+    <li><strong>Messages you send us</strong> (for example, by email) and their contents.</li>
+  </ul>
+
+  <h3>Information collected automatically</h3>
+  <p>Like most websites, our hosting provider may automatically log basic technical data such as
+  IP address, browser type, pages requested, and timestamps, for security, abuse prevention, and
+  to keep the Service running. We use this for operational purposes only. We do not use it to
+  build advertising profiles.</p>
+
+  <h2 id="use">How we use information (利用目的 / purpose of use)</h2>
+  <p>As required by the APPI, we specify the purposes for which personal information is used. We use
+  it only for the following purposes:</p>
+  <ul>
+    <li>To provide and maintain the Service and its tools.</li>
+    <li>To send the newsletter you requested (and nothing else) until you unsubscribe.</li>
+    <li>To review, publish, and manage employer job posts you submit.</li>
+    <li>To respond to your messages and support requests.</li>
+    <li>To protect the Service against fraud, abuse, and security threats, and to comply with
+      law.</li>
+  </ul>
+  <p>We do <strong>not</strong> sell or rent your personal information, and we do not share it with
+  third parties for their own advertising or marketing.</p>
+
+  <h2 id="email">Email &amp; marketing (CAN-SPAM / 特定電子メール法)</h2>
+  <p>The newsletter is opt-in (オプトイン), consistent with both the U.S. CAN-SPAM Act and Japan's
+  Act on Regulation of Transmission of Specified Electronic Mail (特定電子メール法). Every newsletter
+  email includes a working one-click unsubscribe link, our identity, and contact information. We
+  honor unsubscribe requests promptly. We will not add you to the newsletter unless you ask to
+  join, and we keep a record of your consent. You can remove your address at any time via the
+  unsubscribe link or by contacting us.</p>
+
+  <h2 id="cookies">Cookies &amp; tracking</h2>
+  <p>We aim to keep the Service free of third-party advertising and cross-site tracking. We use
+  browser local storage (not advertising cookies) to save your settings and documents on your
+  device, as described above. If we add any analytics or essential cookies in the future, we
+  will update this policy and, where required, obtain your consent — including any consent required
+  under the APPI and the Telecommunications Business Act (電気通信事業法) before transmitting
+  cookie-stored information or other "personal-related information" (個人関連情報) to a third party.
+  The Service honors your browser's "reduced motion" preference. We do not knowingly respond
+  differently to "Do Not Track" signals because there is no industry standard for them; regardless,
+  we do not track you across other websites.</p>
+
+  <h2 id="children">Children's privacy (COPPA / 未成年者)</h2>
+  <p>The Service is intended for adults seeking employment and is not directed to children under
+  13. We do not knowingly collect personal information from children under 13. Under Japanese
+  practice, a minor (未成年者) should obtain the consent of a parent or legal guardian before
+  providing personal information or agreeing to these terms. If you believe a child under 13, or a
+  minor without guardian consent, has provided us personal information, contact us and we will
+  delete it.</p>
+
+  <h2 id="rights">Your rights &amp; choices</h2>
+  <p>Because most of your data lives only in your browser, you are in direct control of it:</p>
+  <ul>
+    <li><strong>Access / export:</strong> use <a href="/data">Export your data</a> to download
+      everything stored locally as a file.</li>
+    <li><strong>Delete:</strong> use the same page to erase all local data, or clear your
+      browser's site data.</li>
+    <li><strong>Newsletter / posts:</strong> for the limited information we hold on our servers
+      (newsletter email, employer-post contact details), you may request access, correction, or
+      deletion by contacting us; we will respond within a reasonable time.</li>
+  </ul>
+  <p>Depending on where you live (for example, California under the CCPA/CPRA, or other U.S.
+  state privacy laws), you may have additional rights to access, delete, or opt out of the
+  "sale" or "sharing" of personal information. We do not sell or share personal information as
+  those laws define it. To exercise any right, contact us using the details below; we will not
+  discriminate against you for doing so.</p>
+  <h3>Your rights under the APPI (Japan)</h3>
+  <p>If we hold "retained personal data" about you (保有個人データ — such as a newsletter address or
+  employer-post contact details), you may, under the APPI, request:</p>
+  <ul>
+    <li><strong>Disclosure (開示)</strong> — notification of the purpose of use and a copy of the
+      data we hold, in your preferred method where reasonable (including electronically);</li>
+    <li><strong>Correction, addition, or deletion (訂正・追加・削除)</strong> — if the data is
+      inaccurate;</li>
+    <li><strong>Suspension of use or erasure (利用停止・消去)</strong>, and a halt to any third-party
+      provision (第三者提供の停止), where permitted by the APPI.</li>
+  </ul>
+  <p>We will respond without undue delay after confirming your identity, and at no charge except
+  where the APPI permits a reasonable fee for disclosure. If you are not satisfied with how we
+  handle your personal information, you may also lodge a complaint with the Personal Information
+  Protection Commission (個人情報保護委員会 / PPC), Japan's data-protection authority.</p>
+
+  <h2 id="security">Data security</h2>
+  <p>We use reasonable administrative and technical measures to protect the limited information we
+  hold (for example, transport encryption (HTTPS) and access controls on our server). No method
+  of transmission or storage is 100% secure, and we cannot guarantee absolute security. Data you
+  keep in your own browser is protected by your device and browser security; back it up using the
+  export tool, because clearing your browser will erase it permanently.</p>
+
+  <!-- ============================ SOURCES ============================ -->
+  <h2 id="sources">Job data &amp; third-party sources</h2>
+  <p>Job listings are aggregated from publicly available job pages and public APIs (for example,
+  GaijinPot, TokyoDev, Japan Dev, YOLO Japan, company applicant-tracking pages such as Greenhouse
+  and Lever, and job aggregators). Trademarks, company names, and logos belong to their respective
+  owners and are used for identification only; their appearance does not imply affiliation with or
+  endorsement by Gaijin Hunter.</p>
+  <p>Every listing links back to its original source — <strong>always apply at the source and
+  verify the details there.</strong> Some fields (such as visa support, salary, or language level)
+  are <strong>inferred from posting text by automated rules</strong> and are labeled as inferred;
+  inferred or missing data can be incomplete or wrong. The Service links to third-party websites
+  we do not control and are not responsible for. <strong>Always confirm visa, salary, employment
+  terms, and language requirements directly with the employer.</strong></p>
+
+  <!-- ============================ ACCESSIBILITY ============================ -->
+  <h2 id="accessibility">Accessibility statement</h2>
+  <p>Gaijin Hunter is committed to making the Service accessible to the widest possible audience,
+  including people with disabilities, consistent with the goals of the Americans with Disabilities
+  Act (ADA) and Section 508, and with Japan's standards for accessible web content. We strive to
+  conform to the <strong>Web Content Accessibility Guidelines (WCAG) 2.1 Level AA</strong> and, as
+  the corresponding Japanese Industrial Standard, <strong>JIS X 8341-3:2016</strong> (which is
+  aligned with WCAG), as our target standards. This also reflects the spirit of Japan's Act on the
+  Elimination of Discrimination against Persons with Disabilities (障害者差別解消法), under which
+  reasonable accommodation (合理的配慮) is expected.</p>
+  <p>Steps we take include:</p>
+  <ul>
+    <li>Semantic HTML, descriptive headings, link text, and form labels.</li>
+    <li>Keyboard-operable navigation and visible keyboard focus indicators.</li>
+    <li>A "skip to content" link and ARIA landmarks where appropriate.</li>
+    <li>Color choices intended to meet AA contrast, and respect for the browser's
+      "reduce motion" setting.</li>
+    <li>Text that can be resized and reflowed without loss of content.</li>
+  </ul>
+  <p>Accessibility is an ongoing effort and some content (including third-party job postings we
+  aggregate) may not yet fully conform. If you encounter a barrier, or need information in an
+  alternative format, please contact us at the address below and we will work to provide the
+  information or fix the issue in a reasonable timeframe. We welcome your feedback.</p>
+
+  <!-- ============================ TERMS ============================ -->
+  <h2 id="terms">Terms of Use</h2>
+  <p>You may use the Service for your personal, non-commercial job search. You agree not to:
+  misuse or disrupt the Service; scrape, harvest, or bulk-download its content except as expressly
+  permitted; submit false, misleading, infringing, or unlawful content (including in employer
+  posts); impersonate others; or use the Service to violate any law. We may remove content,
+  suspend access, or modify or discontinue the Service (in whole or in part) at any time without
+  notice. Employer posts are accepted at our discretion and may be reviewed or removed.</p>
+  <p>The Service is currently provided free of charge and does not sell goods or paid services to
+  users, so disclosure under Japan's Act on Specified Commercial Transactions (特定商取引法) is not
+  required. Should we offer a paid service in the future, we will publish the operator and
+  transaction information that the Act requires. For the operator's identity and contact details
+  in the meantime, see the Contact section below.</p>
+
+  <h2 id="disclaimer">Disclaimers — no professional advice; no warranty; no guarantee</h2>
+  <div class="callout">
+    The Service, including all guides, calculators, salary figures, visa and tax content, job
+    matching, "fit" scores, and résumé translations, is provided for general informational
+    purposes only. It is <strong>not legal, immigration, tax, financial, or career advice</strong>,
+    and using it does not create any professional or advisory relationship.
+  </div>
+  <p>Immigration, tax, and employment rules change and vary by individual circumstances. For
+  decisions that matter, confirm with an appropriate licensed professional (for example, the
+  Immigration Services Agency of Japan, a 行政書士 / immigration lawyer, a licensed tax or financial
+  advisor) and with the employer.</p>
+  <p>Automated features — including résumé parsing, the known-term Japanese translation, inferred
+  job attributes, and salary estimates — may contain errors or omissions. You are responsible for
+  reviewing, correcting, and verifying any document or information before relying on or submitting
+  it. <strong>We do not guarantee employment, interviews, visa approval, accuracy of any listing,
+  or any particular result.</strong></p>
+  <p>THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+  ACCURACY, AND NON-INFRINGEMENT, TO THE FULLEST EXTENT PERMITTED BY LAW.</p>
+
+  <h2 id="liability">Limitation of liability &amp; indemnification</h2>
+  <p>TO THE FULLEST EXTENT PERMITTED BY LAW, GAIJIN HUNTER AND ITS OPERATORS WILL NOT BE LIABLE FOR
+  ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF DATA,
+  OPPORTUNITIES, OR PROFITS, ARISING FROM YOUR USE OF (OR INABILITY TO USE) THE SERVICE, EVEN IF
+  ADVISED OF THE POSSIBILITY. WHERE LIABILITY CANNOT BE EXCLUDED, IT IS LIMITED TO USD $100 OR THE
+  AMOUNT YOU PAID US IN THE PAST 12 MONTHS, WHICHEVER IS GREATER. Some jurisdictions do not allow
+  certain limitations, so some of the above may not apply to you. You agree to indemnify and hold
+  Gaijin Hunter harmless from claims arising out of your misuse of the Service or your violation of
+  these terms or any law.</p>
+  <p><strong>Japan / consumers:</strong> nothing in these terms excludes or limits any liability or
+  right that cannot lawfully be excluded or limited under applicable Japanese law, including the
+  Consumer Contract Act (消費者契約法) and the Civil Code (民法). In particular, the limitations and
+  exclusions above do <strong>not</strong> apply to damages caused by our intentional act or gross
+  negligence, and any contract term that the Consumer Contract Act would render wholly or partly
+  void is limited or disapplied only to that extent; the remaining terms stay in effect.</p>
+
+  <h2 id="ip">Intellectual property</h2>
+  <p>The Service's original text, design, and software are owned by Gaijin Hunter or its licensors.
+  Documents you create with the builders are yours. Third-party trademarks and content remain the
+  property of their owners.</p>
+
+  <h2 id="law">Governing law &amp; changes</h2>
+  <p>These terms are governed by the laws of the United States and the state in which the operator
+  resides, without regard to conflict-of-laws rules; you agree that disputes will be resolved in
+  the courts located there, to the extent permitted by law.</p>
+  <p><strong>Users in Japan.</strong> If you use the Service as a consumer resident in Japan, this
+  choice of law and forum does not deprive you of the protection of the mandatory provisions of
+  Japanese law that would otherwise apply (Act on General Rules for Application of Laws / 法の適用に
+  関する通則法), and we comply with applicable Japanese law — including the APPI — in operating the
+  Service. Where a dispute cannot be resolved, the Tokyo District Court (東京地方裁判所) shall have
+  non-exclusive jurisdiction as a court of first instance for matters governed by Japanese law,
+  without limiting any consumer's statutory right to sue in their local court.</p>
+  <p>We may update this page from time to time; the "Last updated" date above reflects the latest
+  version, and your continued use after a change means you accept it.</p>
+
+  <h2 id="contact">Contact</h2>
+  <p>Questions about privacy, accessibility, or these terms? Email
+  <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>. For data, profile, and document
+  controls, see <a href="/data">Export your data</a>.</p>
+  <p>This same address is our contact point for personal-information inquiries under the APPI
+  (個人情報に関するお問い合わせ窓口), including requests for disclosure, correction, or suspension of use.
+  You may write to us in English or Japanese (日本語でのお問い合わせも可能です). If you are not satisfied
+  with our response, you may contact the Personal Information Protection Commission (個人情報保護委員会).</p>
 </div>
 {% endblock %}

@@ -348,7 +348,8 @@ def test_routes():
         "/resources", "/resources/applying-from-abroad", "/resources/visa-types",
         "/guides", "/tools", "/insights/salary", "/companies", "/reports",
         "/glossary", "/interview-prep", "/living", "/saved", "/applied",
-        "/profile", "/tracker", "/resume", "/robots.txt",
+        "/profile", "/tracker", "/resume", "/resume/import",
+        "/resume/shokumu", "/resume/cv", "/resume/cover-letter", "/robots.txt",
         "/post-a-job", "/sitemap.xml", "/llms.txt", "/api/jobs.json?limit=5",
     ]
     for p in pages:
@@ -377,7 +378,8 @@ def test_routes():
     r = client.get("/")
     check("landing shows visa stat", b"Visa support" in r.data)
     check("landing has no fake match feed", b"94%" not in r.data)
-    check("landing top-jobs panel is real", b"Top-ranked jobs right now" in r.data)
+    check("landing index snapshot is real", b"Index snapshot" in r.data)
+    check("landing top-jobs section is real", b"Highest Foreigner Fit right now" in r.data)
 
 
 def test_sitemap_and_healthz():

@@ -140,6 +140,33 @@ def _run_jobspy(pages: int, delay: float, enrich: bool,
                   dry_run=dry_run, verbose=1)
 
 
+def _run_salesforce(pages: int, delay: float, enrich: bool,
+                    dry_run: bool = False, limit=None) -> dict:
+    """Salesforce (gaishikei) — Japan reqs from the public careers CDN feed
+    (a.sfdcstatic.com Workday export the careers site itself reads). Static
+    JSON, so delay/enrich are not used."""
+    import salesforce_scraper as sf
+    return sf.run(dry_run=dry_run, limit=limit)
+
+
+def _run_microsoft(pages: int, delay: float, enrich: bool,
+                   dry_run: bool = False, limit=None) -> dict:
+    """Microsoft (gaishikei) — Japan reqs from the Eightfold PCSX careers API
+    (apply.careers.microsoft.com). Rate-limited, so it self-throttles with
+    429 back-off; delay sets the inter-call pause (floored at 1s)."""
+    import microsoft_scraper as ms
+    return ms.run(dry_run=dry_run, limit=limit, delay=max(delay, 1.0))
+
+
+def _run_rakuten(pages: int, delay: float, enrich: bool,
+                 dry_run: bool = False, limit=None) -> dict:
+    """Rakuten — Japan roles via the Workday CXS API behind their careers site.
+    Keeps only roles that require English at Advanced (Level 3) or Fluent
+    (Level 4), per the structured language level in each posting."""
+    import rakuten_scraper as rk
+    return rk.run(dry_run=dry_run, limit=limit, delay=max(delay, 0.2), min_english=3)
+
+
 SOURCES: dict[str, Callable] = {
     "gaijinpot":    _run_gaijinpot,
     "tokyodev":     _run_tokyodev,
@@ -155,6 +182,9 @@ SOURCES: dict[str, Callable] = {
     "careercross":  _run_careercross,
     "robertwalters": _run_robertwalters,
     "jobspy":       _run_jobspy,
+    "salesforce":   _run_salesforce,
+    "microsoft":    _run_microsoft,
+    "rakuten":      _run_rakuten,
 }
 
 

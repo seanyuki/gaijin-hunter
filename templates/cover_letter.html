@@ -32,7 +32,7 @@
   .quick-actions button:hover { border-color: var(--accent); color: var(--accent); }
 
   .hint { font-size: 11px; color: var(--muted); margin-top: 3px; }
-  .ph { background: #fef3c7; color: #92400e; padding: 1px 5px; border-radius: 3px;
+  .ph { background: var(--warn-tint); color: var(--warn); padding: 1px 5px; border-radius: 3px;
         font-size: 11px; font-weight: 600; }
 
   .preview-pane { position: sticky; top: 90px; background: #e7ebf0; padding: 18px;
@@ -45,12 +45,22 @@
 
   .letter {
     background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    width: 210mm; min-height: 297mm; padding: 24mm 22mm; margin: 0 auto;
-    font-family: Georgia, "Times New Roman", serif; font-size: 11pt; color: #111; line-height: 1.65;
+    width: 210mm; min-height: 297mm; padding: 18mm 20mm 20mm; margin: 0 auto;
+    font-family: "Garamond", "EB Garamond", "Times New Roman", Times, serif;
+    font-size: 11pt; color: #000; line-height: 1.55;
   }
-  .letter .meta { color: #444; font-size: 10pt; line-height: 1.45; margin-bottom: 24px;
-    white-space: pre-wrap; }
-  .letter .recipient { color: #111; margin-bottom: 24px; white-space: pre-wrap; }
+  /* Letterhead — identical to the English CV header (centered uppercase name +
+     pipe-separated contact line + rule) so a candidate's documents match. */
+  .letter .cv-head { text-align: center; margin-bottom: 22px;
+    border-bottom: 0.7pt solid #000; padding-bottom: 12px; }
+  .letter .cv-head .name {
+    font-weight: 700; font-size: 17pt; line-height: 1.05;
+    letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 6px; }
+  .letter .cv-head .contact { font-size: 9.5pt; color: #000; line-height: 1.45; }
+  .letter .cv-head .contact .sep { margin: 0 6px; color: #666; }
+  .letter .cv-head .contact a { color: #000; text-decoration: none; }
+  .letter .date { font-size: 10.5pt; margin-bottom: 18px; }
+  .letter .recipient { color: #000; margin-bottom: 18px; white-space: pre-wrap; font-size: 10.5pt; }
   .letter .greeting { margin-bottom: 12px; }
   .letter p { margin: 0 0 12px; }
   .letter .sig { margin-top: 24px; white-space: pre-wrap; }
@@ -66,11 +76,16 @@
     @page { size: A4 portrait; margin: 0; }
     body { background: #fff; }
     header, .breadcrumb, .rr-page-h, .resume-subnav, .form-pane,
-    .preview-pane .toolbar { display: none !important; }
+    .preview-pane .toolbar, .back-to-top, .reading-progress, #gh-toasts,
+    .cmdk-backdrop { display: none !important; }
     .cl-layout { display: block; }
-    .preview-pane { position: static; background: #fff; padding: 0; max-height: none; overflow: visible; }
-    .scale-wrap { transform: none; width: auto; height: auto; }
-    .letter { box-shadow: none; margin: 0; }
+    .preview-pane { position: static; background: #fff; padding: 0; margin: 0;
+                    max-height: none; overflow: visible; }
+    .scale-wrap { transform: none; width: auto !important; height: auto; margin: 0; }
+    /* A cover letter is one page; drop the full-sheet min-height in print so
+       the A4 box + padding can't spill onto a trailing blank page. */
+    .letter { box-shadow: none; margin: 0 auto !important; min-height: 0;
+              box-sizing: border-box; }
   }
 </style>
 
@@ -98,10 +113,14 @@
     </div>
 
     <h2>2. Your details</h2>
+    <p class="hint" style="margin:-4px 0 8px;">These form the letterhead — same format as your English CV.
+      Use <strong>↻ Prefill from CV / profile</strong> to copy them across.</p>
     <div class="form-grid">
-      <div><label>Your name</label><input data-f="name" placeholder="Jane Doe"></div>
-      <div><label>Your email</label><input data-f="email" type="email"></div>
-      <div><label>Your phone</label><input data-f="phone"></div>
+      <div><label>Your name</label><input data-f="name" placeholder="Jane Eleanor Doe"></div>
+      <div><label>Location</label><input data-f="location" placeholder="Tokyo, Japan"></div>
+      <div><label>Your email</label><input data-f="email" type="email" placeholder="jane.doe@example.com"></div>
+      <div><label>Your phone</label><input data-f="phone" placeholder="+81 90 1234 5678"></div>
+      <div><label>LinkedIn / portfolio URL</label><input data-f="url" placeholder="linkedin.com/in/janedoe"></div>
       <div><label>Today's date</label><input data-f="date" type="date"></div>
     </div>
 
@@ -140,7 +159,11 @@
     </div>
     <div class="scale-wrap">
       <div class="letter" id="letter-doc">
-        <div class="meta" id="p-meta"></div>
+        <div class="cv-head">
+          <div class="name" id="p-name">YOUR NAME</div>
+          <div class="contact" id="p-contact"></div>
+        </div>
+        <div class="date" id="p-date"></div>
         <div class="recipient" id="p-recipient"></div>
         <div class="greeting" id="p-greeting"></div>
         <div id="p-body"></div>
@@ -156,7 +179,7 @@
 
   var qs = new URLSearchParams(window.location.search);
   var template = {
-    name: "", email: "", phone: "", date: "",
+    name: "", location: "", email: "", phone: "", url: "", date: "",
     company: qs.get("company") || {{ prefill_company | tojson }},
     role: qs.get("role") || {{ prefill_role | tojson }},
     hiringManager: "",
@@ -241,11 +264,24 @@
     return isNaN(d) ? iso : d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
   }
 
+  function ensureUrl(u) {
+    u = String(u || "").trim();
+    if (!u) return "";
+    return /^https?:\/\//i.test(u) ? u : "https://" + u;
+  }
+
   function render() {
     save(state);
     var s = state;
-    document.getElementById("p-meta").textContent =
-      [s.name, s.email, s.phone, fmtDate(s.date)].filter(Boolean).join("\n");
+    // CV-style letterhead.
+    document.getElementById("p-name").textContent = (s.name || "Your Name").toUpperCase();
+    var c = [];
+    if (s.location) c.push(esc(s.location));
+    if (s.email) c.push(esc(s.email));
+    if (s.phone) c.push(esc(s.phone));
+    if (s.url) c.push('<a href="' + esc(ensureUrl(s.url)) + '">' + esc(s.url) + '</a>');
+    document.getElementById("p-contact").innerHTML = c.join('<span class="sep">|</span>');
+    document.getElementById("p-date").textContent = fmtDate(s.date);
     document.getElementById("p-recipient").textContent = s.company
       ? (s.hiringManager ? s.hiringManager + "\n" : "") + s.company
       : "";
@@ -286,7 +322,10 @@
     var fn = TEMPLATES[s.tpl] || TEMPLATES.standard;
     var out = fn(s);
     return [
-      [s.name, s.email, s.phone, fmtDate(s.date)].filter(Boolean).join("\n"),
+      (s.name || "[Your name]"),
+      [s.location, s.email, s.phone, s.url].filter(Boolean).join(" | "),
+      "",
+      fmtDate(s.date),
       "",
       s.company ? ((s.hiringManager ? s.hiringManager + "\n" : "") + s.company) : "",
       "",
@@ -314,10 +353,21 @@
   });
   document.getElementById("print-btn").addEventListener("click", function () { window.print(); });
   document.getElementById("prefill-profile").addEventListener("click", function () {
+    // Prefer the English CV draft (it has the full letterhead), then fall
+    // back to the local profile. Only fills blank fields — never clobbers
+    // anything the user already typed.
+    var cv = null;
+    try { cv = JSON.parse(localStorage.getItem("gh-cv-draft-v2") || "null"); } catch (e) {}
     var p = window.GH ? GH.profile.get() : null;
-    if (!p) return;
-    if (p.name && !state.name)   state.name   = p.name;
-    if (p.email && !state.email) state.email  = p.email;
+    function fill(k, v) { if (v && !state[k]) state[k] = v; }
+    if (cv) {
+      fill("name", cv.name); fill("location", cv.location);
+      fill("email", cv.email); fill("phone", cv.phone); fill("url", cv.url);
+    }
+    if (p) {
+      fill("name", p.name); fill("email", p.email);
+      fill("phone", p.phone); fill("location", (p.preferredLocations || [])[0]);
+    }
     fillForm(); render();
   });
   document.getElementById("clear-cl").addEventListener("click", function () {

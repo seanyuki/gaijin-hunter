@@ -1,20 +1,21 @@
 {% extends "base.html" %}
 {% block meta_robots %}{% if view in ('saved','applied','archived') %}noindex{% else %}index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1{% endif %}{% endblock %}
 {% block content %}
+{% from "_company_mark.html" import company_mark with context %}
 
 <nav class="view-tabs">
-  <a href="/" class="{% if view == 'all' %}active{% endif %}">All jobs</a>
-  <a href="/saved" class="{% if view == 'saved' %}active{% endif %}">{{ icon('star', size=14) }} Saved <span id="saved-count" class="tab-count"></span></a>
-  <a href="/applied" class="{% if view == 'applied' %}active{% endif %}">{{ icon('check', size=14) }} Applied <span id="applied-count" class="tab-count"></span></a>
-  <a href="/tracker" class="{% if view == 'tracker' %}active{% endif %}">{{ icon('clipboard', size=14) }} Tracker <span id="tracker-count" class="tab-count"></span></a>
-  <a href="/archived" class="{% if view == 'archived' %}active{% endif %}">Archived</a>
+  <a href="/" class="{% if view == 'all' %}active{% endif %}"{% if view == 'all' %} aria-current="page"{% endif %}>All jobs</a>
+  <a href="/saved" class="{% if view == 'saved' %}active{% endif %}"{% if view == 'saved' %} aria-current="page"{% endif %}>{{ icon('star', size=14) }} Saved <span id="saved-count" class="tab-count"></span></a>
+  <a href="/applied" class="{% if view == 'applied' %}active{% endif %}"{% if view == 'applied' %} aria-current="page"{% endif %}>{{ icon('check', size=14) }} Applied <span id="applied-count" class="tab-count"></span></a>
+  <a href="/tracker" class="{% if view == 'tracker' %}active{% endif %}"{% if view == 'tracker' %} aria-current="page"{% endif %}>{{ icon('clipboard', size=14) }} Tracker <span id="tracker-count" class="tab-count"></span></a>
+  <a href="/archived" class="{% if view == 'archived' %}active{% endif %}"{% if view == 'archived' %} aria-current="page"{% endif %}>Archived</a>
 </nav>
 
 <a class="gh-followup-banner" href="/tracker?filter=followup_due"
-   style="display:none; align-items:center; gap:8px; background:#fffbeb; border:1px solid #fde68a;
-          border-radius:10px; padding:11px 15px; margin:0 0 16px; color:#92400e; font-size:14px;
+   style="display:none; align-items:center; gap:8px; background:var(--gold-tint); border:1px solid var(--gold);
+          border-radius:var(--radius); padding:11px 15px; margin:0 0 16px; color:var(--gold); font-size:14px;
           font-weight:600; text-decoration:none;">
-  {{ icon('bell', size=15) }} <span class="gh-followup-text">applications need follow-up</span> <span style="margin-left:auto; color:#b45309;">Open tracker →</span>
+  {{ icon('bell', size=15) }} <span class="gh-followup-text">applications need follow-up</span> <span style="margin-left:auto; color:var(--gold);">Open tracker →</span>
 </a>
 
 <!-- Quick-filter chips: one preset per real decision foreigners make -->
@@ -85,7 +86,19 @@
   })();
 </script>
 
-<form class="filters" method="get">
+{# Active-filter presence, computed early so the mobile trigger can show it. #}
+{% set has_active = q or location or salary_min or days_within or foreigner_fit_min
+   or exclude_teaching or exclude_japanese_only or salary_listed_only or professional_only
+   or flags|length or (selected.values()|map('length')|sum) %}
+
+<button type="button" id="filters-toggle" class="btn secondary filters-toggle"
+        aria-controls="jobs-filters" aria-expanded="false">
+  {{ icon('search', size=15) }} Filters{% if has_active %} · active{% endif %}
+</button>
+<div id="filters-backdrop" class="filters-backdrop" aria-hidden="true"></div>
+
+<form class="filters" id="jobs-filters" method="get">
+  <div class="sheet-grab" aria-hidden="true"></div>
   <div class="row search">
     <div>
       <label for="q">Keywords</label>
@@ -104,14 +117,6 @@
       <select id="days_within" name="days_within">
         {% for v, label in days_options %}
           <option value="{{ v }}" {% if days_within and v == days_within|string %}selected{% elif not days_within and v == "" %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div>
-      <label for="sort">Sort by</label>
-      <select id="sort" name="sort">
-        {% for v, label in sort_labels %}
-          <option value="{{ v }}" {% if v == sort %}selected{% endif %}>{{ label }}</option>
         {% endfor %}
       </select>
     </div>
@@ -219,9 +224,6 @@
 </form>
 
 {# Active-filter chips: each removes just itself and reloads. #}
-{% set has_active = q or location or salary_min or days_within or foreigner_fit_min
-   or exclude_teaching or exclude_japanese_only or salary_listed_only or professional_only
-   or flags|length or (selected.values()|map('length')|sum) %}
 {% if has_active %}
 <div class="active-filters" aria-label="Active filters">
   <span class="active-filters-label">Active:</span>
@@ -246,8 +248,8 @@
 </div>
 {% endif %}
 
-<div class="stats" style="display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; position:relative;">
-  <span><strong>{{ total }}</strong> job{{ '' if total == 1 else 's' }}
+<div class="results-bar">
+  <span class="results-count"><strong>{{ total }}</strong> job{{ '' if total == 1 else 's' }}
   {% if view == 'saved' %}saved{% elif view == 'archived' %}archived{% else %}match your filters{% endif %}</span>
   {% if sort == 'recommended' and view not in ('saved', 'archived') %}
     <details class="gh-reveal" style="display:inline-block; font-size:12px; color:var(--muted); position:relative;">
@@ -262,6 +264,17 @@
       </div>
     </details>
   {% endif %}
+  <span class="rb-sort">
+    <label for="sort">Sort</label>
+    {# Belongs to the filter form via form= so it submits with Search too.
+       Pointer changes apply immediately; keyboard changes commit on
+       Enter/blur (see script below) so arrowing never fires page loads. #}
+    <select id="sort" name="sort" form="jobs-filters" data-initial="{{ sort }}">
+      {% for v, label in sort_labels %}
+        <option value="{{ v }}" {% if v == sort %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </span>
 </div>
 
 <!-- Profile-aware quick filters (client-side; only shown when a profile exists). -->
@@ -281,11 +294,11 @@
   </p>
 </div>
 <style>
-  .gh-pf-chip { font-size:12.5px; padding:6px 12px; border-radius:999px; cursor:pointer;
+  .gh-pf-chip { font-size:12.5px; padding:6px 12px; border-radius:var(--radius); cursor:pointer;
     border:1px solid var(--line); background:#fff; color:var(--fg-soft); font-weight:600; }
   .gh-pf-chip:hover { border-color:var(--accent); color:var(--accent); }
   .gh-pf-chip.active { background:var(--accent); color:#fff; border-color:var(--accent); }
-  .gh-pf-clear { color:#b91c1c; border-color:#fca5a5; }
+  .gh-pf-clear { color:var(--accent-dark); border-color:var(--accent-soft); }
 </style>
 
 {% if jobs %}
@@ -307,42 +320,46 @@
       <button class="save-btn" type="button" data-job-id="{{ j['id'] }}" aria-label="Save job">
         <span class="star">☆</span>
       </button>
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; flex-wrap:wrap;">
-        <h2 style="margin:0;"><a href="/job/{{ j['id'] }}">{{ j['title'] }}</a></h2>
+      <div class="job-rail">
+        {{ company_mark(j['company_name']) }}
+      </div>
+      <div class="job-main">
+      <div class="job-head">
+        <h2><a href="/job/{{ j['id'] }}">{{ j['title'] }}</a></h2>
         {% if j['foreigner_fit_score'] is not none %}
           {% set score = j['foreigner_fit_score'] %}
-          {% set bg = '#dcfce7' if score >= 75 else '#fef3c7' if score >= 60 else '#fee2e2' %}
-          {% set fg = '#166534' if score >= 75 else '#92400e' if score >= 60 else '#991b1b' %}
-          <span class="gh-fit-badge"
-                style="font-size:12px; background:{{ bg }}; color:{{ fg }};
-                border-radius:999px; padding:3px 10px; font-weight:700; white-space:nowrap;"
-                title="Foreigner Fit: higher = more accessible to foreign applicants">
-            Fit {{ score }}
-          </span>
+          {% set fit_cls = 'good' if score >= 75 else 'mid' if score >= 60 else 'low' %}
+          <span class="gh-fit-badge {{ fit_cls }}"
+                title="Foreigner Fit: higher = more accessible to foreign applicants">Foreigner Fit {{ score }}<span class="visually-hidden"> out of 100 — higher scores mean the posting is more accessible to foreign applicants</span></span>
         {% endif %}
       </div>
       <div class="meta">
-        {% if j['company_name'] %}<span>{{ j['company_name'] }}</span>{% endif %}
+        {% if j['company_name'] %}<span class="co">{{ j['company_name'] }}</span>{% endif %}
         {% if j['location'] %}<span>{{ j['location'] }}</span>{% endif %}
-        {% if j['salary'] %}<span class="num" style="color:var(--ink); font-weight:600;">{{ j['salary'] | snippet(48) }}{% if j['salary_period'] %} <small style="color:var(--muted); font-weight:400;">/{{ j['salary_period'] | lower }}</small>{% endif %}</span>
-        {% elif j['salary_min_annual_jpy'] %}<span class="num" style="color:var(--ink); font-weight:600;">{{ j['salary_min_annual_jpy'] | yen_short }}{% if j['salary_max_annual_jpy'] and j['salary_max_annual_jpy'] != j['salary_min_annual_jpy'] %}–{{ j['salary_max_annual_jpy'] | yen_short }}{% endif %}<small style="color:var(--muted); font-weight:400;">/yr</small></span>{% endif %}
         {% if j['post_date'] %}<span>{{ j['post_date'] }}</span>{% endif %}
         <span class="source">{{ j['source'] }}{% if j['source_quality'] %} · {{ j['source_quality'] }}{% endif %}</span>
       </div>
-      {# Badges: only what changes the apply/skip decision. #}
+      {# Decision facts row (DESIGN.md §9): salary → Japanese → remote → abroad,
+         all mono, scannable in one pass. Quiet extras trail in muted. #}
+      <div class="job-facts">
+        {% if j['salary'] %}<span class="fact salary">{{ j['salary'] | snippet(48) }}{% if j['salary_period'] %} <small>/{{ j['salary_period'] | lower }}</small>{% endif %}</span>
+        {% elif j['salary_min_annual_jpy'] %}<span class="fact salary">{{ j['salary_min_annual_jpy'] | yen_short }}{% if j['salary_max_annual_jpy'] and j['salary_max_annual_jpy'] != j['salary_min_annual_jpy'] %}–{{ j['salary_max_annual_jpy'] | yen_short }}{% endif %}<small>/yr</small></span>{% endif %}
+        {% if j['japanese_level'] %}<span class="fact">Japanese: {{ j['japanese_level'] }}</span>{% endif %}
+        {% if j['remote_work_ok'] %}<span class="fact">Remote OK</span>{% endif %}
+        {% if j['overseas_application_ok'] %}<span class="fact">Apply from abroad</span>{% endif %}
+        {% if j['english_level'] %}<span class="fact quiet">English: {{ j['english_level'] }}</span>{% endif %}
+        {% if j['employment_terms'] and j['employment_terms'] != 'Full-time' %}<span class="fact quiet">{{ j['employment_terms'] }}{{ ' · entry-level' if 'entry-level' in (j['tags'] or '') else '' }}</span>{% endif %}
+        {% if j['posting_language'] == 'Japanese' %}<span class="fact quiet">Posting in Japanese</span>{% endif %}
+        {% if j['is_employer_post'] %}<span class="fact quiet">Direct from employer</span>{% endif %}
+      </div>
+      {# Signal Budget Rule (DESIGN.md §9): ≤3 badge signals per card — the fit
+         score plus ONE accessibility badge (+ archived marker in that view).
+         Everything else scans as mono facts above or lives on the detail page. #}
       <div class="badges">
-        {% if j['japanese_level'] %}<span class="badge jp">Japanese: {{ j['japanese_level'] }}</span>{% endif %}
-        {% if j['visa_sponsorship_mentioned'] %}<span class="badge remote">Visa support</span>{% endif %}
-        {% if j['overseas_application_ok'] %}<span class="badge remote">Apply from abroad</span>{% endif %}
-        {% if j['remote_work_ok'] %}<span class="badge remote">Remote OK</span>{% endif %}
-        {% if j['english_level'] %}<span class="badge en">English: {{ j['english_level'] }}</span>{% endif %}
-        {% if j['employment_terms'] in ('Part-time', 'Temporary') %}
-          <span class="badge term" style="background:transparent; border:1px dashed var(--line-strong); color:var(--muted);">{{ j['employment_terms'] }}{% if 'entry-level' in (j['tags'] or '') %} · entry-level{% endif %}</span>
-        {% elif j['employment_terms'] and j['employment_terms'] != 'Full-time' %}
-          <span class="badge term">{{ j['employment_terms'] }}</span>
-        {% endif %}
-        {% if j['posting_language'] == 'Japanese' %}<span class="badge jp" style="background:var(--warn-tint); color:var(--warn);">Posting in Japanese</span>{% endif %}
-        {% if j['is_employer_post'] %}<span class="badge applied" style="background:var(--indigo-tint);color:var(--indigo);">Direct from employer</span>{% endif %}
+        {% if j['visa_sponsorship_mentioned'] %}<span class="badge visa">Visa support</span>
+        {% elif j['overseas_application_ok'] %}<span class="badge abroad">Apply from abroad</span>
+        {% elif j['remote_work_ok'] %}<span class="badge remote">Remote OK</span>{% endif %}
+        {% if view == 'archived' %}<span class="badge archived">Archived · stale listing</span>{% endif %}
       </div>
       {% set sc = salary_ctx.get(j['id']) if salary_ctx else None %}
       {% if sc %}
@@ -368,14 +385,14 @@
           {% endif %}
         {% endfor %}
         {% if positive %}
-          <div style="font-size:12px; color:#0f6b4a; margin-top:6px; display:flex; gap:5px; align-items:baseline;">
-            <strong style="color:#0f6b4a;">Why it fits:</strong>
+          <div style="font-size:12px; color:var(--muted); margin-top:6px; display:flex; gap:5px; align-items:baseline;">
+            <strong style="color:var(--ink);">Why it fits:</strong>
             <span>{% for r in positive[:3] %}{% if r in fit_reason_labels %}{{ fit_reason_labels[r] }}{% if not loop.last %} · {% endif %}{% endif %}{% endfor %}</span>
           </div>
         {% endif %}
         {% if negative %}
-          <div style="font-size:12px; color:#92400e; margin-top:3px; display:flex; gap:5px; align-items:baseline;">
-            <strong style="color:#92400e;">Check:</strong>
+          <div style="font-size:12px; color:var(--gold); margin-top:3px; display:flex; gap:5px; align-items:baseline;">
+            <strong style="color:var(--gold);">Check:</strong>
             <span>{% for r in negative[:2] %}{% if r in fit_reason_labels %}{{ fit_reason_labels[r] }}{% if not loop.last %} · {% endif %}{% endif %}{% endfor %}</span>
           </div>
         {% endif %}
@@ -394,6 +411,7 @@
           </button>
         {% endif %}
       </div>
+      </div><!-- /.job-main -->
     </article>
   {% endfor %}
 
@@ -422,6 +440,7 @@
   </nav>
 {% else %}
   <div class="empty">
+    <div class="empty-ic">{{ icon('search', size=26) }}</div>
     {% if stats.total == 0 %}
       <h3 style="margin:0 0 6px;">No jobs in the database yet</h3>
       <p>Run <code>python update.py</code> to fetch the latest listings.</p>
@@ -448,6 +467,57 @@
     {% endif %}
   </div>
 {% endif %}
+
+<!-- Mobile filter sheet + submit feedback. Progressive enhancement: without
+     JS the panel stays visible and the form works untouched. -->
+<script>
+(function () {
+  document.body.classList.add("gh-js");
+  var form = document.getElementById("jobs-filters");
+  var toggle = document.getElementById("filters-toggle");
+  var backdrop = document.getElementById("filters-backdrop");
+  if (form && toggle && backdrop) {
+    var sheetRelease = null;
+    function setOpen(open) {
+      form.classList.toggle("sheet-open", open);
+      backdrop.classList.toggle("open", open);
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      document.body.style.overflow = open ? "hidden" : "";
+      if (open) {
+        if (window.ghFocusContract) sheetRelease = ghFocusContract(form, function () { setOpen(false); });
+        var f = form.querySelector("input, select"); if (f) f.focus({ preventScroll: true });
+      } else {
+        if (sheetRelease) { sheetRelease(); sheetRelease = null; }
+        if (toggle.offsetParent) toggle.focus();   // return focus (mobile only)
+      }
+    }
+    toggle.addEventListener("click", function () { setOpen(!form.classList.contains("sheet-open")); });
+    backdrop.addEventListener("click", function () { setOpen(false); });
+  }
+  if (form) {
+    form.addEventListener("submit", function () {
+      var btn = form.querySelector('button[type="submit"]');
+      if (btn) { btn.textContent = "Searching…"; btn.setAttribute("aria-busy", "true"); }
+      document.body.style.overflow = "";
+    });
+  }
+  // Keyboard-safe sort: pointer changes submit immediately; keyboard arrow
+  // changes commit on Enter or blur, never per keystroke (Firefox fires
+  // `change` on every arrow press over a closed select).
+  var sortSel = document.getElementById("sort");
+  if (sortSel && sortSel.form) {
+    var kb = false;
+    sortSel.addEventListener("keydown", function (e) {
+      if (["ArrowUp", "ArrowDown", "Home", "End"].indexOf(e.key) !== -1) kb = true;
+      else if (e.key === "Enter") { kb = false; sortSel.form.submit(); }
+    });
+    sortSel.addEventListener("change", function () { if (!kb) sortSel.form.submit(); });
+    sortSel.addEventListener("blur", function () {
+      if (kb) { kb = false; if (sortSel.value !== sortSel.getAttribute("data-initial")) sortSel.form.submit(); }
+    });
+  }
+})();
+</script>
 
 <!-- Profile-aware quick filters: hide/show already-loaded cards client-side. -->
 <script>
