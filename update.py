@@ -167,12 +167,16 @@ def _run_rakuten(pages: int, delay: float, enrich: bool,
     return rk.run(dry_run=dry_run, limit=limit, delay=max(delay, 0.2), min_english=3)
 
 
+# YOLO Japan is intentionally NOT registered: its postings are predominantly
+# low-quality (factory/konbini/dispatch shift work) and it was crowding out the
+# professional roles this board is for — ~60% of all rows came from it alone.
+# `yolojapan_scraper.py` and `_run_yolojapan` are kept so it can be re-enabled
+# by adding "yolojapan": _run_yolojapan back to this dict.
 SOURCES: dict[str, Callable] = {
     "gaijinpot":    _run_gaijinpot,
     "tokyodev":     _run_tokyodev,
     "jobsinjapan":  _run_jobsinjapan,
     "japandev":     _run_japandev,
-    "yolojapan":    _run_yolojapan,
     "greenhouse":   _run_greenhouse,
     "lever":        _run_lever,
     "ashby":        _run_ashby,
