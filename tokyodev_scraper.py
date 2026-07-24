@@ -177,6 +177,7 @@ def parse_listing(html: str) -> list[dict]:
     soup = BeautifulSoup(html, "lxml")
 
     jobs: list[dict] = []
+    seen_ids: set[str] = set()
     current_company: Optional[dict] = None
     current_job: Optional[dict] = None
 
@@ -185,14 +186,25 @@ def parse_listing(html: str) -> list[dict]:
         if not path:
             continue
 
-        # Job-detail anchor inside a heading -> emit a new job
+        # Job-detail anchor (/companies/<co>/jobs/<slug>) -> emit a new job.
+        # Until mid-2026 these titles were wrapped in <h2>-<h5>; TokyoDev
+        # restructured the listing to plain <div class="text-lg font-bold">
+        # cards, so we key off the URL shape (JOB_URL_RE already excludes the
+        # /jobs/<meta> and /companies/<slug> links) rather than the heading.
         m_job = JOB_URL_RE.match(path)
-        if m_job and a.find_parent(["h2", "h3", "h4", "h5"]):
+        if m_job:
             company_slug, job_slug = m_job.group(1), m_job.group(2)
+            source_job_id = f"{company_slug}/{job_slug}"
+            if source_job_id in seen_ids:
+                # Job can be linked more than once (e.g. featured + in-list);
+                # keep the first occurrence as the canonical title anchor.
+                current_job = None
+                continue
+            seen_ids.add(source_job_id)
             current_job = {
                 "source": SOURCE_NAME,
                 "url": urljoin(BASE, path),
-                "source_job_id": f"{company_slug}/{job_slug}",
+                "source_job_id": source_job_id,
                 "title": re.sub(r"\s+", " ", a.get_text(" ", strip=True)),
                 "company_name": (current_company or {}).get("name"),
                 "company_name_jp": None,
@@ -206,13 +218,14 @@ def parse_listing(html: str) -> list[dict]:
             jobs.append(current_job)
             continue
 
-        # Company anchor inside a heading -> update current company
+        # Company anchor (/companies/<slug>) -> update current company. Each
+        # company card links its logo (empty text) and its name; keep the link
+        # that carries the name so the following jobs inherit it.
         m_co = COMPANY_URL_RE.match(path)
-        if m_co and a.find_parent(["h2", "h3", "h4", "h5"]):
-            current_company = {
-                "slug": m_co.group(1),
-                "name": re.sub(r"\s+", " ", a.get_text(" ", strip=True)),
-            }
+        if m_co:
+            name = re.sub(r"\s+", " ", a.get_text(" ", strip=True))
+            if name:
+                current_company = {"slug": m_co.group(1), "name": name}
             # The next emitted job inherits this company.
             continue
 

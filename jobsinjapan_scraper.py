@@ -62,9 +62,10 @@ HEADERS = {
     "Referer": "https://jobsinjapan.com/jobs/",
 }
 
-# Detail URL pattern: /jobs/<slug>/  (exactly one slug under /jobs/)
+# Detail URL pattern: /jobs/<numeric-id>/<slug>/
+# (jobsinjapan moved from /jobs/<slug>/ to an id-prefixed path in 2026.)
 # Excludes /jobs/ itself, /jobs/?paged=2, /job-category/..., /job-region/...
-JOB_URL_RE = re.compile(r"^/jobs/[^/?#]+/?$", re.IGNORECASE)
+JOB_URL_RE = re.compile(r"^/jobs/\d+/[^/?#]+/?$", re.IGNORECASE)
 
 DEBUG_DIR = Path(__file__).parent / "debug"
 log = logging.getLogger("jobsinjapan")
@@ -183,7 +184,10 @@ def iter_listing_pages(fetch: Fetcher, max_pages: int) -> Iterator[tuple[int, st
         url = LISTING_URL_TMPL.format(page=page)
         log.info("listing: %s", url)
         html = fetch.get(url)
-        if not html or not JOB_URL_RE.search(html):
+        # Guard on actually-parsed detail URLs, not a raw-HTML regex search:
+        # JOB_URL_RE is anchored (^…$) so .search(html) never matches a full
+        # document, which previously stopped every run at page 1.
+        if not html or not discover_job_urls(html):
             log.warning("page %d: no job urls found, stopping", page)
             return
         yield page, html

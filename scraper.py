@@ -53,19 +53,39 @@ import salary_parser
 
 SOURCE_NAME = "gaijinpot"
 BASE = "https://jobs.gaijinpot.com"
+# GaijinPot returns 403 to a cold client; the jobs host only serves listings
+# once the session holds the connect.sid / PHPSESSID cookies handed out by the
+# main site. Warm the session against this URL before the first real request.
+WARMUP_URL = "https://www.gaijinpot.com/"
 LISTING_URLS = [
     "https://jobs.gaijinpot.com/en/job?page={page}",
     "https://jobs.gaijinpot.com/en/job",
 ]
+# GaijinPot's edge rejects requests that don't look like a real navigation:
+# both the full Sec-Fetch/Sec-Ch-Ua header set AND the warmed session cookies
+# are required — either one alone still yields 403.
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/124.0.0.0 Safari/537.36"
+        "Chrome/126.0.0.0 Safari/537.36"
     ),
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept": (
+        "text/html,application/xhtml+xml,application/xml;q=0.9,"
+        "image/avif,image/webp,*/*;q=0.8"
+    ),
     "Accept-Language": "en-US,en;q=0.9",
-    "Referer": "https://jobs.gaijinpot.com/",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Referer": "https://www.gaijinpot.com/",
+    "Sec-Ch-Ua": '"Chromium";v="126", "Not-A.Brand";v="24"',
+    "Sec-Ch-Ua-Mobile": "?0",
+    "Sec-Ch-Ua-Platform": '"macOS"',
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "same-origin",
+    "Sec-Fetch-User": "?1",
+    "Upgrade-Insecure-Requests": "1",
+    "Connection": "keep-alive",
 }
 
 # A GaijinPot detail URL is /en/job/<id> (sometimes with a trailing slug).
@@ -88,8 +108,25 @@ class Fetcher:
         self.session = requests.Session()
         self.session.headers.update(HEADERS)
         self._last_request: float = 0.0
+        self._warmed = False
+
+    def _warm(self) -> None:
+        """Pick up the session cookies the jobs host requires (see WARMUP_URL).
+
+        Best-effort: if the warmup request fails we still try the real request,
+        which will log its own non-200.
+        """
+        self._warmed = True
+        try:
+            r = self.session.get(WARMUP_URL, timeout=20)
+            log.debug("warmup %s -> %s (cookies: %s)",
+                      WARMUP_URL, r.status_code, ", ".join(self.session.cookies.keys()))
+        except requests.RequestException as e:
+            log.warning("warmup request failed: %s -> %s", WARMUP_URL, e)
 
     def get(self, url: str) -> Optional[str]:
+        if not self._warmed:
+            self._warm()
         wait = self.delay - (time.monotonic() - self._last_request)
         if wait > 0:
             time.sleep(wait)
