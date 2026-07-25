@@ -82,6 +82,21 @@
   .hero h1 { font-family: var(--font-display); font-weight: 600; font-size: clamp(38px, 4.8vw, 60px);
     line-height: 1.02; letter-spacing: -0.015em; margin: 14px 0 16px; color: var(--ink);
     max-width: 15ch; text-wrap: balance; }
+  /* Animated hero audience phrase — "…indexed for [audience]" stays grammatically
+     stable while the closing vermilion phrase cycles, resolving to the canonical
+     "foreign candidates". The phrase sits alone on the last line and never wraps
+     (nowrap), so width changes are absorbed ragged-right and never reflow the
+     headline (no layout shift). Reduced-motion and no-JS both render a static
+     "foreign candidates". Durations use the motion tokens (≤350ms). */
+  .hero h1 .hero-swap { display: inline-block; vertical-align: baseline; white-space: nowrap; }
+  .hero h1 .hero-swap__word { display: inline-block; color: var(--accent);
+    transition: opacity var(--motion-slow) var(--ease-standard),
+                transform var(--motion-slow) var(--ease-standard); }
+  .hero h1 .hero-swap__word.is-out { opacity: 0; transform: translateY(-0.16em); }
+  .hero h1 .hero-swap__word.is-in  { opacity: 0; transform: translateY(0.16em); }
+  @media (prefers-reduced-motion: reduce) {
+    .hero h1 .hero-swap__word { transition: none !important; transform: none !important; opacity: 1 !important; }
+  }
   .hero .sub { font-size: 16.5px; color: var(--fg-soft); max-width: 34em; margin: 0 0 26px; line-height: 1.62; }
   .hero .sub b { color: var(--ink); font-weight: 600; }
 
@@ -232,7 +247,7 @@
 <section class="hero">
   <div class="hero-left">
     <span class="eyebrow-rule">The index · {{ stats.by_source | length }} sources · updated daily</span>
-    <h1>Japan's job market, indexed for foreign candidates</h1>
+    <h1>Japan's job market, indexed for <span class="hero-swap"><span class="hero-swap__word">foreign candidates</span></span></h1>
     <p class="sub">
       Every listing is scored on what actually gates a foreign application —
       <b>posting language</b>, <b>Japanese level</b>, <b>visa signals</b>,
@@ -454,5 +469,40 @@
     <span class="act-note">no account · saved in your browser · stale listings flagged</span>
   </div>
 </section>
+
+<script>
+  /* Hero audience rotator: cycles the closing vermilion phrase of the headline
+     through the audiences this board indexes for, resolving back to the
+     canonical "foreign candidates". Progressive enhancement — with no JS the
+     headline stays a static "foreign candidates". No aria-live, so screen
+     readers read the headline once and never on every swap. */
+  (function () {
+    var swap = document.querySelector('.hero-swap');
+    var wordEl = swap && swap.querySelector('.hero-swap__word');
+    if (!wordEl) return;
+    var mq = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (mq && mq.matches) return;            // reduced motion → leave the static phrase
+    var words = ['foreign candidates', 'bilingual talent', 'global applicants', 'English speakers'];
+    var HALF = 320;                          // must match --motion-slow
+    var i = 0, timer;
+    function tick() {
+      i = (i + 1) % words.length;
+      wordEl.classList.add('is-out');        // current phrase eases up + fades out
+      window.setTimeout(function () {
+        wordEl.textContent = words[i];
+        wordEl.classList.remove('is-out');
+        wordEl.classList.add('is-in');       // next phrase starts below, transparent
+        void wordEl.offsetWidth;             // commit that start state
+        wordEl.classList.remove('is-in');    // …then eases up into place
+      }, HALF);
+    }
+    function start() { timer = window.setInterval(tick, 2800); }
+    start();
+    document.addEventListener('visibilitychange', function () {
+      window.clearInterval(timer);           // pause when the tab is hidden
+      if (!document.hidden) start();
+    });
+  })();
+</script>
 
 {% endblock %}
