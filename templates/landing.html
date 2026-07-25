@@ -87,8 +87,15 @@
      "foreign candidates". The phrase sits alone on the last line and never wraps
      (nowrap), so width changes are absorbed ragged-right and never reflow the
      headline (no layout shift). Reduced-motion and no-JS both render a static
-     "foreign candidates". Durations use the motion tokens (≤350ms). */
-  .hero h1 .hero-swap { display: inline-block; vertical-align: baseline; white-space: nowrap; }
+     "foreign candidates". Durations use the motion tokens (≤350ms).
+
+     The phrase is display:block so it always occupies its own line. That is
+     load-bearing, not cosmetic: the h1 uses text-wrap:balance, and while the
+     phrase was inline the balancer redistributed the whole headline every time
+     the phrase changed width — a shorter phrase like "bilingual talent" pulled
+     "for" down onto line 3. Blocking the phrase isolates it, so the fixed text
+     above always balances to the same two lines. */
+  .hero h1 .hero-swap { display: block; white-space: nowrap; }
   .hero h1 .hero-swap__word { display: inline-block; color: var(--accent);
     transition: opacity var(--motion-slow) var(--ease-standard),
                 transform var(--motion-slow) var(--ease-standard); }
